@@ -15,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.GenericContainer;
@@ -42,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FitPilotApiIT {
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
@@ -56,6 +58,7 @@ class FitPilotApiIT {
         registry.add("security.jwt.secret", () -> "integration-test-secret-key-with-32-bytes-minimum");
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
+        registry.add("fitpilot.events.enabled", () -> "false");
     }
 
     @Autowired MockMvc mvc;
@@ -111,17 +114,19 @@ class FitPilotApiIT {
         JsonNode completed = call(post("/api/v1/workouts/{id}/complete", workoutId)
                 .header("Authorization", bearer(token)), 200);
         assertThat(completed.path("data").path("workout").path("status").asText()).isEqualTo("COMPLETED");
-        assertThat(completed.path("data").path("newPersonalRecords").asInt()).isEqualTo(4);
+        assertThat(completed.path("data").path("newPersonalRecords").asInt()).isZero();
         JsonNode repeated = call(post("/api/v1/workouts/{id}/complete", workoutId)
                 .header("Authorization", bearer(token)), 200);
-        assertThat(repeated.path("data").path("newPersonalRecords").asInt()).isEqualTo(4);
+        assertThat(repeated.path("data").path("newPersonalRecords").asInt()).isZero();
 
         mvc.perform(get("/api/v1/personal-records").header("Authorization", bearer(token)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(4));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
         mvc.perform(get("/api/v1/analytics/overview").header("Authorization", bearer(token)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.trainingVolume").value(400));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.trainingVolume").value(0));
         mvc.perform(get("/api/v1/leaderboards/exercises/1").header("Authorization", bearer(token)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].score").value(93.33));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM outbox_event WHERE event_type='WorkoutCompletedEvent' AND status='PENDING'",
+                Long.class)).isEqualTo(1L);
 
         mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());
         mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());

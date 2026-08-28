@@ -6,6 +6,9 @@ import com.fitpilot.pr.repository.PersonalRecordRepository;
 import com.fitpilot.workout.domain.Workout;
 import com.fitpilot.workout.domain.WorkoutExercise;
 import com.fitpilot.workout.domain.WorkoutSet;
+import com.fitpilot.infrastructure.events.EventOutboxService;
+import com.fitpilot.infrastructure.events.EventPayloads;
+import com.fitpilot.infrastructure.events.EventTypes;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -21,10 +24,13 @@ public class PersonalRecordService {
     private final PersonalRecordRepository repository;
     private final LeaderboardService leaderboard;
     private final PersonalRecordCalculator calculator = new PersonalRecordCalculator();
+    private final EventOutboxService events;
 
-    public PersonalRecordService(PersonalRecordRepository repository, LeaderboardService leaderboard) {
+    public PersonalRecordService(PersonalRecordRepository repository, LeaderboardService leaderboard,
+                                 EventOutboxService events) {
         this.repository = repository;
         this.leaderboard = leaderboard;
+        this.events = events;
     }
 
     public int calculateAndPersist(Workout workout, List<WorkoutExercise> workoutExercises, List<WorkoutSet> sets) {
@@ -56,7 +62,10 @@ public class PersonalRecordService {
                 record.workoutSetId = set.id;
                 record.achievedAt = set.completedAt;
                 record.createdAt = LocalDateTime.now();
-                repository.insert(record);
+                if (!repository.insertIfAbsent(record)) continue;
+                events.append("PersonalRecord", record.id, EventTypes.PERSONAL_RECORD_CREATED,
+                        new EventPayloads.PersonalRecordCreated(record.id, workout.userId, snapshot.exerciseId,
+                                snapshot.exerciseName, record.recordType, candidate.score(), workout.id, record.achievedAt));
                 newRecords.add(record);
                 best.put(key, candidate.score());
                 created++;

@@ -9,6 +9,20 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        isolation.level: read_committed
+    listener:
+      ack-mode: record
   flyway:
     enabled: true
     validate-migration-naming: true
@@ -36,6 +50,19 @@ security:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:7200}
 fitpilot:
+  events:
+    enabled: ${EVENTS_ENABLED:true}
+    operations-token: ${EVENT_OPERATIONS_TOKEN:}
+    relay:
+      batch-size: ${OUTBOX_BATCH_SIZE:100}
+      fixed-delay-ms: ${OUTBOX_FIXED_DELAY_MS:500}
+      claim-timeout-seconds: ${OUTBOX_CLAIM_TIMEOUT_SECONDS:30}
+      send-timeout-seconds: ${OUTBOX_SEND_TIMEOUT_SECONDS:5}
+      max-attempts: ${OUTBOX_MAX_ATTEMPTS:20}
+    consumer:
+      concurrency: ${EVENT_CONSUMER_CONCURRENCY:3}
+      retry-interval-ms: ${EVENT_RETRY_INTERVAL_MS:1000}
+      max-attempts: ${EVENT_RETRY_MAX_ATTEMPTS:3}
   performance:
     cache:
       enabled: ${CACHE_ENABLED:true}

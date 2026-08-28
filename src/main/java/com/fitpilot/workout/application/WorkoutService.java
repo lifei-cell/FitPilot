@@ -10,8 +10,10 @@ import com.fitpilot.plan.domain.TrainingPlan;
 import com.fitpilot.plan.domain.TrainingPlanDay;
 import com.fitpilot.plan.domain.TrainingPlanExercise;
 import com.fitpilot.plan.repository.TrainingPlanRepository;
-import com.fitpilot.pr.application.PersonalRecordService;
 import com.fitpilot.pr.repository.PersonalRecordRepository;
+import com.fitpilot.infrastructure.events.EventOutboxService;
+import com.fitpilot.infrastructure.events.EventPayloads;
+import com.fitpilot.infrastructure.events.EventTypes;
 import com.fitpilot.workout.domain.Workout;
 import com.fitpilot.workout.domain.WorkoutExercise;
 import com.fitpilot.workout.domain.WorkoutSet;
@@ -35,16 +37,16 @@ public class WorkoutService {
     private final WorkoutRepository repository;
     private final TrainingPlanRepository plans;
     private final ExerciseRepository exercises;
-    private final PersonalRecordService personalRecords;
     private final PersonalRecordRepository personalRecordRepository;
+    private final EventOutboxService events;
 
     public WorkoutService(WorkoutRepository repository, TrainingPlanRepository plans, ExerciseRepository exercises,
-                          PersonalRecordService personalRecords, PersonalRecordRepository personalRecordRepository) {
+                          PersonalRecordRepository personalRecordRepository, EventOutboxService events) {
         this.repository = repository;
         this.plans = plans;
         this.exercises = exercises;
-        this.personalRecords = personalRecords;
         this.personalRecordRepository = personalRecordRepository;
+        this.events = events;
     }
 
     @Transactional
@@ -199,10 +201,12 @@ public class WorkoutService {
         workout.status = "COMPLETED";
         workout.updatedAt = completedAt;
         repository.update(workout);
-        int created = personalRecords.calculateAndPersist(workout, exerciseList, setList);
-        log.info("operation=CompleteWorkout userId={} resourceId={} sets={} durationSeconds={} newPrs={}",
-                userId, workoutId, setList.size(), workout.durationSeconds, created);
-        return new WorkoutDtos.CompleteView(get(userId, workoutId), created);
+        events.append("Workout", workout.id, EventTypes.WORKOUT_COMPLETED,
+                new EventPayloads.WorkoutCompleted(workout.id, userId, completedAt,
+                        workout.durationSeconds, (int) setList.stream().filter(this::validCompletedSet).count()));
+        log.info("operation=CompleteWorkout userId={} resourceId={} sets={} durationSeconds={} event=accepted",
+                userId, workoutId, setList.size(), workout.durationSeconds);
+        return new WorkoutDtos.CompleteView(get(userId, workoutId), 0);
     }
 
     private WorkoutSet ownedSet(long workoutId, long setId) {

@@ -6,6 +6,9 @@ import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.PageResult;
 import com.fitpilot.exercise.repository.ExerciseRepository;
 import com.fitpilot.infrastructure.performance.TwoLevelCache;
+import com.fitpilot.infrastructure.events.EventOutboxService;
+import com.fitpilot.infrastructure.events.EventPayloads;
+import com.fitpilot.infrastructure.events.EventTypes;
 import com.fitpilot.plan.domain.TrainingPlan;
 import com.fitpilot.plan.domain.TrainingPlanDay;
 import com.fitpilot.plan.domain.TrainingPlanExercise;
@@ -25,11 +28,14 @@ public class TrainingPlanService {
     private final TrainingPlanRepository repository;
     private final ExerciseRepository exercises;
     private final TwoLevelCache cache;
+    private final EventOutboxService events;
 
-    public TrainingPlanService(TrainingPlanRepository repository, ExerciseRepository exercises, TwoLevelCache cache) {
+    public TrainingPlanService(TrainingPlanRepository repository, ExerciseRepository exercises, TwoLevelCache cache,
+                               EventOutboxService events) {
         this.repository = repository;
         this.exercises = exercises;
         this.cache = cache;
+        this.events = events;
     }
 
     @Transactional
@@ -78,6 +84,8 @@ public class TrainingPlanService {
                 repository.insert(exercise);
             }
         }
+        events.append("TrainingPlan", plan.id, EventTypes.TRAINING_PLAN_CREATED,
+                new EventPayloads.TrainingPlanChanged(plan.id, userId, plan.status, plan.version, now));
         return get(userId, plan.id);
     }
 
@@ -118,10 +126,13 @@ public class TrainingPlanService {
         LocalDateTime now = LocalDateTime.now();
         repository.archiveActive(userId, now);
         plan.status = "ACTIVE";
+        plan.version = plan.version + 1;
         plan.startedAt = now.toLocalDate();
         plan.endedAt = null;
         plan.updatedAt = now;
         repository.update(plan);
+        events.append("TrainingPlan", plan.id, EventTypes.TRAINING_PLAN_UPDATED,
+                new EventPayloads.TrainingPlanChanged(plan.id, userId, plan.status, plan.version, now));
         cache.evictAfterCommit("active-plan", String.valueOf(userId));
         return get(userId, planId);
     }

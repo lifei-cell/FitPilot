@@ -36,6 +36,7 @@ public class WorkoutRepository {
     public Optional<Workout> findOwned(long userId, long id) {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>().eq("id", id).eq("user_id", userId)));
     }
+    public Optional<Workout> findById(long id) { return Optional.ofNullable(workouts.selectById(id)); }
     public Optional<WorkoutExercise> findExercise(long workoutId, long exerciseId) {
         return Optional.ofNullable(exercises.selectOne(new QueryWrapper<WorkoutExercise>()
                 .eq("id", exerciseId).eq("workout_id", workoutId)));
