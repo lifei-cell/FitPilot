@@ -29,6 +29,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
       REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      IDEMPOTENCY_ENABLED: ${IDEMPOTENCY_ENABLED:-true}
     ports: ["8080:8080"]
     depends_on:
       postgres: {condition: service_healthy}

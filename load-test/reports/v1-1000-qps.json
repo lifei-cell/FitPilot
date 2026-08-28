@@ -1,0 +1,156 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "groups": {},
+                "checks": {
+                        "warmup status is 200": {
+                            "id": "5321d4e51dc39b274c47b59403629336",
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "warmup status is 200",
+                            "path": "::setup::warmup status is 200"
+                        }
+                    },
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a"
+            }
+        },
+        "checks": {
+            "status is 200": {
+                "name": "status is 200",
+                "path": "::status is 200",
+                "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                "passes": 9995,
+                "fails": 0
+            }
+        },
+        "name": ""
+    },
+    "metrics": {
+        "http_reqs": {
+            "count": 9996,
+            "rate": 998.8320634499136
+        },
+        "iterations": {
+            "count": 9995,
+            "rate": 998.7321402742983
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0
+        },
+        "data_received": {
+            "rate": 698183.6123514896,
+            "count": 6987204
+        },
+        "data_sent": {
+            "rate": 108872.69491604058,
+            "count": 1089564
+        },
+        "http_req_waiting": {
+            "avg": 4.534368373049216,
+            "min": 0.809377,
+            "med": 1.135332,
+            "max": 921.267012,
+            "p(90)": 1.4482370000000002,
+            "p(95)": 1.6087915
+        },
+        "vus_max": {
+            "value": 104,
+            "min": 100,
+            "max": 104
+        },
+        "vus": {
+            "value": 2,
+            "min": 1,
+            "max": 5
+        },
+        "checks": {
+            "passes": 9996,
+            "fails": 0,
+            "value": 1
+        },
+        "dropped_iterations": {
+            "count": 6,
+            "rate": 0.5995390536914247
+        },
+        "http_req_duration": {
+            "p(95)": 1.76375275,
+            "avg": 4.634911439475786,
+            "min": 0.857769,
+            "med": 1.233395,
+            "max": 921.289264,
+            "p(90)": 1.5790465,
+            "thresholds": {
+                "p(95)<250": false
+            }
+        },
+        "http_req_receiving": {
+            "avg": 0.07999275930372145,
+            "min": 0.009598,
+            "med": 0.047082,
+            "max": 3.250399,
+            "p(90)": 0.167663,
+            "p(95)": 0.23429325
+        },
+        "http_req_blocked": {
+            "p(90)": 0.0048,
+            "p(95)": 0.005391,
+            "avg": 0.0650232952180895,
+            "min": 0.001193,
+            "med": 0.002876,
+            "max": 32.198012
+        },
+        "iteration_duration": {
+            "avg": 4.778558577988997,
+            "min": 0.929128,
+            "med": 1.313242,
+            "max": 921.350645,
+            "p(90)": 1.6819938,
+            "p(95)": 1.9065666999999977
+        },
+        "http_req_sending": {
+            "p(95)": 0.05762475,
+            "avg": 0.020550307122849127,
+            "min": 0.004038,
+            "med": 0.0118685,
+            "max": 0.829876,
+            "p(90)": 0.04414
+        },
+        "http_req_failed": {
+            "fails": 9996,
+            "passes": 0,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_connecting": {
+            "p(95)": 0,
+            "avg": 0.060588630252100865,
+            "min": 0,
+            "med": 0,
+            "max": 32.158645,
+            "p(90)": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 4.634911439475786,
+            "min": 0.857769,
+            "med": 1.233395,
+            "max": 921.289264,
+            "p(90)": 1.5790465,
+            "p(95)": 1.76375275
+        }
+    },
+    "setup_data": {
+        "baseUrl": "http://host.docker.internal:8080"
+    }
+}

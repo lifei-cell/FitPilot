@@ -5,6 +5,7 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.PageResult;
 import com.fitpilot.exercise.repository.ExerciseRepository;
+import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import com.fitpilot.plan.domain.TrainingPlan;
 import com.fitpilot.plan.domain.TrainingPlanDay;
 import com.fitpilot.plan.domain.TrainingPlanExercise;
@@ -23,10 +24,12 @@ import java.util.stream.Collectors;
 public class TrainingPlanService {
     private final TrainingPlanRepository repository;
     private final ExerciseRepository exercises;
+    private final TwoLevelCache cache;
 
-    public TrainingPlanService(TrainingPlanRepository repository, ExerciseRepository exercises) {
+    public TrainingPlanService(TrainingPlanRepository repository, ExerciseRepository exercises, TwoLevelCache cache) {
         this.repository = repository;
         this.exercises = exercises;
+        this.cache = cache;
     }
 
     @Transactional
@@ -97,6 +100,12 @@ public class TrainingPlanService {
         return PageResult.of(items, result.getTotal(), page, size);
     }
 
+    public TrainingPlanDtos.PlanView active(long userId) {
+        return cache.get("active-plan", String.valueOf(userId), TrainingPlanDtos.PlanView.class,
+                        () -> repository.findActive(userId).map(plan -> get(userId, plan.id)))
+                .orElseThrow(this::notFound);
+    }
+
     @Transactional
     public TrainingPlanDtos.PlanView activate(long userId, long planId) {
         TrainingPlan plan = repository.findOwned(userId, planId).orElseThrow(this::notFound);
@@ -113,6 +122,7 @@ public class TrainingPlanService {
         plan.endedAt = null;
         plan.updatedAt = now;
         repository.update(plan);
+        cache.evictAfterCommit("active-plan", String.valueOf(userId));
         return get(userId, planId);
     }
 

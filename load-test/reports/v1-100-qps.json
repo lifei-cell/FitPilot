@@ -1,0 +1,152 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "groups": {},
+                "checks": {
+                        "warmup status is 200": {
+                            "fails": 0,
+                            "name": "warmup status is 200",
+                            "path": "::setup::warmup status is 200",
+                            "id": "5321d4e51dc39b274c47b59403629336",
+                            "passes": 1
+                        }
+                    },
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a"
+            }
+        },
+        "checks": {
+            "status is 200": {
+                "fails": 0,
+                "name": "status is 200",
+                "path": "::status is 200",
+                "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                "passes": 1001
+            }
+        },
+        "name": ""
+    },
+    "metrics": {
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.03321305688622754,
+            "min": 0,
+            "med": 0,
+            "max": 2.77325
+        },
+        "data_sent": {
+            "count": 109218,
+            "rate": 10847.567649532502
+        },
+        "http_req_receiving": {
+            "avg": 0.17900077145708582,
+            "min": 0.038135,
+            "med": 0.10640849999999999,
+            "max": 2.036601,
+            "p(90)": 0.39447889999999997,
+            "p(95)": 0.49281939999999996
+        },
+        "iteration_duration": {
+            "med": 2.739513,
+            "max": 28.10574,
+            "p(90)": 4.609859,
+            "p(95)": 5.126522,
+            "avg": 3.1777623916083915,
+            "min": 1.596335
+        },
+        "http_req_blocked": {
+            "avg": 0.042220792415169524,
+            "min": 0.002385,
+            "med": 0.004068,
+            "max": 3.968186,
+            "p(90)": 0.0066289999999999995,
+            "p(95)": 0.009978849999999932
+        },
+        "http_req_waiting": {
+            "min": 1.386306,
+            "med": 2.402976,
+            "max": 60.822619,
+            "p(90)": 4.0253242,
+            "p(95)": 4.5080005499999976,
+            "avg": 2.8374193043912173
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 3.0536173283433143,
+            "min": 1.473784,
+            "med": 2.5919904999999996,
+            "max": 61.648619,
+            "p(90)": 4.4134899999999995,
+            "p(95)": 4.865826049999999
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_reqs": {
+            "rate": 99.51896926176607,
+            "count": 1002
+        },
+        "checks": {
+            "fails": 0,
+            "passes": 1002,
+            "value": 1
+        },
+        "data_received": {
+            "count": 700398,
+            "rate": 69563.75951397448
+        },
+        "iterations": {
+            "rate": 99.41964893316151,
+            "count": 1001
+        },
+        "http_req_sending": {
+            "med": 0.030134,
+            "max": 0.674138,
+            "p(90)": 0.061264,
+            "p(95)": 0.06988294999999996,
+            "avg": 0.03719725249500994,
+            "min": 0.007474
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 1002,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "vus_max": {
+            "min": 20,
+            "max": 20,
+            "value": 20
+        },
+        "vus": {
+            "value": 1,
+            "min": 0,
+            "max": 1
+        },
+        "http_req_duration": {
+            "avg": 3.0536173283433143,
+            "min": 1.473784,
+            "med": 2.5919904999999996,
+            "max": 61.648619,
+            "p(90)": 4.4134899999999995,
+            "p(95)": 4.865826049999999,
+            "thresholds": {
+                "p(95)<250": false
+            }
+        }
+    },
+    "setup_data": {
+        "baseUrl": "http://host.docker.internal:8080"
+    }
+}

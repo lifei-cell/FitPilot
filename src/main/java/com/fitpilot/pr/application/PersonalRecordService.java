@@ -7,6 +7,8 @@ import com.fitpilot.workout.domain.Workout;
 import com.fitpilot.workout.domain.WorkoutExercise;
 import com.fitpilot.workout.domain.WorkoutSet;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,9 +19,13 @@ import java.util.stream.Collectors;
 @Service
 public class PersonalRecordService {
     private final PersonalRecordRepository repository;
+    private final LeaderboardService leaderboard;
     private final PersonalRecordCalculator calculator = new PersonalRecordCalculator();
 
-    public PersonalRecordService(PersonalRecordRepository repository) { this.repository = repository; }
+    public PersonalRecordService(PersonalRecordRepository repository, LeaderboardService leaderboard) {
+        this.repository = repository;
+        this.leaderboard = leaderboard;
+    }
 
     public int calculateAndPersist(Workout workout, List<WorkoutExercise> workoutExercises, List<WorkoutSet> sets) {
         Map<Long, WorkoutExercise> exerciseBySnapshot = workoutExercises.stream()
@@ -31,6 +37,7 @@ public class PersonalRecordService {
         }
 
         int created = 0;
+        List<PersonalRecord> newRecords = new ArrayList<>();
         for (WorkoutSet set : sets) {
             WorkoutExercise snapshot = exerciseBySnapshot.get(set.workoutExerciseId);
             if (snapshot == null) continue;
@@ -50,11 +57,22 @@ public class PersonalRecordService {
                 record.achievedAt = set.completedAt;
                 record.createdAt = LocalDateTime.now();
                 repository.insert(record);
+                newRecords.add(record);
                 best.put(key, candidate.score());
                 created++;
             }
         }
+        updateLeaderboardAfterCommit(newRecords);
         return created;
+    }
+
+    private void updateLeaderboardAfterCommit(List<PersonalRecord> records) {
+        if (records.isEmpty()) return;
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { records.forEach(leaderboard::update); }
+            });
+        } else records.forEach(leaderboard::update);
     }
 
     private BigDecimal score(PersonalRecord record) {

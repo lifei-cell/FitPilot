@@ -36,6 +36,10 @@ public class TrainingPlanRepository {
     public Optional<TrainingPlan> findOwned(long userId, long id) {
         return Optional.ofNullable(plans.selectOne(new QueryWrapper<TrainingPlan>().eq("id", id).eq("user_id", userId)));
     }
+    public Optional<TrainingPlan> findActive(long userId) {
+        return Optional.ofNullable(plans.selectOne(new QueryWrapper<TrainingPlan>()
+                .eq("user_id", userId).eq("status", "ACTIVE")));
+    }
     public Optional<TrainingPlanDay> findOwnedDay(long userId, long planId, long dayId) {
         TrainingPlan plan = findOwned(userId, planId).orElse(null);
         if (plan == null) return Optional.empty();

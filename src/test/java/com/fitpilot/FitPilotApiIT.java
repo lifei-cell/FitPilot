@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
+import com.fitpilot.infrastructure.performance.DistributedLockService;
+import com.fitpilot.infrastructure.performance.RedisTokenBucketRateLimiter;
+import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,12 +17,22 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class FitPilotApiIT {
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
+    @Container
+    static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7.4-alpine").withExposedPorts(6379);
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -39,12 +54,17 @@ class FitPilotApiIT {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("security.jwt.secret", () -> "integration-test-secret-key-with-32-bytes-minimum");
+        registry.add("spring.data.redis.host", REDIS::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
     }
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired TrainingPlanService trainingPlanService;
     @Autowired JdbcTemplate jdbc;
+    @Autowired TwoLevelCache cache;
+    @Autowired RedisTokenBucketRateLimiter rateLimiter;
+    @Autowired DistributedLockService locks;
 
     @Test
     void completeUserPlanWorkoutPrAndAnalyticsFlow() throws Exception {
@@ -71,9 +91,17 @@ class FitPilotApiIT {
         long dayId = plan.path("data").path("days").get(0).path("id").asLong();
         call(post("/api/v1/training-plans/{id}/activate", planId).header("Authorization", bearer(token)), 200);
 
-        JsonNode workout = call(post("/api/v1/workouts").header("Authorization", bearer(token))
-                .contentType("application/json").content(json.writeValueAsBytes(Map.of(
-                        "trainingPlanId", planId, "trainingPlanDayId", dayId))), 201);
+        byte[] workoutBody = json.writeValueAsBytes(Map.of("trainingPlanId", planId, "trainingPlanDayId", dayId));
+        String idempotencyKey = UUID.randomUUID().toString();
+        var firstWorkout = mvc.perform(post("/api/v1/workouts").header("Authorization", bearer(token))
+                        .header("Idempotency-Key", idempotencyKey).contentType("application/json").content(workoutBody))
+                .andExpect(status().isCreated()).andReturn();
+        var replayedWorkout = mvc.perform(post("/api/v1/workouts").header("Authorization", bearer(token))
+                        .header("Idempotency-Key", idempotencyKey).contentType("application/json").content(workoutBody))
+                .andExpect(status().isCreated()).andExpect(header().string("Idempotency-Replayed", "true")).andReturn();
+        assertThat(replayedWorkout.getResponse().getContentAsByteArray())
+                .isEqualTo(firstWorkout.getResponse().getContentAsByteArray());
+        JsonNode workout = json.readTree(firstWorkout.getResponse().getContentAsByteArray());
         long workoutId = workout.path("data").path("id").asLong();
         long workoutExerciseId = workout.path("data").path("exercises").get(0).path("id").asLong();
         call(post("/api/v1/workouts/{workoutId}/exercises/{exerciseId}/sets", workoutId, workoutExerciseId)
@@ -92,11 +120,63 @@ class FitPilotApiIT {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(4));
         mvc.perform(get("/api/v1/analytics/overview").header("Authorization", bearer(token)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.trainingVolume").value(400));
+        mvc.perform(get("/api/v1/leaderboards/exercises/1").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].score").value(93.33));
+
+        mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/performance/cache-stats").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.hits").isNumber());
 
         register("other_user");
         String otherToken = login("other_user");
         mvc.perform(get("/api/v1/workouts/{id}", workoutId).header("Authorization", bearer(otherToken)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void performancePrimitivesAreAtomicAndBlockPenetration() throws Exception {
+        String scope = UUID.randomUUID().toString();
+        assertThat(rateLimiter.consume(scope, 2, 1).allowed()).isTrue();
+        assertThat(rateLimiter.consume(scope, 2, 1).allowed()).isTrue();
+        assertThat(rateLimiter.consume(scope, 2, 1).allowed()).isFalse();
+
+        String lockKey = "fitpilot:test:lock:" + scope;
+        var first = locks.tryLock(lockKey, Duration.ofSeconds(5));
+        assertThat(first).isPresent();
+        assertThat(locks.tryLock(lockKey, Duration.ofSeconds(5))).isEmpty();
+        first.orElseThrow().close();
+        var reacquired = locks.tryLock(lockKey, Duration.ofSeconds(5));
+        assertThat(reacquired).isPresent();
+        reacquired.orElseThrow().close();
+
+        AtomicInteger loads = new AtomicInteger();
+        String cacheId = UUID.randomUUID().toString();
+        assertThat(cache.get("missing-test", cacheId, String.class,
+                () -> { loads.incrementAndGet(); return Optional.empty(); })).isEmpty();
+        assertThat(cache.get("missing-test", cacheId, String.class,
+                () -> { loads.incrementAndGet(); return Optional.empty(); })).isEmpty();
+        assertThat(loads).hasValue(1);
+
+        AtomicInteger concurrentLoads = new AtomicInteger();
+        String hotId = UUID.randomUUID().toString();
+        var executor = Executors.newFixedThreadPool(12);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<Optional<String>>> futures = java.util.stream.IntStream.range(0, 24)
+                .mapToObj(index -> executor.submit(() -> {
+                    start.await();
+                    return cache.get("single-flight-test", hotId, String.class, () -> {
+                        concurrentLoads.incrementAndGet();
+                        LockSupport.parkNanos(Duration.ofMillis(30).toNanos());
+                        return Optional.of("hot-value");
+                    });
+                })).toList();
+        start.countDown();
+        for (Future<Optional<String>> future : futures) {
+            assertThat(future.get(2, TimeUnit.SECONDS)).contains("hot-value");
+        }
+        executor.shutdownNow();
+        assertThat(concurrentLoads).hasValue(1);
     }
 
     @Test
@@ -113,6 +193,24 @@ class FitPilotApiIT {
                 .isInstanceOf(DataIntegrityViolationException.class);
         Long count = jdbc.queryForObject("SELECT COUNT(*) FROM training_plan WHERE user_id=?", Long.class, userId);
         assertThat(count).isZero();
+    }
+
+    @Test
+    void loginRateLimitReturns429AfterTokenBucketIsExhausted() throws Exception {
+        var requestBody = json.writeValueAsBytes(Map.of("username", "missing-user", "password", "password123"));
+        for (int i = 0; i < 10; i++) {
+            mvc.perform(post("/api/v1/auth/login").with(request -> {
+                        request.setRemoteAddr("198.51.100.42");
+                        return request;
+                    }).contentType("application/json").content(requestBody))
+                    .andExpect(status().isUnauthorized());
+        }
+        mvc.perform(post("/api/v1/auth/login").with(request -> {
+                    request.setRemoteAddr("198.51.100.42");
+                    return request;
+                }).contentType("application/json").content(requestBody))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value(50002));
     }
 
     private JsonNode register(String username) throws Exception {

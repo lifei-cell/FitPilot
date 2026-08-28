@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.PageResult;
+import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import com.fitpilot.user.domain.BodyMetric;
 import com.fitpilot.user.domain.User;
 import com.fitpilot.user.domain.UserProfile;
@@ -20,16 +21,21 @@ import java.time.LocalDateTime;
 public class UserService {
     private final UserRepository users;
     private final BodyMetricRepository metrics;
+    private final TwoLevelCache cache;
 
-    public UserService(UserRepository users, BodyMetricRepository metrics) {
+    public UserService(UserRepository users, BodyMetricRepository metrics, TwoLevelCache cache) {
         this.users = users;
         this.metrics = metrics;
+        this.cache = cache;
     }
 
     public UserDtos.UserProfileView getProfile(long userId) {
-        User user = users.findById(userId).orElseThrow(() -> notFound());
-        UserProfile profile = users.findProfile(userId).orElseThrow(() -> notFound());
-        return view(user, profile);
+        return cache.get("user-profile", String.valueOf(userId), UserDtos.UserProfileView.class, () -> {
+            User user = users.findById(userId).orElse(null);
+            UserProfile profile = users.findProfile(userId).orElse(null);
+            return user == null || profile == null ? java.util.Optional.empty()
+                    : java.util.Optional.of(view(user, profile));
+        }).orElseThrow(this::notFound);
     }
 
     @Transactional
@@ -45,6 +51,7 @@ public class UserService {
         profile.preferredDurationMinutes = request.preferredDurationMinutes();
         profile.updatedAt = LocalDateTime.now();
         users.updateProfile(profile);
+        cache.evictAfterCommit("user-profile", String.valueOf(userId));
         return view(user, profile);
     }
 

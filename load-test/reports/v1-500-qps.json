@@ -1,0 +1,152 @@
+{
+    "metrics": {
+        "vus_max": {
+            "max": 50,
+            "value": 50,
+            "min": 50
+        },
+        "http_req_connecting": {
+            "avg": 0.013684407318536294,
+            "min": 0,
+            "med": 0,
+            "max": 2.368835,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_tls_handshaking": {
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        },
+        "data_sent": {
+            "count": 545109,
+            "rate": 54481.91806582711
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 1.5590642759448146,
+            "min": 0.111005,
+            "med": 1.452536,
+            "max": 27.052468,
+            "p(90)": 1.864447,
+            "p(95)": 2.022077
+        },
+        "http_req_sending": {
+            "avg": 0.026920392321535796,
+            "min": 0.005281,
+            "med": 0.025129,
+            "max": 0.564458,
+            "p(90)": 0.055729,
+            "p(95)": 0.058615
+        },
+        "http_req_receiving": {
+            "avg": 0.0922029634073188,
+            "min": 0.016121,
+            "med": 0.054247,
+            "max": 5.120617,
+            "p(90)": 0.200562,
+            "p(95)": 0.27337
+        },
+        "iterations": {
+            "count": 5000,
+            "rate": 499.7341638628889
+        },
+        "http_reqs": {
+            "rate": 499.8341106956615,
+            "count": 5001
+        },
+        "vus": {
+            "value": 1,
+            "min": 0,
+            "max": 1
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 5001,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "iteration_duration": {
+            "avg": 1.6650361023999964,
+            "min": 1.068271,
+            "med": 1.5436174999999999,
+            "max": 28.372343,
+            "p(90)": 1.9778600000000002,
+            "p(95)": 2.1718899000000005
+        },
+        "http_req_blocked": {
+            "max": 3.333149,
+            "p(90)": 0.00503,
+            "p(95)": 0.005811,
+            "avg": 0.01861303719256136,
+            "min": 0.001824,
+            "med": 0.002996
+        },
+        "checks": {
+            "passes": 5001,
+            "fails": 0,
+            "value": 1
+        },
+        "data_received": {
+            "rate": 349475.19488775596,
+            "count": 3496611
+        },
+        "http_req_duration": {
+            "max": 27.052468,
+            "p(90)": 1.864447,
+            "p(95)": 2.022077,
+            "avg": 1.5590642759448146,
+            "min": 0.111005,
+            "med": 1.452536,
+            "thresholds": {
+                "p(95)<250": false
+            }
+        },
+        "http_req_waiting": {
+            "p(90)": 1.712317,
+            "p(95)": 1.855977,
+            "avg": 1.4399409202159563,
+            "min": 0,
+            "med": 1.331158,
+            "max": 26.875612
+        }
+    },
+    "setup_data": {
+        "baseUrl": "http://host.docker.internal:8080"
+    },
+    "root_group": {
+        "checks": {
+            "status is 200": {
+                "name": "status is 200",
+                "path": "::status is 200",
+                "id": "6210a8cd14cd70477eba5c5e4cb3fb5f",
+                "passes": 5000,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "warmup status is 200": {
+                            "id": "5321d4e51dc39b274c47b59403629336",
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "warmup status is 200",
+                            "path": "::setup::warmup status is 200"
+                        }
+                    },
+                "name": "setup",
+                "path": "::setup"
+            }
+        }
+    }
+}

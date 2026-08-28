@@ -7,13 +7,18 @@ import com.fitpilot.common.response.PageResult;
 import com.fitpilot.exercise.domain.Exercise;
 import com.fitpilot.exercise.dto.ExerciseView;
 import com.fitpilot.exercise.repository.ExerciseRepository;
+import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ExerciseService {
     private final ExerciseRepository repository;
-    public ExerciseService(ExerciseRepository repository) { this.repository = repository; }
+    private final TwoLevelCache cache;
+    public ExerciseService(ExerciseRepository repository, TwoLevelCache cache) {
+        this.repository = repository;
+        this.cache = cache;
+    }
 
     public PageResult<ExerciseView> search(String keyword, String category, String equipment, String muscle,
                                             long page, long size) {
@@ -22,7 +27,8 @@ public class ExerciseService {
     }
 
     public ExerciseView get(long id) {
-        return repository.findActive(id).map(ExerciseView::from)
+        return cache.get("exercise", String.valueOf(id), ExerciseView.class,
+                        () -> repository.findActive(id).map(ExerciseView::from))
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "exercise not found", HttpStatus.NOT_FOUND));
     }
 
