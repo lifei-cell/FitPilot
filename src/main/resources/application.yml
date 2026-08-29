@@ -11,6 +11,8 @@ spring:
       port: ${REDIS_PORT:6379}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    template:
+      observation-enabled: true
     producer:
       acks: all
       properties:
@@ -23,6 +25,7 @@ spring:
         isolation.level: read_committed
     listener:
       ack-mode: record
+      observation-enabled: true
   flyway:
     enabled: true
     validate-migration-naming: true
@@ -40,11 +43,40 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       probes:
         enabled: true
+      group:
+        liveness:
+          include: livenessState,ping
+        readiness:
+          include: readinessState,db,redis
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+server:
+  shutdown: graceful
+spring.lifecycle.timeout-per-shutdown-phase: ${SHUTDOWN_TIMEOUT:30s}
+logging:
+  file:
+    name: ${LOG_FILE:}
+  structured:
+    format:
+      console: ${LOG_STRUCTURED_FORMAT:logstash}
+      file: ${LOG_STRUCTURED_FORMAT:logstash}
 security:
   jwt:
     secret: ${JWT_SECRET}

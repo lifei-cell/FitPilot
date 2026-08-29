@@ -74,6 +74,15 @@ class FitPilotApiIT {
     @Autowired DistributedLockService locks;
 
     @Test
+    void exposesPrometheusMetricsWithoutSensitiveRequestContent() throws Exception {
+        mvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("fitpilot_outbox_pending")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("password123"))));
+    }
+
+    @Test
     void completeUserPlanWorkoutPrAndAnalyticsFlow() throws Exception {
         register("flow_user");
         mvc.perform(post("/api/v1/auth/register").contentType("application/json")

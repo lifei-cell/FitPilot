@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
+import com.fitpilot.observability.FitPilotMetrics;
+import io.micrometer.observation.annotation.Observed;
+
 @Component
 @ConditionalOnProperty(prefix = "fitpilot.events", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class OutboxRelay {
@@ -16,14 +19,18 @@ public class OutboxRelay {
     private final OutboxRepository repository;
     private final KafkaTemplate<String, String> kafka;
     private final EventProperties properties;
+    private final FitPilotMetrics metrics;
 
-    public OutboxRelay(OutboxRepository repository, KafkaTemplate<String, String> kafka, EventProperties properties) {
+    public OutboxRelay(OutboxRepository repository, KafkaTemplate<String, String> kafka,
+                       EventProperties properties, FitPilotMetrics metrics) {
         this.repository = repository;
         this.kafka = kafka;
         this.properties = properties;
+        this.metrics = metrics;
     }
 
     @Scheduled(fixedDelayString = "${fitpilot.events.relay.fixed-delay-ms:500}")
+    @Observed(name = "fitpilot.outbox.relay")
     public void relay() {
         var relay = properties.getRelay();
         for (OutboxEvent event : repository.claimBatch(relay.getBatchSize(), relay.getClaimTimeoutSeconds(),
@@ -32,8 +39,10 @@ public class OutboxRelay {
                 kafka.send(event.topic(), event.eventKey(), event.payload())
                         .get(relay.getSendTimeoutSeconds(), TimeUnit.SECONDS);
                 repository.markSent(event.id());
+                metrics.outbox("SENT");
             } catch (Exception failure) {
                 repository.markFailed(event, failure, relay.getMaxAttempts());
+                metrics.outbox("FAILED");
                 log.warn("operation=OutboxPublishFailed outboxId={} topic={} attempt={}",
                         event.id(), event.topic(), event.retryCount() + 1);
             }

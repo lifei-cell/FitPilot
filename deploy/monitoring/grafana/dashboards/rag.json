@@ -1,0 +1,8 @@
+{
+  "uid":"fitpilot-rag","title":"FitPilot RAG","schemaVersion":39,"version":1,"refresh":"15s",
+  "time":{"from":"now-6h","to":"now"},"tags":["fitpilot","rag"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"RAG Requests","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum by (mode,status) (rate(fitpilot_rag_requests_total[5m]))","legendFormat":"{{mode}} {{status}}"}],"gridPos":{"x":0,"y":0,"w":12,"h":8}},
+    {"id":2,"type":"timeseries","title":"RAG P95 Latency","datasource":{"uid":"prometheus"},"targets":[{"expr":"histogram_quantile(0.95, sum by (le,mode) (rate(fitpilot_rag_latency_seconds_bucket[5m])))","legendFormat":"{{mode}}"}],"gridPos":{"x":12,"y":0,"w":12,"h":8}}
+  ]
+}

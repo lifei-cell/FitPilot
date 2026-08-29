@@ -1,0 +1,37 @@
+groups:
+  - name: fitpilot-production
+    rules:
+      - alert: FitPilotApiHighErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 1) > 0.01
+        for: 5m
+        labels: {severity: critical}
+        annotations: {summary: "API 5xx rate is above 1%"}
+      - alert: FitPilotApiHighLatency
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket[5m]))) > 0.5
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: "API P95 is above 500ms"}
+      - alert: FitPilotAgentLowSuccessRate
+        expr: sum(rate(fitpilot_agent_requests_total{status=~"SUCCEEDED|AWAITING_CONFIRMATION"}[10m])) / clamp_min(sum(rate(fitpilot_agent_requests_total[10m])), 1) < 0.95
+        for: 10m
+        labels: {severity: critical}
+        annotations: {summary: "Agent success rate is below 95%"}
+      - alert: FitPilotAgentRuleViolation
+        expr: increase(fitpilot_agent_rule_violations_total[5m]) > 0
+        labels: {severity: critical}
+        annotations: {summary: "Agent rule violation detected"}
+      - alert: FitPilotLlmFallbackHigh
+        expr: sum(rate(fitpilot_agent_requests_total{degraded="true"}[10m])) / clamp_min(sum(rate(fitpilot_agent_requests_total[10m])), 1) > 0.10
+        for: 10m
+        labels: {severity: warning}
+        annotations: {summary: "LLM fallback rate is above 10%"}
+      - alert: FitPilotOutboxBacklogOld
+        expr: fitpilot_outbox_oldest_pending_seconds > 60
+        for: 2m
+        labels: {severity: critical}
+        annotations: {summary: "Oldest outbox event is older than 60s"}
+      - alert: FitPilotDbPoolHighUsage
+        expr: hikaricp_connections_active / clamp_min(hikaricp_connections_max, 1) > 0.8
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: "Database pool usage is above 80%"}

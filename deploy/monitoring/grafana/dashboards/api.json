@@ -1,0 +1,9 @@
+{
+  "uid":"fitpilot-api","title":"FitPilot API","schemaVersion":39,"version":1,"refresh":"15s",
+  "time":{"from":"now-6h","to":"now"},"tags":["fitpilot","api"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"Requests per Second","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(rate(http_server_requests_seconds_count[5m]))","legendFormat":"RPS"}],"gridPos":{"x":0,"y":0,"w":8,"h":8}},
+    {"id":2,"type":"timeseries","title":"P95 / P99 Latency","datasource":{"uid":"prometheus"},"targets":[{"expr":"histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket[5m])))","legendFormat":"P95"},{"expr":"histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket[5m])))","legendFormat":"P99"}],"gridPos":{"x":8,"y":0,"w":8,"h":8}},
+    {"id":3,"type":"timeseries","title":"5xx Error Rate","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 1)","legendFormat":"5xx"}],"gridPos":{"x":16,"y":0,"w":8,"h":8}}
+  ]
+}

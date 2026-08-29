@@ -1,0 +1,10 @@
+{
+  "uid":"fitpilot-llm-cost","title":"FitPilot LLM Cost","schemaVersion":39,"version":1,"refresh":"15s",
+  "time":{"from":"now-24h","to":"now"},"tags":["fitpilot","llm"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"LLM P95 Latency","datasource":{"uid":"prometheus"},"targets":[{"expr":"histogram_quantile(0.95, sum by (le,provider,model) (rate(fitpilot_llm_latency_seconds_bucket[5m])))","legendFormat":"{{provider}} {{model}}"}],"gridPos":{"x":0,"y":0,"w":8,"h":8}},
+    {"id":2,"type":"timeseries","title":"Token Rate","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum by (provider,model,type) (rate(fitpilot_llm_tokens_total[5m]))","legendFormat":"{{provider}} {{model}} {{type}}"}],"gridPos":{"x":8,"y":0,"w":8,"h":8}},
+    {"id":3,"type":"stat","title":"Cost USD (24h)","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(increase(fitpilot_llm_cost_usd_total[24h]))","legendFormat":"USD"}],"gridPos":{"x":16,"y":0,"w":8,"h":8}},
+    {"id":4,"type":"timeseries","title":"Fallback Rate","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(rate(fitpilot_agent_requests_total{degraded=\"true\"}[5m])) / clamp_min(sum(rate(fitpilot_agent_requests_total[5m])), 1)","legendFormat":"fallback"}],"gridPos":{"x":0,"y":8,"w":12,"h":8}}
+  ]
+}

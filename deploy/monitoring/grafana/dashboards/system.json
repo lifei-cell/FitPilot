@@ -1,0 +1,9 @@
+{
+  "uid":"fitpilot-system","title":"FitPilot System","schemaVersion":39,"version":1,"refresh":"30s",
+  "time":{"from":"now-6h","to":"now"},"tags":["fitpilot","system"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"JVM Heap Used","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(jvm_memory_used_bytes{area=\"heap\"})","legendFormat":"used"}],"gridPos":{"x":0,"y":0,"w":12,"h":8}},
+    {"id":2,"type":"timeseries","title":"DB Pool Usage","datasource":{"uid":"prometheus"},"targets":[{"expr":"hikaricp_connections_active / clamp_min(hikaricp_connections_max, 1)","legendFormat":"usage"}],"gridPos":{"x":12,"y":0,"w":12,"h":8}},
+    {"id":3,"type":"timeseries","title":"Redis Cache Hit Rate","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_cache_hit_rate","legendFormat":"hit rate"}],"gridPos":{"x":0,"y":8,"w":12,"h":8}}
+  ]
+}

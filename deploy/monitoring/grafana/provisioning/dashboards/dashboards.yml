@@ -1,0 +1,9 @@
+apiVersion: 1
+providers:
+  - name: FitPilot
+    folder: FitPilot
+    type: file
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+

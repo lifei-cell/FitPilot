@@ -79,4 +79,6 @@ public class OutboxRepository {
                     claimed_at=NULL, last_error=NULL WHERE event_id=? AND status='FAILED'
                 """, eventId);
     }
+    public long pendingCount(){Long value=jdbc.queryForObject("SELECT count(*) FROM outbox_event WHERE status IN ('PENDING','SENDING')",Long.class);return value==null?0:value;}
+    public long oldestPendingAgeSeconds(){Long value=jdbc.queryForObject("SELECT COALESCE(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP-MIN(created_at)))::bigint,0) FROM outbox_event WHERE status IN ('PENDING','SENDING')",Long.class);return value==null?0:Math.max(0,value);}
 }

@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import com.fitpilot.observability.FitPilotMetrics;
 
 class OpenAiCompatibleClientTest {
     private HttpServer server;
@@ -30,7 +31,7 @@ class OpenAiCompatibleClientTest {
         configure(properties.getPrimary(),"primary","http://localhost:"+server.getAddress().getPort()+"/primary");
         configure(properties.getFallback(),"fallback","http://localhost:"+server.getAddress().getPort()+"/fallback");
         var client=new OpenAiCompatibleClient(properties,new ModelRouter(),new PromptRegistry(properties),
-                new SensitiveDataRedactor(),new ObjectMapper(),mock(LlmInvocationRepository.class));
+                new SensitiveDataRedactor(),new ObjectMapper(),mock(LlmInvocationRepository.class),mock(FitPilotMetrics.class));
         var result=client.complete(UUID.randomUUID(),LlmModels.Task.TRAINING_ANALYSIS,"email a@b.com",false);
         assertThat(result.content()).isEqualTo("ok");
         assertThat(result.provider()).isEqualTo("fallback");

@@ -1,0 +1,9 @@
+{
+  "uid":"fitpilot-kafka","title":"FitPilot Kafka and Outbox","schemaVersion":39,"version":1,"refresh":"15s",
+  "time":{"from":"now-6h","to":"now"},"tags":["fitpilot","kafka"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"Consumer Lag","datasource":{"uid":"prometheus"},"targets":[{"expr":"max(kafka_consumer_records_lag_max)","legendFormat":"lag"}],"gridPos":{"x":0,"y":0,"w":8,"h":8}},
+    {"id":2,"type":"timeseries","title":"Outbox Pending","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_outbox_pending","legendFormat":"pending"}],"gridPos":{"x":8,"y":0,"w":8,"h":8}},
+    {"id":3,"type":"timeseries","title":"Oldest Outbox Age","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_outbox_oldest_pending_seconds","legendFormat":"seconds"}],"gridPos":{"x":16,"y":0,"w":8,"h":8}}
+  ]
+}

@@ -19,6 +19,8 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import com.fitpilot.observability.FitPilotMetrics;
+import io.micrometer.observation.annotation.Observed;
 
 @Component
 public class OpenAiCompatibleClient {
@@ -29,16 +31,18 @@ public class OpenAiCompatibleClient {
     private final ObjectMapper json;
     private final HttpClient client;
     private final LlmInvocationRepository audit;
+    private final FitPilotMetrics metrics;
     private final Map<String, Circuit> circuits = new ConcurrentHashMap<>();
 
     public OpenAiCompatibleClient(LlmProperties properties, ModelRouter router, PromptRegistry prompts,
                                   SensitiveDataRedactor redactor, ObjectMapper json,
-                                  LlmInvocationRepository audit) {
+                                  LlmInvocationRepository audit, FitPilotMetrics metrics) {
         this.properties = properties; this.router = router; this.prompts = prompts;
-        this.redactor = redactor; this.json = json; this.audit = audit;
+        this.redactor = redactor; this.json = json; this.audit = audit;this.metrics=metrics;
         this.client = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(properties.getConnectTimeoutMs())).build();
     }
 
+    @Observed(name="fitpilot.llm.request")
     public LlmModels.Completion complete(UUID executionId, LlmModels.Task task, String userPrompt, boolean jsonOutput) {
         if (!properties.isEnabled()) throw new LlmUnavailableException("LLM is disabled");
         List<LlmProperties.Endpoint> endpoints = List.of(properties.getPrimary(), properties.getFallback());
@@ -50,6 +54,7 @@ public class OpenAiCompatibleClient {
             if (circuit.open()) {
                 audit.record(executionId, endpoint.getName(), router.model(endpoint, task), task.name(), prompts.version(),
                         "CIRCUIT_OPEN", 0, 0, BigDecimal.ZERO, 0, null, "CIRCUIT_OPEN");
+                metrics.llm(endpoint.getName(),router.model(endpoint,task),"CIRCUIT_OPEN",0,0,0,BigDecimal.ZERO);
                 last = new LlmUnavailableException("LLM circuit is open");
                 continue;
             }
@@ -61,11 +66,13 @@ public class OpenAiCompatibleClient {
                     circuit.success();
                     audit.record(executionId, endpoint.getName(), model, task.name(), prompts.version(), "SUCCEEDED",
                             completion.inputTokens(), completion.outputTokens(), completion.costUsd(), elapsed(started), 200, null);
+                    metrics.llm(endpoint.getName(),model,"SUCCEEDED",elapsed(started),completion.inputTokens(),completion.outputTokens(),completion.costUsd());
                     return completion;
                 } catch (ProviderException failure) {
                     circuit.failure(properties.getCircuitFailureThreshold(), properties.getCircuitOpenSeconds());
                     audit.record(executionId, endpoint.getName(), model, task.name(), prompts.version(), "FAILED", 0, 0,
                             BigDecimal.ZERO, elapsed(started), failure.httpStatus(), failure.code());
+                    metrics.llm(endpoint.getName(),model,"FAILED",elapsed(started),0,0,BigDecimal.ZERO);
                     last = failure;
                     if (!failure.retryable() || attempt == properties.getMaxRetries()) break;
                     backoff(attempt);

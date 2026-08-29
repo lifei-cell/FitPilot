@@ -87,11 +87,15 @@ services:
       LLM_FALLBACK_SMALL_MODEL: ${LLM_FALLBACK_SMALL_MODEL:-}
       LLM_FALLBACK_MEDIUM_MODEL: ${LLM_FALLBACK_MEDIUM_MODEL:-}
       LLM_FALLBACK_STRONG_MODEL: ${LLM_FALLBACK_STRONG_MODEL:-}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0}
+      LOG_FILE: /var/log/fitpilot/app.json
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-LOCAL}
       EMBEDDING_API_URL: ${EMBEDDING_API_URL:-}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
     ports: ["8080:8080"]
+    volumes: ["app-logs:/var/log/fitpilot"]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -102,8 +106,64 @@ services:
       interval: 10s
       timeout: 3s
       retries: 20
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d"]
+    volumes:
+      - ./deploy/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["9090:9090"]
+    depends_on:
+      app: {condition: service_healthy}
+  grafana:
+    image: grafana/grafana:12.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3000:3000"]
+    depends_on: [prometheus, tempo, loki]
+  tempo:
+    image: grafana/tempo:2.8.1
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./deploy/monitoring/tempo/tempo.yml:/etc/tempo.yml:ro
+      - tempo-data:/var/tempo
+    ports: ["3200:3200"]
+  loki:
+    image: grafana/loki:3.5.3
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes:
+      - ./deploy/monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    ports: ["3100:3100"]
+  promtail:
+    image: grafana/promtail:3.5.3
+    command: ["-config.file=/etc/promtail.yml"]
+    volumes:
+      - ./deploy/monitoring/promtail/promtail.yml:/etc/promtail.yml:ro
+      - app-logs:/var/log/fitpilot:ro
+      - promtail-positions:/tmp
+    depends_on: [loki, app]
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.132.0
+    command: ["--config=/etc/otelcol/config.yml"]
+    volumes:
+      - ./deploy/monitoring/otel/collector.yml:/etc/otelcol/config.yml:ro
+    depends_on: [tempo]
 volumes:
   postgres-data:
   redis-data:
   kafka-data:
   elasticsearch-data:
+  app-logs:
+  prometheus-data:
+  grafana-data:
+  tempo-data:
+  loki-data:
+  promtail-positions:

@@ -1,0 +1,9 @@
+{
+  "uid":"fitpilot-agent","title":"FitPilot Agent","schemaVersion":39,"version":1,"refresh":"15s",
+  "time":{"from":"now-6h","to":"now"},"tags":["fitpilot","agent"],
+  "panels":[
+    {"id":1,"type":"timeseries","title":"Success Rate","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(rate(fitpilot_agent_requests_total{status=~\"SUCCEEDED|AWAITING_CONFIRMATION\"}[5m])) / clamp_min(sum(rate(fitpilot_agent_requests_total[5m])), 1)","legendFormat":"success"}],"gridPos":{"x":0,"y":0,"w":8,"h":8}},
+    {"id":2,"type":"timeseries","title":"Agent P95","datasource":{"uid":"prometheus"},"targets":[{"expr":"histogram_quantile(0.95, sum by (le) (rate(fitpilot_agent_latency_seconds_bucket[5m])))","legendFormat":"P95"}],"gridPos":{"x":8,"y":0,"w":8,"h":8}},
+    {"id":3,"type":"timeseries","title":"Tool Errors / Rule Violations","datasource":{"uid":"prometheus"},"targets":[{"expr":"sum(rate(fitpilot_agent_tool_calls_total{status!=\"SUCCEEDED\"}[5m]))","legendFormat":"tool errors"},{"expr":"sum(increase(fitpilot_agent_rule_violations_total[5m]))","legendFormat":"violations"}],"gridPos":{"x":16,"y":0,"w":8,"h":8}}
+  ]
+}

@@ -10,16 +10,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
     public static final String HEADER = "X-Request-Id";
+    private static final Pattern SAFE_ID=Pattern.compile("[A-Za-z0-9._-]{1,128}");
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String requestId = request.getHeader(HEADER);
-        if (requestId == null || requestId.isBlank() || requestId.length() > 128) requestId = UUID.randomUUID().toString();
+        if (requestId == null || !SAFE_ID.matcher(requestId).matches()) requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
         response.setHeader(HEADER, requestId);
         try {

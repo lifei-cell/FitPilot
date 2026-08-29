@@ -9,6 +9,7 @@ import com.fitpilot.user.application.UserService;
 import com.fitpilot.workout.application.WorkoutService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
+import io.micrometer.observation.annotation.Observed;
 
 import java.util.Map;
 
@@ -21,6 +22,7 @@ public class AgentToolExecutor {
                              TrainingPlanService plans, AnalyticsService analytics, ObjectProvider<HybridRetrievalService> retrieval) {
         this.users=users; this.workouts=workouts; this.records=records; this.plans=plans; this.analytics=analytics; this.retrieval=retrieval;
     }
+    @Observed(name="fitpilot.agent.tool")
     public Object execute(String tool, long currentUserId, String query) {
         return switch (tool) {
             case "get_user_profile" -> Map.of("profile", users.getProfile(currentUserId), "latestBodyMetric", safeMetric(currentUserId));

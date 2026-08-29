@@ -2,6 +2,7 @@ package com.fitpilot.agent.memory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.agent.config.AgentProperties;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
+@Observed(name = "fitpilot.redis.agent-session")
 public class AgentSessionStore {
     private final StringRedisTemplate redis;
     private final ObjectMapper json;

@@ -9,6 +9,8 @@ import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
 import com.fitpilot.rag.infrastructure.KnowledgeRepository;
 import com.fitpilot.rag.processing.TextAnalyzer;
+import com.fitpilot.observability.FitPilotMetrics;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,17 +35,22 @@ public class HybridRetrievalService {
     private final EmbeddingProvider embeddings;
     private final TextAnalyzer analyzer;
     private final RagProperties properties;
+    private final FitPilotMetrics metrics;
 
     public HybridRetrievalService(KnowledgeRepository repository, ElasticsearchKnowledgeIndex lexicalIndex,
-                                  EmbeddingProvider embeddings, TextAnalyzer analyzer, RagProperties properties) {
+                                  EmbeddingProvider embeddings, TextAnalyzer analyzer, RagProperties properties,
+                                  FitPilotMetrics metrics) {
         this.repository = repository;
         this.lexicalIndex = lexicalIndex;
         this.embeddings = embeddings;
         this.analyzer = analyzer;
         this.properties = properties;
+        this.metrics = metrics;
     }
 
+    @Observed(name = "fitpilot.rag.search")
     public RagDtos.SearchResponse search(String query, int requestedTopK, String category) {
+        long started = System.nanoTime();
         int topK = Math.max(1, Math.min(requestedTopK, properties.getRetrieval().getMaxTopK()));
         int candidateLimit = Math.max(topK, properties.getRetrieval().getCandidateLimit());
         String normalizedCategory = category == null || category.isBlank() ? null : category.trim();
@@ -52,6 +59,7 @@ public class HybridRetrievalService {
         boolean lexicalSucceeded = collectLexical(lexicalQuery, normalizedCategory, candidateLimit, candidates);
         boolean vectorSucceeded = collectVector(query, normalizedCategory, candidateLimit, candidates);
         if (!lexicalSucceeded && !vectorSucceeded) {
+            metrics.rag("UNAVAILABLE", "FAILED", elapsedMillis(started));
             throw new BusinessException(ErrorCode.RAG_RETRIEVAL_UNAVAILABLE,
                     "knowledge retrieval services are unavailable", HttpStatus.SERVICE_UNAVAILABLE);
         }
@@ -75,7 +83,12 @@ public class HybridRetrievalService {
                 .limit(topK).map(this::toDto).toList();
         String mode = lexicalSucceeded && vectorSucceeded ? "HYBRID_RRF"
                 : lexicalSucceeded ? "BM25_ONLY" : "VECTOR_ONLY";
+        metrics.rag(mode, "SUCCEEDED", elapsedMillis(started));
         return new RagDtos.SearchResponse(query, mode, embeddings.name(), candidates.size(), results);
+    }
+
+    private long elapsedMillis(long started) {
+        return (System.nanoTime() - started) / 1_000_000;
     }
 
     private boolean collectLexical(String query, String category, int limit, Map<UUID, Candidate> candidates) {
