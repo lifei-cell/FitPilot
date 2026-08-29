@@ -221,6 +221,39 @@ class FitPilotApiIT {
                 .andExpect(jsonPath("$.code").value(50002));
     }
 
+    @Test
+    void agentRequiresOwnerConfirmationAndAuditsToolCalls() throws Exception {
+        JsonNode owner=register("agent_owner"); String ownerToken=login("agent_owner");
+        register("agent_other"); String otherToken=login("agent_other");
+        JsonNode session=call(post("/api/v1/agent/sessions").header("Authorization",bearer(ownerToken)),201);
+        String sessionId=session.path("data").path("id").asText();
+        JsonNode proposal=call(post("/api/v1/agent/sessions/"+sessionId+"/messages")
+                .header("Authorization",bearer(ownerToken)).contentType("application/json")
+                .content(json.writeValueAsBytes(Map.of("message","帮我制定新计划"))),200);
+        assertThat(proposal.path("data").path("confirmationRequired").asBoolean()).isTrue();
+        String actionId=proposal.path("data").path("pendingAction").path("id").asText();
+        String confirmationToken=proposal.path("data").path("pendingAction").path("confirmationToken").asText();
+        long ownerId=owner.path("data").path("id").asLong();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=?",Long.class,ownerId)).isZero();
+
+        mvc.perform(post("/api/v1/agent/pending-actions/"+actionId+"/confirm").header("Authorization",bearer(otherToken))
+                .contentType("application/json").content(json.writeValueAsBytes(Map.of("confirmationToken",confirmationToken))))
+                .andExpect(status().isNotFound());
+        call(post("/api/v1/agent/pending-actions/"+actionId+"/confirm").header("Authorization",bearer(ownerToken))
+                .contentType("application/json").content(json.writeValueAsBytes(Map.of("confirmationToken",confirmationToken))),200);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=? AND status='DRAFT'",Long.class,ownerId)).isEqualTo(1);
+        mvc.perform(post("/api/v1/agent/pending-actions/"+actionId+"/confirm").header("Authorization",bearer(ownerToken))
+                .contentType("application/json").content(json.writeValueAsBytes(Map.of("confirmationToken",confirmationToken))))
+                .andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM agent_execution WHERE user_id=?",Long.class,ownerId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM agent_tool_call",Long.class)).isGreaterThanOrEqualTo(7);
+
+        mvc.perform(post("/mcp").header("Authorization",bearer(ownerToken))
+                .header("MCP-Protocol-Version","2026-07-28").header("Mcp-Method","tools/call").header("Mcp-Name","get_user_profile")
+                .contentType("application/json").content("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{}}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.result.content[0].type").value("text"));
+    }
+
     private JsonNode register(String username) throws Exception {
         return call(post("/api/v1/auth/register").contentType("application/json")
                 .content(json.writeValueAsBytes(Map.of("username", username, "email", username + "@example.com",

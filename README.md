@@ -1,6 +1,6 @@
-# FitPilot V3.0
+# FitPilot V4.0
 
-FitPilot V3 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练后端。V3 保留完整训练业务、高性能数据路径和事件驱动链路，并加入可独立使用的专业健身 Hybrid RAG 知识库。
+FitPilot V4 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练后端。V4 在完整训练业务、高性能数据路径、事件驱动和 Hybrid RAG 之上，加入单 Agent + 确定性 Workflow；暂不引入 Multi-Agent。
 
 ## 架构
 
@@ -44,6 +44,15 @@ Query → BM25 + Vector Search → RRF → Deterministic Rerank → Parent Conte
 ```
 
 PostgreSQL 保存文档、Chunk、Embedding 和索引状态，是知识库真源；Elasticsearch 只承担可重建的 BM25 索引。索引失败时文档进入 `FAILED` 并由后台任务重试，查询自动降级为 pgvector 向量检索。
+
+Agent 写入链路：
+
+```text
+Intent → owner-scoped read tools → structured plan → domain validation
+       → guardrail → pending action → explicit user confirmation → DRAFT plan
+```
+
+短期对话保存在 Redis（TTL + 消息上限），长期偏好保存在 PostgreSQL。每次执行和工具调用分别写入 `agent_execution`、`agent_tool_call`；工具入参不接受 `userId`，统一继承 JWT 当前用户。
 
 ## 技术栈
 
@@ -92,6 +101,9 @@ mvn spring-boot:run
 | 事件运维 | `GET /api/v1/operations/events/status`、死信查询/回放 |
 | RAG 检索 | `GET /api/v1/rag/search?q=...&topK=5&category=...` |
 | 知识库运维 | `POST/GET /api/v1/operations/rag/documents`、重建索引、删除 |
+| Agent | `POST /api/v1/agent/sessions`、发送消息、确认待执行动作、长期偏好 |
+| Agent 评测 | `GET /api/v1/operations/agent/metrics`、标注期望工具 |
+| MCP | `POST /mcp`（JWT + MCP 2026-07-28 stateless headers） |
 
 除注册、登录、动作库、Swagger 和健康检查外，请发送 `Authorization: Bearer <token>`。
 
@@ -105,6 +117,8 @@ mvn spring-boot:run
 - 知识文档强制记录来源和许可证；检索结果返回完整 Parent Context 与引用信息。
 - pgvector 使用 384 维向量和 HNSW cosine 索引，BM25 与向量结果通过 RRF 融合并二次排序。
 - Embedding 默认使用可离线测试的确定性本地实现，生产可切换到返回 384 维向量的 OpenAI-compatible 服务。
+- Agent 写工具必须依次通过结构化反序列化、领域规则、Guardrail 和一次性用户确认；确认令牌只存 SHA-256，过期或重放均拒绝。
+- 在线评测输出任务成功率、规则违规率和有标注样本的工具选择正确率，不用“回答像不像 AI”替代业务验收。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
 - Flyway 管理全部表、外键、查询索引和 50 个动作种子。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
@@ -121,6 +135,7 @@ mvn verify
 
 V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/architecture/v2-events.md)。
 V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。
+V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见 [Agent 架构](docs/architecture/v4-agent.md)。
 
 ## V1 性能验证
 

@@ -50,6 +50,12 @@ security:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:7200}
 fitpilot:
+  agent:
+    enabled: ${AGENT_ENABLED:true}
+    session-ttl-seconds: ${AGENT_SESSION_TTL_SECONDS:7200}
+    confirmation-ttl-seconds: ${AGENT_CONFIRMATION_TTL_SECONDS:600}
+    max-messages: ${AGENT_MAX_MESSAGES:30}
+    operations-token: ${AGENT_OPERATIONS_TOKEN:${EVENT_OPERATIONS_TOKEN:}}
   rag:
     enabled: ${RAG_ENABLED:true}
     operations-token: ${RAG_OPERATIONS_TOKEN:${EVENT_OPERATIONS_TOKEN:}}
