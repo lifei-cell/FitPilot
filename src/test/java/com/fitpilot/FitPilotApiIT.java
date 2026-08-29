@@ -62,6 +62,7 @@ class FitPilotApiIT {
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
         registry.add("fitpilot.events.enabled", () -> "false");
         registry.add("fitpilot.rag.enabled", () -> "false");
+        registry.add("fitpilot.operations.token", () -> "test-operations-token");
     }
 
     @Autowired MockMvc mvc;
@@ -252,6 +253,22 @@ class FitPilotApiIT {
                 .header("MCP-Protocol-Version","2026-07-28").header("Mcp-Method","tools/call").header("Mcp-Name","get_user_profile")
                 .contentType("application/json").content("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{}}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.content[0].type").value("text"));
+    }
+
+    @Test
+    void runsVersionedAgentEvaluationDataset() throws Exception {
+        JsonNode started=call(post("/api/v1/operations/evaluations/agent/runs")
+                .header("X-Operations-Token","test-operations-token").contentType("application/json")
+                .content("{\"mode\":\"RULE_WORKFLOW\"}"),202);
+        String runId=started.path("data").path("runId").asText();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(()->{
+            JsonNode run=call(get("/api/v1/operations/evaluations/runs/"+runId)
+                    .header("X-Operations-Token","test-operations-token"),200).path("data");
+            assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
+            assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(150);
+            assertThat(run.path("metrics").path("toolSelectionAccuracy").asDouble()).isGreaterThanOrEqualTo(0.95);
+            assertThat(run.path("metrics").path("constraintViolationRate").asDouble()).isZero();
+        });
     }
 
     private JsonNode register(String username) throws Exception {

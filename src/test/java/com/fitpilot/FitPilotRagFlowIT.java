@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -55,6 +56,7 @@ class FitPilotRagFlowIT {
         registry.add("fitpilot.performance.rate-limit.enabled", () -> "false");
         registry.add("fitpilot.rag.enabled", () -> "true");
         registry.add("fitpilot.rag.operations-token", () -> OPERATIONS_TOKEN);
+        registry.add("fitpilot.operations.token", () -> OPERATIONS_TOKEN);
         registry.add("fitpilot.rag.elasticsearch.url", () -> "http://" + ELASTICSEARCH.getHttpHostAddress());
         registry.add("fitpilot.rag.elasticsearch.index", () -> "fitpilot-rag-it");
         registry.add("fitpilot.rag.indexing.fixed-delay-ms", () -> "600000");
@@ -95,6 +97,18 @@ class FitPilotRagFlowIT {
         assertThat(first.path("content").asText()).contains("RIR 2");
         assertThat(first.path("citation").path("sourceLicense").asText()).isEqualTo("CC-BY-4.0");
         assertThat(first.path("matchedBy")).extracting(JsonNode::asText).contains("BM25", "VECTOR");
+
+        JsonNode evalStarted=call(post("/api/v1/operations/evaluations/rag/runs")
+                .header("X-Operations-Token",OPERATIONS_TOKEN),202);
+        String evalRunId=evalStarted.path("data").path("runId").asText();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(30)).untilAsserted(()->{
+            JsonNode run=call(get("/api/v1/operations/evaluations/runs/"+evalRunId)
+                    .header("X-Operations-Token",OPERATIONS_TOKEN),200).path("data");
+            assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
+            assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(50);
+            assertThat(run.path("metrics").has("recallAt5")).isTrue();
+            assertThat(run.path("metrics").has("mrr")).isTrue();
+        });
 
         mvc.perform(get("/api/v1/operations/rag/documents").header("X-Operations-Token", "wrong"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value(1002));
