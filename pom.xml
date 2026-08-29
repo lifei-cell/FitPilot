@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.fitpilot</groupId>
     <artifactId>fitpilot-backend</artifactId>
-    <version>4.0.0</version>
+    <version>5.0.0</version>
     <name>FitPilot</name>
     <description>FitPilot single-agent fitness workflow backend</description>
     <properties>

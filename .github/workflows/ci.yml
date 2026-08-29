@@ -41,8 +41,6 @@ jobs:
           DB_PASSWORD: ci-database-password
           JWT_SECRET: ci-jwt-secret-with-at-least-thirty-two-bytes
           OPERATIONS_TOKEN: ci-operations-token
-          RAG_OPERATIONS_TOKEN: ci-operations-token
-          AGENT_OPERATIONS_TOKEN: ci-operations-token
           GRAFANA_ADMIN_PASSWORD: ci-grafana-password
         run: |
           docker compose config --quiet
@@ -81,4 +79,3 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
