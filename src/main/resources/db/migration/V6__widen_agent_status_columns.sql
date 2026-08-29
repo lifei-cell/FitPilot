@@ -1,0 +1,2 @@
+ALTER TABLE agent_execution ALTER COLUMN status TYPE VARCHAR(32);
+ALTER TABLE agent_tool_call ALTER COLUMN status TYPE VARCHAR(32);
