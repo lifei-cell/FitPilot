@@ -1,11 +1,8 @@
 package com.fitpilot.infrastructure.events;
 
-import com.fitpilot.common.exception.BusinessException;
-import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.common.operations.OperationsAuthorizer;
-import com.fitpilot.common.security.SecureTokenMatcher;
-import org.springframework.http.HttpStatus;
+import com.fitpilot.common.operations.OperationsProperties;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,11 +12,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/operations/events")
 public class EventOperationsController {
     private final DeadLetterService service;
-    private final EventProperties properties;
+    private final OperationsProperties properties;
     private final EventStatusService statusService;
     private final OperationsAuthorizer authorizer;
 
-    public EventOperationsController(DeadLetterService service, EventProperties properties,
+    public EventOperationsController(DeadLetterService service, OperationsProperties properties,
                                      EventStatusService statusService, OperationsAuthorizer authorizer) {
         this.service = service;
         this.properties = properties;
@@ -55,6 +52,6 @@ public class EventOperationsController {
     }
 
     private void authorize(String candidate) {
-        authorizer.authorize(candidate,properties.getOperationsToken());
+        authorizer.authorize(candidate,properties.getToken());
     }
 }

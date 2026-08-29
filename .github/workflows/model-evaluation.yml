@@ -1,0 +1,60 @@
+name: Real Model Evaluation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 18 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DB_PASSWORD: evaluation-db-password
+      JWT_SECRET: evaluation-jwt-secret-with-at-least-32-characters
+      OPERATIONS_TOKEN: ${{ secrets.EVAL_OPERATIONS_TOKEN }}
+      GRAFANA_ADMIN_PASSWORD: unused-evaluation-password
+      RAG_ENABLED: "true"
+      RATE_LIMIT_ENABLED: "false"
+      OTEL_TRACING_EXPORT_ENABLED: "false"
+      LLM_ENABLED: "true"
+      LLM_PRIMARY_URL: ${{ secrets.LLM_PRIMARY_URL }}
+      LLM_PRIMARY_API_KEY: ${{ secrets.LLM_PRIMARY_API_KEY }}
+      LLM_PRIMARY_SMALL_MODEL: ${{ vars.LLM_PRIMARY_SMALL_MODEL }}
+      LLM_PRIMARY_MEDIUM_MODEL: ${{ vars.LLM_PRIMARY_MEDIUM_MODEL }}
+      LLM_PRIMARY_STRONG_MODEL: ${{ vars.LLM_PRIMARY_STRONG_MODEL }}
+      LLM_FALLBACK_URL: ${{ secrets.LLM_FALLBACK_URL }}
+      LLM_FALLBACK_API_KEY: ${{ secrets.LLM_FALLBACK_API_KEY }}
+      LLM_FALLBACK_SMALL_MODEL: ${{ vars.LLM_FALLBACK_SMALL_MODEL }}
+      LLM_FALLBACK_MEDIUM_MODEL: ${{ vars.LLM_FALLBACK_MEDIUM_MODEL }}
+      LLM_FALLBACK_STRONG_MODEL: ${{ vars.LLM_FALLBACK_STRONG_MODEL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate required evaluation secrets
+        shell: bash
+        run: |
+          test -n "$OPERATIONS_TOKEN"
+          test -n "$LLM_PRIMARY_URL"
+          test -n "$LLM_PRIMARY_API_KEY"
+          test -n "$LLM_PRIMARY_SMALL_MODEL"
+      - name: Start production baseline
+        run: docker compose up -d --build --wait
+      - name: Run real-model and RAG gates
+        shell: pwsh
+        run: ./scripts/run-evaluations.ps1 -OperationsToken $env:OPERATIONS_TOKEN -AgentMode ACTIVE_MODEL
+      - name: Collect service logs
+        if: failure()
+        run: mkdir -p evaluation-reports && docker compose logs --no-color app > evaluation-reports/app.log
+      - name: Upload evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-evaluation-${{ github.run_id }}
+          path: evaluation-reports/
+          if-no-files-found: warn
+      - name: Clean up
+        if: always()
+        run: docker compose down --volumes --remove-orphans

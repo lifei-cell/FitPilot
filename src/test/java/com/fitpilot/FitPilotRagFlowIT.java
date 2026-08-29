@@ -55,7 +55,6 @@ class FitPilotRagFlowIT {
         registry.add("fitpilot.events.enabled", () -> "false");
         registry.add("fitpilot.performance.rate-limit.enabled", () -> "false");
         registry.add("fitpilot.rag.enabled", () -> "true");
-        registry.add("fitpilot.rag.operations-token", () -> OPERATIONS_TOKEN);
         registry.add("fitpilot.operations.token", () -> OPERATIONS_TOKEN);
         registry.add("fitpilot.rag.elasticsearch.url", () -> "http://" + ELASTICSEARCH.getHttpHostAddress());
         registry.add("fitpilot.rag.elasticsearch.index", () -> "fitpilot-rag-it");
@@ -106,8 +105,9 @@ class FitPilotRagFlowIT {
                     .header("X-Operations-Token",OPERATIONS_TOKEN),200).path("data");
             assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
             assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(50);
-            assertThat(run.path("metrics").has("recallAt5")).isTrue();
-            assertThat(run.path("metrics").has("mrr")).isTrue();
+            assertThat(run.path("metrics").path("recallAt5").asDouble()).isGreaterThanOrEqualTo(0.85);
+            assertThat(run.path("metrics").path("mrr").asDouble()).isGreaterThanOrEqualTo(0.75);
+            assertThat(run.path("metrics").path("citationValidity").asDouble()).isEqualTo(1.0);
         });
 
         mvc.perform(get("/api/v1/operations/rag/documents").header("X-Operations-Token", "wrong"))

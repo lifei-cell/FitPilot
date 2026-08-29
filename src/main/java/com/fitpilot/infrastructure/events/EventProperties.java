@@ -7,14 +7,11 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "fitpilot.events")
 public class EventProperties {
     private boolean enabled = true;
-    private String operationsToken = "";
     private final Relay relay = new Relay();
     private final Consumer consumer = new Consumer();
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public String getOperationsToken() { return operationsToken; }
-    public void setOperationsToken(String operationsToken) { this.operationsToken = operationsToken; }
     public Relay getRelay() { return relay; }
     public Consumer getConsumer() { return consumer; }
 

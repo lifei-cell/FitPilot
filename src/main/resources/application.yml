@@ -9,6 +9,8 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:1s}
+      timeout: ${REDIS_TIMEOUT:1s}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     template:
@@ -59,6 +61,8 @@ management:
   otlp:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+      export:
+        enabled: ${OTEL_TRACING_EXPORT_ENABLED:false}
   metrics:
     distribution:
       percentiles-histogram:
@@ -116,10 +120,8 @@ fitpilot:
     session-ttl-seconds: ${AGENT_SESSION_TTL_SECONDS:7200}
     confirmation-ttl-seconds: ${AGENT_CONFIRMATION_TTL_SECONDS:600}
     max-messages: ${AGENT_MAX_MESSAGES:30}
-    operations-token: ${AGENT_OPERATIONS_TOKEN:${EVENT_OPERATIONS_TOKEN:}}
   rag:
     enabled: ${RAG_ENABLED:true}
-    operations-token: ${RAG_OPERATIONS_TOKEN:${EVENT_OPERATIONS_TOKEN:}}
     elasticsearch:
       url: ${RAG_ELASTICSEARCH_URL:http://localhost:9200}
       index: ${RAG_ELASTICSEARCH_INDEX:fitpilot-knowledge-v1}
@@ -145,7 +147,6 @@ fitpilot:
       retry-batch-size: ${RAG_INDEX_RETRY_BATCH_SIZE:20}
   events:
     enabled: ${EVENTS_ENABLED:true}
-    operations-token: ${EVENT_OPERATIONS_TOKEN:}
     relay:
       batch-size: ${OUTBOX_BATCH_SIZE:100}
       fixed-delay-ms: ${OUTBOX_FIXED_DELAY_MS:500}

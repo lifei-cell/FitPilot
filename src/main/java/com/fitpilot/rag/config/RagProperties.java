@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "fitpilot.rag")
 public class RagProperties {
     private boolean enabled = true;
-    private String operationsToken = "";
     private final Elasticsearch elasticsearch = new Elasticsearch();
     private final Embedding embedding = new Embedding();
     private final Chunking chunking = new Chunking();
@@ -27,8 +26,6 @@ public class RagProperties {
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public String getOperationsToken() { return operationsToken; }
-    public void setOperationsToken(String operationsToken) { this.operationsToken = operationsToken; }
     public Elasticsearch getElasticsearch() { return elasticsearch; }
     public Embedding getEmbedding() { return embedding; }
     public Chunking getChunking() { return chunking; }

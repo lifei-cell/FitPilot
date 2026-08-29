@@ -10,7 +10,6 @@ public class AgentProperties {
     private long sessionTtlSeconds = 7200;
     private long confirmationTtlSeconds = 600;
     private int maxMessages = 30;
-    private String operationsToken = "";
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -20,6 +19,4 @@ public class AgentProperties {
     public void setConfirmationTtlSeconds(long value) { confirmationTtlSeconds = value; }
     public int getMaxMessages() { return maxMessages; }
     public void setMaxMessages(int value) { maxMessages = value; }
-    public String getOperationsToken() { return operationsToken; }
-    public void setOperationsToken(String value) { operationsToken = value; }
 }

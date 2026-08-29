@@ -1,12 +1,9 @@
 package com.fitpilot.rag.controller;
 
-import com.fitpilot.common.exception.BusinessException;
-import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.common.operations.OperationsAuthorizer;
-import com.fitpilot.common.security.SecureTokenMatcher;
+import com.fitpilot.common.operations.OperationsProperties;
 import com.fitpilot.rag.application.KnowledgeIngestionService;
-import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.dto.RagDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -34,10 +31,10 @@ import java.util.UUID;
 @ConditionalOnProperty(prefix = "fitpilot.rag", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RagOperationsController {
     private final KnowledgeIngestionService service;
-    private final RagProperties properties;
+    private final OperationsProperties properties;
     private final OperationsAuthorizer authorizer;
 
-    public RagOperationsController(KnowledgeIngestionService service, RagProperties properties, OperationsAuthorizer authorizer) {
+    public RagOperationsController(KnowledgeIngestionService service, OperationsProperties properties, OperationsAuthorizer authorizer) {
         this.service = service;
         this.properties = properties;
         this.authorizer = authorizer;
@@ -73,6 +70,6 @@ public class RagOperationsController {
     }
 
     private void authorize(String candidate) {
-        authorizer.authorize(candidate,properties.getOperationsToken());
+        authorizer.authorize(candidate,properties.getToken());
     }
 }

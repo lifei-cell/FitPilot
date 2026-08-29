@@ -55,7 +55,7 @@ class FitPilotEventFlowIT {
         registry.add("fitpilot.events.relay.fixed-delay-ms", () -> "100");
         registry.add("fitpilot.events.consumer.retry-interval-ms", () -> "50");
         registry.add("fitpilot.events.consumer.max-attempts", () -> "2");
-        registry.add("fitpilot.events.operations-token", () -> "test-operations-token");
+        registry.add("fitpilot.operations.token", () -> "test-operations-token");
         registry.add("fitpilot.rag.enabled", () -> "false");
     }
 

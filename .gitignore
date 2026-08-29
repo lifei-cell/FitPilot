@@ -6,3 +6,5 @@ target/
 .env
 *.log
 .DS_Store
+evaluation-reports/
+load-test/reports/v5-*.json

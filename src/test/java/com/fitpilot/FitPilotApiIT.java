@@ -276,6 +276,7 @@ class FitPilotApiIT {
             assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
             assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(150);
             assertThat(run.path("metrics").path("toolSelectionAccuracy").asDouble()).isGreaterThanOrEqualTo(0.95);
+            assertThat(run.path("metrics").path("taskSuccessRate").asDouble()).isGreaterThanOrEqualTo(0.95);
             assertThat(run.path("metrics").path("constraintViolationRate").asDouble()).isZero();
         });
     }
