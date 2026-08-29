@@ -27,7 +27,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**", "/api/v1/exercises/**", "/swagger-ui/**",
                                 "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**",
                                 "/api/v1/operations/events/**", "/api/v1/operations/rag/**",
-                                "/api/v1/operations/agent/**").permitAll()
+                                "/api/v1/operations/agent/**", "/api/v1/operations/llm/**",
+                                "/api/v1/operations/evaluations/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);

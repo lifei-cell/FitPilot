@@ -50,6 +50,35 @@ security:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:7200}
 fitpilot:
+  operations:
+    token: ${OPERATIONS_TOKEN:}
+  llm:
+    enabled: ${LLM_ENABLED:false}
+    connect-timeout-ms: ${LLM_CONNECT_TIMEOUT_MS:3000}
+    request-timeout-seconds: ${LLM_REQUEST_TIMEOUT_SECONDS:15}
+    max-retries: ${LLM_MAX_RETRIES:2}
+    circuit-failure-threshold: ${LLM_CIRCUIT_FAILURE_THRESHOLD:5}
+    circuit-open-seconds: ${LLM_CIRCUIT_OPEN_SECONDS:30}
+    prompt-version: ${LLM_PROMPT_VERSION:v5.1}
+    max-context-chars: ${LLM_MAX_CONTEXT_CHARS:12000}
+    primary:
+      name: primary
+      url: ${LLM_PRIMARY_URL:}
+      api-key: ${LLM_PRIMARY_API_KEY:}
+      small-model: ${LLM_PRIMARY_SMALL_MODEL:}
+      medium-model: ${LLM_PRIMARY_MEDIUM_MODEL:}
+      strong-model: ${LLM_PRIMARY_STRONG_MODEL:}
+      input-cost-per-million: ${LLM_PRIMARY_INPUT_COST_PER_MILLION:0}
+      output-cost-per-million: ${LLM_PRIMARY_OUTPUT_COST_PER_MILLION:0}
+    fallback:
+      name: fallback
+      url: ${LLM_FALLBACK_URL:}
+      api-key: ${LLM_FALLBACK_API_KEY:}
+      small-model: ${LLM_FALLBACK_SMALL_MODEL:}
+      medium-model: ${LLM_FALLBACK_MEDIUM_MODEL:}
+      strong-model: ${LLM_FALLBACK_STRONG_MODEL:}
+      input-cost-per-million: ${LLM_FALLBACK_INPUT_COST_PER_MILLION:0}
+      output-cost-per-million: ${LLM_FALLBACK_OUTPUT_COST_PER_MILLION:0}
   agent:
     enabled: ${AGENT_ENABLED:true}
     session-ttl-seconds: ${AGENT_SESSION_TTL_SECONDS:7200}

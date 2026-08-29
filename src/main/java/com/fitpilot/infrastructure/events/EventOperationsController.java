@@ -3,6 +3,7 @@ package com.fitpilot.infrastructure.events;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
+import com.fitpilot.common.operations.OperationsAuthorizer;
 import com.fitpilot.common.security.SecureTokenMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +17,14 @@ public class EventOperationsController {
     private final DeadLetterService service;
     private final EventProperties properties;
     private final EventStatusService statusService;
+    private final OperationsAuthorizer authorizer;
 
     public EventOperationsController(DeadLetterService service, EventProperties properties,
-                                     EventStatusService statusService) {
+                                     EventStatusService statusService, OperationsAuthorizer authorizer) {
         this.service = service;
         this.properties = properties;
         this.statusService = statusService;
+        this.authorizer = authorizer;
     }
 
     @GetMapping("/status")
@@ -52,8 +55,6 @@ public class EventOperationsController {
     }
 
     private void authorize(String candidate) {
-        String expected = properties.getOperationsToken();
-        boolean valid = SecureTokenMatcher.matches(expected, candidate);
-        if (!valid) throw new BusinessException(ErrorCode.ACCESS_DENIED, "invalid operations token", HttpStatus.FORBIDDEN);
+        authorizer.authorize(candidate,properties.getOperationsToken());
     }
 }

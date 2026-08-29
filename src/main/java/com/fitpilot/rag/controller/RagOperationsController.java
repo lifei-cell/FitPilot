@@ -3,6 +3,7 @@ package com.fitpilot.rag.controller;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
+import com.fitpilot.common.operations.OperationsAuthorizer;
 import com.fitpilot.common.security.SecureTokenMatcher;
 import com.fitpilot.rag.application.KnowledgeIngestionService;
 import com.fitpilot.rag.config.RagProperties;
@@ -34,10 +35,12 @@ import java.util.UUID;
 public class RagOperationsController {
     private final KnowledgeIngestionService service;
     private final RagProperties properties;
+    private final OperationsAuthorizer authorizer;
 
-    public RagOperationsController(KnowledgeIngestionService service, RagProperties properties) {
+    public RagOperationsController(KnowledgeIngestionService service, RagProperties properties, OperationsAuthorizer authorizer) {
         this.service = service;
         this.properties = properties;
+        this.authorizer = authorizer;
     }
 
     @PostMapping
@@ -70,9 +73,6 @@ public class RagOperationsController {
     }
 
     private void authorize(String candidate) {
-        String expected = properties.getOperationsToken();
-        boolean valid = SecureTokenMatcher.matches(expected, candidate);
-        if (!valid) throw new BusinessException(ErrorCode.ACCESS_DENIED,
-                "invalid operations token", HttpStatus.FORBIDDEN);
+        authorizer.authorize(candidate,properties.getOperationsToken());
     }
 }

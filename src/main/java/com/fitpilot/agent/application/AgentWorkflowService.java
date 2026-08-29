@@ -9,6 +9,9 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
+import com.fitpilot.llm.application.LlmGateway;
+import com.fitpilot.llm.domain.LlmModels;
+import com.fitpilot.rag.dto.RagDtos;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +28,15 @@ public class AgentWorkflowService {
     private final AgentPlanner planner; private final AgentToolExecutor tools; private final AgentRepository repository;
     private final AgentSessionStore sessions; private final TrainingPlanGuardrail guardrail;
     private final TrainingPlanService plans; private final AgentProperties properties; private final ObjectMapper json;
+    private final LlmGateway llm;
     private final SecureRandom random = new SecureRandom();
 
     public AgentWorkflowService(AgentPlanner planner, AgentToolExecutor tools, AgentRepository repository,
                                 AgentSessionStore sessions, TrainingPlanGuardrail guardrail,
-                                TrainingPlanService plans, AgentProperties properties, ObjectMapper json) {
+                                TrainingPlanService plans, AgentProperties properties, ObjectMapper json,
+                                LlmGateway llm) {
         this.planner=planner; this.tools=tools; this.repository=repository; this.sessions=sessions;
-        this.guardrail=guardrail; this.plans=plans; this.properties=properties; this.json=json;
+        this.guardrail=guardrail; this.plans=plans; this.properties=properties; this.json=json; this.llm=llm;
     }
     public AgentDtos.SessionView createSession(long userId) {
         UUID id=UUID.randomUUID(); LocalDateTime now=LocalDateTime.now(); repository.createSession(id,userId,now);
@@ -41,8 +46,11 @@ public class AgentWorkflowService {
 
     public AgentDtos.MessageView message(long userId, UUID sessionId, AgentDtos.MessageRequest request) {
         owned(userId, sessionId); long started=System.nanoTime();
-        AgentPlanner.Decision decision=planner.decide(request.message()); UUID executionId=UUID.randomUUID();
-        repository.startExecution(executionId,userId,sessionId,decision.intent(),decision.tools(),LocalDateTime.now());
+        AgentPlanner.Decision fallbackDecision=planner.decide(request.message()); UUID executionId=UUID.randomUUID();
+        repository.startExecution(executionId,userId,sessionId,fallbackDecision.intent(),fallbackDecision.tools(),LocalDateTime.now());
+        LlmModels.Result<AgentPlanner.Decision> decisionResult=llm.decide(executionId,request.message(),fallbackDecision);
+        AgentPlanner.Decision decision=decisionResult.value(); repository.updateDecision(executionId,decision.intent(),decision.tools());
+        apply(executionId,decisionResult);
         sessions.append(sessionId,"user",request.message());
         Map<String,Object> results=new LinkedHashMap<>();
         try {
@@ -58,22 +66,34 @@ public class AgentWorkflowService {
                 }
             }
             AgentDtos.PendingActionView pending=null; int violations=0;
+            String model=decisionResult.model(); boolean degraded=decisionResult.degraded(); String promptVersion=decisionResult.promptVersion();
             if (decision.tools().contains("create_training_plan")) {
-                TrainingPlanDtos.CreateRequest proposal=request.proposedPlan()!=null ? request.proposedPlan() : defaultProposal(userId);
+                TrainingPlanDtos.CreateRequest fallbackPlan=defaultProposal(userId);
+                LlmModels.Result<TrainingPlanDtos.CreateRequest> planResult=request.proposedPlan()!=null
+                        ? new LlmModels.Result<>(request.proposedPlan(),model,degraded,promptVersion,0,0,BigDecimal.ZERO)
+                        : llm.generatePlan(executionId,request.message(),results,fallbackPlan);
+                apply(executionId,planResult); model=planResult.model(); degraded|=planResult.degraded(); promptVersion=planResult.promptVersion();
+                TrainingPlanDtos.CreateRequest proposal=planResult.value();
                 List<String> issues=guardrail.validate(proposal); violations=issues.size();
                 if (!issues.isEmpty()) {
                     repository.toolCall(executionId,"create_training_plan",proposal,Map.of("violations",issues),"REJECTED",0);
                     repository.finishExecution(executionId,"REJECTED",elapsed(started),violations);
                     String answer="计划草案未通过安全规则："+String.join("；",issues);
                     sessions.append(sessionId,"assistant",answer);
-                    return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null);
+                    return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
+                            model,degraded,promptVersion,citations(results));
                 }
                 pending=createPending(executionId,userId,proposal);
             }
-            String answer=compose(decision.intent(),results,pending!=null);
+            String fallbackAnswer=compose(decision.intent(),results,pending!=null);
+            LlmModels.Result<String> answerResult=pending==null?llm.answer(executionId,request.message(),results,fallbackAnswer)
+                    :new LlmModels.Result<>(fallbackAnswer,model,degraded,promptVersion,0,0,BigDecimal.ZERO);
+            apply(executionId,answerResult); model=answerResult.model(); degraded|=answerResult.degraded(); promptVersion=answerResult.promptVersion();
+            String answer=answerResult.value();
             sessions.append(sessionId,"assistant",answer); repository.touchSession(sessionId);
             repository.finishExecution(executionId,pending==null?"SUCCEEDED":"AWAITING_CONFIRMATION",elapsed(started),violations);
-            return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,pending!=null,pending);
+            return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,pending!=null,pending,
+                    model,degraded,promptVersion,citations(results));
         } catch (RuntimeException failure) {
             repository.finishExecution(executionId,"FAILED",elapsed(started),0); throw failure;
         }
@@ -133,6 +153,8 @@ public class AgentWorkflowService {
         long available=results.values().stream().filter(v -> !(v instanceof Map<?,?> m) || !Boolean.FALSE.equals(m.get("available"))).count();
         return "已完成 "+intent+" 分析，调用 "+results.size()+" 个只读工具，其中 "+available+" 个返回有效结果。详细数据已保留在工具调用审计中。";
     }
+    private void apply(UUID executionId,LlmModels.Result<?> result){repository.addLlmUsage(executionId,result.model(),result.promptVersion(),result.degraded(),result.inputTokens(),result.outputTokens(),result.costUsd());}
+    private List<RagDtos.Citation> citations(Map<String,Object> results){Object value=results.get("search_knowledge");if(!(value instanceof RagDtos.SearchResponse response))return List.of();return response.contexts().stream().map(RagDtos.RetrievedContext::citation).filter(Objects::nonNull).distinct().toList();}
     private void owned(long userId,UUID sessionId) { if(!repository.ownsSession(sessionId,userId)) throw error(ErrorCode.AGENT_SESSION_NOT_FOUND,"agent session not found",HttpStatus.NOT_FOUND); }
     private BusinessException error(ErrorCode code,String message,HttpStatus status){ return new BusinessException(code,message,status); }
     private long elapsed(long started){return (System.nanoTime()-started)/1_000_000;}

@@ -1,6 +1,7 @@
 package com.fitpilot.agent.dto;
 
 import com.fitpilot.plan.dto.TrainingPlanDtos;
+import com.fitpilot.rag.dto.RagDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +18,9 @@ public final class AgentDtos {
     public record MessageRequest(@NotBlank @Size(max = 4000) String message,
                                  @Valid TrainingPlanDtos.CreateRequest proposedPlan) {}
     public record MessageView(UUID executionId, String intent, List<String> selectedTools, String answer,
-                              boolean confirmationRequired, PendingActionView pendingAction) {}
+                              boolean confirmationRequired, PendingActionView pendingAction,
+                              String model, boolean degraded, String promptVersion,
+                              List<RagDtos.Citation> citations) {}
     public record PendingActionView(UUID id, String toolName, String confirmationToken,
                                     LocalDateTime expiresAt, Object preview, List<String> guardrailWarnings) {}
     public record ConfirmRequest(@NotBlank String confirmationToken) {}

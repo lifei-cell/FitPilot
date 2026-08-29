@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,6 +28,17 @@ public class AgentRepository {
     public void startExecution(UUID id, long userId, UUID sessionId, String intent, List<String> tools, LocalDateTime now) {
         jdbc.update("INSERT INTO agent_execution(id,user_id,session_id,intent,selected_tools,status,model,created_at) VALUES (?,?,?,?,?::jsonb,'RUNNING','RULE_WORKFLOW',?)",
                 id, userId, sessionId, intent, write(tools), now);
+    }
+    public void updateDecision(UUID id, String intent, List<String> tools) {
+        jdbc.update("UPDATE agent_execution SET intent=?,selected_tools=?::jsonb WHERE id=?",intent,write(tools),id);
+    }
+    public void addLlmUsage(UUID id, String model, String promptVersion, boolean degraded,
+                            int inputTokens, int outputTokens, BigDecimal cost) {
+        jdbc.update("""
+                UPDATE agent_execution SET model=?,prompt_version=?,degraded=(degraded OR ?),
+                  input_tokens=input_tokens+?,output_tokens=output_tokens+?,cost_usd=cost_usd+?
+                WHERE id=?
+                """,model,promptVersion,degraded,inputTokens,outputTokens,cost,id);
     }
     public void finishExecution(UUID id, String status, long latency, int violations) {
         jdbc.update("UPDATE agent_execution SET status=?,latency_ms=?,rule_violation_count=?,completed_at=now() WHERE id=?",
