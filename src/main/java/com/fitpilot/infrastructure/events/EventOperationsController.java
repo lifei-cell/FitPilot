@@ -3,11 +3,10 @@ package com.fitpilot.infrastructure.events;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
+import com.fitpilot.common.security.SecureTokenMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,8 +53,7 @@ public class EventOperationsController {
 
     private void authorize(String candidate) {
         String expected = properties.getOperationsToken();
-        boolean valid = expected != null && !expected.isBlank() && MessageDigest.isEqual(
-                expected.getBytes(StandardCharsets.UTF_8), candidate.getBytes(StandardCharsets.UTF_8));
+        boolean valid = SecureTokenMatcher.matches(expected, candidate);
         if (!valid) throw new BusinessException(ErrorCode.ACCESS_DENIED, "invalid operations token", HttpStatus.FORBIDDEN);
     }
 }

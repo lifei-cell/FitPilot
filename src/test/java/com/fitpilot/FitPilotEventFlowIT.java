@@ -35,7 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FitPilotEventFlowIT {
     @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
+            DockerImageName.parse("pgvector/pgvector:pg17").asCompatibleSubstituteFor("postgres"));
     @Container
     static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7.4-alpine").withExposedPorts(6379);
     @Container
@@ -55,6 +56,7 @@ class FitPilotEventFlowIT {
         registry.add("fitpilot.events.consumer.retry-interval-ms", () -> "50");
         registry.add("fitpilot.events.consumer.max-attempts", () -> "2");
         registry.add("fitpilot.events.operations-token", () -> "test-operations-token");
+        registry.add("fitpilot.rag.enabled", () -> "false");
     }
 
     @Autowired MockMvc mvc;

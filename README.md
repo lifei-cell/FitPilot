@@ -1,6 +1,6 @@
-# FitPilot V2.0
+# FitPilot V3.0
 
-FitPilot V2 是一个 Java 21 + Spring Boot 3 的事件驱动模块化单体健身训练后端。V2 保留 V0 完整训练业务和 V1 高性能数据路径，并加入 Kafka、Transactional Outbox、消费幂等、重试、DLT 与安全回放。
+FitPilot V3 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练后端。V3 保留完整训练业务、高性能数据路径和事件驱动链路，并加入可独立使用的专业健身 Hybrid RAG 知识库。
 
 ## 架构
 
@@ -35,10 +35,20 @@ Workout + Outbox（同一事务）→ Kafka → PR / Analytics → PR Event → 
 
 Kafka 故障不会回滚已完成的 Workout。PR、分析投影和通知采用最终一致性；恢复后 Outbox 自动补发。
 
+RAG 检索链路：
+
+```text
+Markdown / Text → Parent-Child Chunk → Embedding → pgvector HNSW
+                                             ↘ Elasticsearch BM25
+Query → BM25 + Vector Search → RRF → Deterministic Rerank → Parent Context + Citation
+```
+
+PostgreSQL 保存文档、Chunk、Embedding 和索引状态，是知识库真源；Elasticsearch 只承担可重建的 BM25 索引。索引失败时文档进入 `FAILED` 并由后台任务重试，查询自动降级为 pgvector 向量检索。
+
 ## 技术栈
 
 - Java 21、Spring Boot 3.5、Spring MVC、Validation、Spring Security JWT
-- MyBatis-Plus、PostgreSQL、Flyway、Redis、Caffeine、Redis Lua、Kafka
+- MyBatis-Plus、PostgreSQL + pgvector、Elasticsearch、Flyway、Redis、Caffeine、Kafka
 - SpringDoc OpenAPI、JUnit 5、Mockito、Testcontainers
 - Docker Compose
 
@@ -55,7 +65,7 @@ curl.exe http://localhost:8080/actuator/health
 
 Swagger：<http://localhost:8080/swagger-ui.html>
 
-只在本机开发时，也可先启动 PostgreSQL、Redis 和 Kafka，再执行：
+只在本机开发时，也可先启动 pgvector PostgreSQL、Redis、Kafka 和 Elasticsearch，再执行：
 
 ```powershell
 $env:DB_PASSWORD = "your-password"
@@ -80,6 +90,8 @@ mvn spring-boot:run
 | 缓存统计 | `GET /api/v1/performance/cache-stats` |
 | PR 通知 | `GET /api/v1/notifications`、`POST /{id}/read` |
 | 事件运维 | `GET /api/v1/operations/events/status`、死信查询/回放 |
+| RAG 检索 | `GET /api/v1/rag/search?q=...&topK=5&category=...` |
+| 知识库运维 | `POST/GET /api/v1/operations/rag/documents`、重建索引、删除 |
 
 除注册、登录、动作库、Swagger 和健康检查外，请发送 `Authorization: Bearer <token>`。
 
@@ -90,6 +102,9 @@ mvn spring-boot:run
 - 完成 Workout 幂等；PR 来源与类型有唯一约束，不会重复生成。
 - Workout 状态与 Outbox 事件原子提交；Kafka 不可用时核心写入保持可用。
 - 所有消费者使用数据库 Inbox 幂等，失败自动重试并进入 Kafka DLT 与数据库死信表。
+- 知识文档强制记录来源和许可证；检索结果返回完整 Parent Context 与引用信息。
+- pgvector 使用 384 维向量和 HNSW cosine 索引，BM25 与向量结果通过 RRF 融合并二次排序。
+- Embedding 默认使用可离线测试的确定性本地实现，生产可切换到返回 384 维向量的 OpenAI-compatible 服务。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
 - Flyway 管理全部表、外键、查询索引和 50 个动作种子。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
@@ -102,9 +117,10 @@ mvn test
 mvn verify
 ```
 
-`mvn test` 执行领域和服务单元测试；`mvn verify` 额外执行 PostgreSQL、Redis、Kafka Testcontainers 端到端链路，覆盖 Kafka 故障下 Outbox 留存、异步 PR/分析/通知、重复消费和 DLT。没有可用 Docker 时集成测试会明确跳过。
+`mvn test` 执行领域和服务单元测试；`mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers 端到端链路，覆盖事件链路以及文档摄取、Hybrid Search、引用、重建索引和删除。没有可用 Docker 时集成测试会明确跳过。
 
 V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/architecture/v2-events.md)。
+V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。
 
 ## V1 性能验证
 

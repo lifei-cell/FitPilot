@@ -50,6 +50,32 @@ security:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:7200}
 fitpilot:
+  rag:
+    enabled: ${RAG_ENABLED:true}
+    operations-token: ${RAG_OPERATIONS_TOKEN:${EVENT_OPERATIONS_TOKEN:}}
+    elasticsearch:
+      url: ${RAG_ELASTICSEARCH_URL:http://localhost:9200}
+      index: ${RAG_ELASTICSEARCH_INDEX:fitpilot-knowledge-v1}
+      connect-timeout-ms: ${RAG_ES_CONNECT_TIMEOUT_MS:1000}
+      request-timeout-ms: ${RAG_ES_REQUEST_TIMEOUT_MS:3000}
+    embedding:
+      provider: ${EMBEDDING_PROVIDER:LOCAL}
+      dimensions: ${EMBEDDING_DIMENSIONS:384}
+      api-url: ${EMBEDDING_API_URL:}
+      api-key: ${EMBEDDING_API_KEY:}
+      model: ${EMBEDDING_MODEL:text-embedding-3-small}
+      timeout-seconds: ${EMBEDDING_TIMEOUT_SECONDS:10}
+    chunking:
+      parent-max-chars: ${RAG_PARENT_MAX_CHARS:2400}
+      child-max-chars: ${RAG_CHILD_MAX_CHARS:700}
+      child-overlap-chars: ${RAG_CHILD_OVERLAP_CHARS:100}
+    retrieval:
+      candidate-limit: ${RAG_CANDIDATE_LIMIT:30}
+      rrf-k: ${RAG_RRF_K:60}
+      max-top-k: ${RAG_MAX_TOP_K:20}
+    indexing:
+      fixed-delay-ms: ${RAG_INDEX_FIXED_DELAY_MS:5000}
+      retry-batch-size: ${RAG_INDEX_RETRY_BATCH_SIZE:20}
   events:
     enabled: ${EVENTS_ENABLED:true}
     operations-token: ${EVENT_OPERATIONS_TOKEN:}
