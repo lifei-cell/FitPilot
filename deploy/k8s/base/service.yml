@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fitpilot
+spec:
+  selector: {app.kubernetes.io/name: fitpilot}
+  ports:
+    - {name: http, port: 80, targetPort: http}
+

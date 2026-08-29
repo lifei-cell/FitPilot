@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fitpilot
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "20"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fitpilot.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: fitpilot, port: {name: http}}
+

@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fitpilot-migrate
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: fitpilot-migrate}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: fitpilot
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: migrate
+          image: ghcr.io/example/fitpilot:5.0.0
+          command:
+            - java
+            - -Dloader.main=com.fitpilot.deployment.FlywayMigrationMain
+            - -cp
+            - /app/app.jar
+            - org.springframework.boot.loader.launch.PropertiesLauncher
+          envFrom:
+            - configMapRef: {name: fitpilot-config}
+            - secretRef: {name: fitpilot-secrets}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {sizeLimit: 64Mi}
+

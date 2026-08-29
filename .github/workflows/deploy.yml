@@ -1,0 +1,44 @@
+name: Production Rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Immutable image tag or Git SHA
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  rollout:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - uses: imranismail/setup-kustomize@v2
+      - name: Configure cluster
+        run: |
+          mkdir -p ~/.kube
+          printf '%s' '${{ secrets.KUBE_CONFIG }}' >~/.kube/config
+          chmod 600 ~/.kube/config
+      - name: Run forward-only migration
+        run: |
+          cd deploy/k8s/overlays/production-migration
+          kustomize edit set image ghcr.io/example/fitpilot=ghcr.io/${{ github.repository_owner }}/fitpilot:${{ inputs.image_tag }}
+          kubectl delete job -n fitpilot fitpilot-migrate --ignore-not-found
+          kubectl apply -k .
+          kubectl wait -n fitpilot --for=condition=complete job/fitpilot-migrate --timeout=5m
+      - name: Roll out application
+        id: rollout
+        run: |
+          cd deploy/k8s/overlays/production
+          kustomize edit set image ghcr.io/example/fitpilot=ghcr.io/${{ github.repository_owner }}/fitpilot:${{ inputs.image_tag }}
+          kubectl apply -k .
+          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m
+      - name: Roll back failed application rollout
+        if: failure() && steps.rollout.outcome == 'failure'
+        run: |
+          kubectl rollout undo -n fitpilot deployment/fitpilot
+          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m

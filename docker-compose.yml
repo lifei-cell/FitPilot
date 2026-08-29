@@ -1,5 +1,23 @@
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  stop_grace_period: 30s
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+  deploy:
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: 1G
+      reservations:
+        cpus: "0.10"
+        memory: 128M
+
 services:
   postgres:
+    <<: *service-defaults
     image: pgvector/pgvector:pg17
     environment:
       POSTGRES_DB: ${DB_NAME:-fitpilot}
@@ -13,6 +31,7 @@ services:
       timeout: 3s
       retries: 20
   redis:
+    <<: *service-defaults
     image: redis:7.4-alpine
     ports: ["6379:6379"]
     volumes: ["redis-data:/data"]
@@ -22,6 +41,7 @@ services:
       timeout: 3s
       retries: 20
   kafka:
+    <<: *service-defaults
     image: apache/kafka:3.9.1
     environment:
       KAFKA_NODE_ID: 1
@@ -44,6 +64,7 @@ services:
       timeout: 5s
       retries: 20
   elasticsearch:
+    <<: *service-defaults
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.4
     environment:
       discovery.type: single-node
@@ -58,6 +79,7 @@ services:
       timeout: 5s
       retries: 30
   app:
+    <<: *service-defaults
     build: .
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-fitpilot}
@@ -96,17 +118,27 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
     ports: ["8080:8080"]
     volumes: ["app-logs:/var/log/fitpilot"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    deploy:
+      resources:
+        limits: {cpus: "2.0", memory: 2G}
+        reservations: {cpus: "0.25", memory: 512M}
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
       kafka: {condition: service_healthy}
       elasticsearch: {condition: service_healthy}
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
       interval: 10s
       timeout: 3s
       retries: 20
+      start_period: 30s
   prometheus:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: prom/prometheus:v3.5.0
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d"]
     volumes:
@@ -117,6 +149,8 @@ services:
     depends_on:
       app: {condition: service_healthy}
   grafana:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: grafana/grafana:12.1.0
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
@@ -129,6 +163,8 @@ services:
     ports: ["3000:3000"]
     depends_on: [prometheus, tempo, loki]
   tempo:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: grafana/tempo:2.8.1
     command: ["-config.file=/etc/tempo.yml"]
     volumes:
@@ -136,6 +172,8 @@ services:
       - tempo-data:/var/tempo
     ports: ["3200:3200"]
   loki:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: grafana/loki:3.5.3
     command: ["-config.file=/etc/loki/loki.yml"]
     volumes:
@@ -143,6 +181,8 @@ services:
       - loki-data:/loki
     ports: ["3100:3100"]
   promtail:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: grafana/promtail:3.5.3
     command: ["-config.file=/etc/promtail.yml"]
     volumes:
@@ -151,6 +191,8 @@ services:
       - promtail-positions:/tmp
     depends_on: [loki, app]
   otel-collector:
+    <<: *service-defaults
+    profiles: ["observability"]
     image: otel/opentelemetry-collector-contrib:0.132.0
     command: ["--config=/etc/otelcol/config.yml"]
     volumes:
