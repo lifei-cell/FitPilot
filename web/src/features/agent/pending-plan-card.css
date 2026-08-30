@@ -1,0 +1,104 @@
+.pending-plan-card {
+  margin: 0 30px 24px;
+  padding: 20px;
+  border: 1px solid #586b30;
+  background: linear-gradient(145deg, #171d17, #101411);
+}
+.pending-plan-card.expired {
+  border-color: #4a4f4c;
+  opacity: 0.78;
+}
+.pending-plan-card header,
+.pending-plan-card footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.pending-plan-card h3 {
+  margin: 8px 0 4px;
+  font: 700 25px "Barlow Condensed";
+}
+.pending-plan-card header p,
+.pending-plan-card footer p,
+.pending-plan-description {
+  margin: 0;
+  color: #9da7a1;
+  font-size: 12px;
+}
+.pending-plan-kicker,
+.pending-plan-expiry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lime);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pending-plan-expiry {
+  flex: none;
+  color: #d9e5dc;
+}
+.pending-plan-description {
+  margin-top: 15px;
+}
+.pending-plan-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.pending-plan-days article {
+  padding: 13px;
+  border: 1px solid var(--line);
+  background: #0d110f;
+}
+.pending-plan-days strong {
+  font-size: 11px;
+}
+.pending-plan-days ul {
+  display: grid;
+  gap: 9px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pending-plan-days li {
+  display: grid;
+  gap: 3px;
+}
+.pending-plan-days li span {
+  font-size: 12px;
+}
+.pending-plan-days li small {
+  color: #7f8a84;
+  font-size: 10px;
+}
+.pending-plan-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px;
+  background: #2d2815;
+  color: #f0d978;
+  font-size: 11px;
+}
+.pending-plan-error {
+  margin-bottom: 14px;
+}
+.pending-plan-card footer {
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  .pending-plan-card {
+    margin-inline: 18px;
+  }
+  .pending-plan-card header,
+  .pending-plan-card footer {
+    display: grid;
+  }
+}

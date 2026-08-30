@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public final class AgentDtos {
                               String model, boolean degraded, String promptVersion,
                               List<RagDtos.Citation> citations) {}
     public record PendingActionView(UUID id, String toolName, String confirmationToken,
-                                    LocalDateTime expiresAt, Object preview, List<String> guardrailWarnings) {}
+                                    Instant expiresAt, Object preview, List<String> guardrailWarnings) {}
     public record ConfirmRequest(@NotBlank String confirmationToken) {}
     public record PreferenceRequest(@NotBlank @Size(max = 80) String key, @NotNull Object value) {}
     public record PreferenceView(String key, Object value, LocalDateTime updatedAt) {}

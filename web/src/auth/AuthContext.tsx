@@ -7,6 +7,7 @@ import {
 } from "react";
 import { accessTokenSubject, api, clearToken, storeToken } from "../api/client";
 import { clearAgentSession } from "../agent/sessionStorage";
+import { clearPendingAction } from "../agent/pendingActionStorage";
 
 type AuthContextValue = {
   authenticated: boolean;
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           await api("/auth/logout", { method: "POST" }, false);
         } finally {
           clearAgentSession(userId);
+          clearPendingAction(userId);
           clearToken();
           setAuthenticated(false);
         }

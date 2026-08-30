@@ -25,6 +25,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,10 +100,16 @@ class FitPilotApiIT {
                 .contentType("application/json").content("""
                     {"name":"Upper A","goal":"STRENGTH","durationWeeks":8,"days":[
                       {"dayNumber":1,"name":"Upper A","exercises":[
-                        {"exerciseId":1,"sequence":1,"targetSets":4,"targetRepsMin":5,"targetRepsMax":8,"targetRpe":8,"restSeconds":180}
+                        {"exerciseId":1,"sequence":1,"targetSets":4,"targetRepsMin":5,"targetRepsMax":8,"targetRpe":8,"restSeconds":180},
+                        {"exerciseId":2,"sequence":2,"targetSets":3,"targetRepsMin":8,"targetRepsMax":12,"targetRpe":7.5,"restSeconds":120}
+                      ]},
+                      {"dayNumber":2,"name":"Lower A","exercises":[
+                        {"exerciseId":3,"sequence":1,"targetSets":4,"targetRepsMin":4,"targetRepsMax":6,"targetRpe":8,"restSeconds":180}
                       ]}
                     ]}
                     """), 201);
+        assertThat(plan.path("data").path("days")).hasSize(2);
+        assertThat(plan.path("data").path("days").get(0).path("exercises")).hasSize(2);
         long planId = plan.path("data").path("id").asLong();
         long dayId = plan.path("data").path("days").get(0).path("id").asLong();
         call(post("/api/v1/training-plans/{id}/activate", planId).header("Authorization", bearer(token)), 200);
@@ -120,9 +127,19 @@ class FitPilotApiIT {
         JsonNode workout = json.readTree(firstWorkout.getResponse().getContentAsByteArray());
         long workoutId = workout.path("data").path("id").asLong();
         long workoutExerciseId = workout.path("data").path("exercises").get(0).path("id").asLong();
-        call(post("/api/v1/workouts/{workoutId}/exercises/{exerciseId}/sets", workoutId, workoutExerciseId)
+        JsonNode createdSet = call(post("/api/v1/workouts/{workoutId}/exercises/{exerciseId}/sets", workoutId, workoutExerciseId)
                 .header("Authorization", bearer(token)).contentType("application/json")
                 .content("{\"weightKg\":80,\"reps\":5,\"rpe\":8,\"isWarmup\":false}"), 201);
+        long setId = createdSet.path("data").path("id").asLong();
+        JsonNode updatedSet = call(put("/api/v1/workouts/{workoutId}/sets/{setId}", workoutId, setId)
+                .header("Authorization", bearer(token)).contentType("application/json")
+                .content("{\"weightKg\":82.5,\"reps\":5,\"rpe\":8.5,\"rir\":1.5,\"isWarmup\":false,\"isFailure\":false}"), 200);
+        assertThat(updatedSet.path("data").path("weightKg").decimalValue()).isEqualByComparingTo("82.5");
+        call(delete("/api/v1/workouts/{workoutId}/sets/{setId}", workoutId, setId)
+                .header("Authorization", bearer(token)), 200);
+        call(post("/api/v1/workouts/{workoutId}/exercises/{exerciseId}/sets", workoutId, workoutExerciseId)
+                .header("Authorization", bearer(token)).contentType("application/json")
+                .content("{\"weightKg\":80,\"reps\":5,\"rpe\":8,\"isWarmup\":false,\"isFailure\":false}"), 201);
 
         JsonNode completed = call(post("/api/v1/workouts/{id}/complete", workoutId)
                 .header("Authorization", bearer(token)), 200);
@@ -315,6 +332,7 @@ class FitPilotApiIT {
         assertThat(proposal.path("data").path("confirmationRequired").asBoolean()).isTrue();
         String actionId=proposal.path("data").path("pendingAction").path("id").asText();
         String confirmationToken=proposal.path("data").path("pendingAction").path("confirmationToken").asText();
+        assertThat(Instant.parse(proposal.path("data").path("pendingAction").path("expiresAt").asText())).isAfter(Instant.now());
         long ownerId=owner.path("data").path("id").asLong();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=?",Long.class,ownerId)).isZero();
 

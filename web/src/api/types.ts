@@ -25,6 +25,7 @@ export type PlanExercise = {
   targetRepsMax: number;
   targetRpe?: number;
   restSeconds?: number;
+  notes?: string;
 };
 export type PlanDay = {
   id: number;
@@ -47,22 +48,67 @@ export type Plan = {
 export type PlanSummary = Omit<Plan, "days" | "description" | "version"> & {
   startedAt?: string;
 };
+export type PlanExerciseInput = {
+  exerciseId: number;
+  sequence: number;
+  targetSets: number;
+  targetRepsMin: number;
+  targetRepsMax: number;
+  targetRpe?: number;
+  restSeconds?: number;
+  notes?: string;
+};
+export type PlanDayInput = {
+  dayNumber: number;
+  name: string;
+  notes?: string;
+  exercises: PlanExerciseInput[];
+};
+export type PlanCreateInput = {
+  name: string;
+  description?: string;
+  goal: string;
+  durationWeeks: number;
+  days: PlanDayInput[];
+};
+export type AgentPendingAction = {
+  id: string;
+  toolName: string;
+  confirmationToken: string;
+  expiresAt: string;
+  preview: PlanCreateInput;
+  guardrailWarnings: string[];
+};
 export type WorkoutSet = {
   id: number;
   setNumber: number;
   weightKg: number;
   reps: number;
   rpe?: number;
+  rir?: number;
   isWarmup: boolean;
+  isFailure: boolean;
+  completedAt?: string;
+};
+export type WorkoutSetInput = {
+  weightKg: number;
+  reps: number;
+  rpe?: number;
+  rir?: number;
+  isWarmup: boolean;
+  isFailure: boolean;
 };
 export type WorkoutExercise = {
   id: number;
   exerciseId: number;
   exerciseName: string;
+  sequence: number;
   targetSets?: number;
   targetRepsMin?: number;
   targetRepsMax?: number;
   targetRpe?: number;
+  restSeconds?: number;
+  notes?: string;
   sets: WorkoutSet[];
 };
 export type Workout = {

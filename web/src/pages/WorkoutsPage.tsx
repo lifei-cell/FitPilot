@@ -2,7 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { CheckCircle2, CircleStop, Play, Plus } from "lucide-react";
 import { api } from "../api/client";
-import type { PageResult, Plan, Workout, WorkoutSummary } from "../api/types";
+import type {
+  PageResult,
+  Plan,
+  Workout,
+  WorkoutSetInput,
+  WorkoutSummary,
+} from "../api/types";
 import {
   Empty,
   PageHeader,
@@ -10,6 +16,7 @@ import {
   SectionTitle,
   Status,
 } from "../components/PageParts";
+import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 
 export function WorkoutsPage() {
   const client = useQueryClient();
@@ -30,9 +37,10 @@ export function WorkoutsPage() {
     queryFn: () => api<PageResult<WorkoutSummary>>("/workouts?size=10"),
   });
   const refresh = () => {
-    client.invalidateQueries({ queryKey: ["active-workout"] });
-    client.invalidateQueries({ queryKey: ["workout-history"] });
-    client.invalidateQueries({ queryKey: ["overview"] });
+    setError("");
+    void client.invalidateQueries({ queryKey: ["active-workout"] });
+    void client.invalidateQueries({ queryKey: ["workout-history"] });
+    void client.invalidateQueries({ queryKey: ["overview"] });
   };
   const start = useMutation({
     mutationFn: (dayId: number) =>
@@ -71,6 +79,29 @@ export function WorkoutsPage() {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+    onSuccess: refresh,
+    onError: (e) => setError(e.message),
+  });
+  const updateSet = useMutation({
+    mutationFn: ({
+      workoutId,
+      setId,
+      payload,
+    }: {
+      workoutId: number;
+      setId: number;
+      payload: WorkoutSetInput;
+    }) =>
+      api(`/workouts/${workoutId}/sets/${setId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: refresh,
+    onError: (e) => setError(e.message),
+  });
+  const deleteSet = useMutation({
+    mutationFn: ({ workoutId, setId }: { workoutId: number; setId: number }) =>
+      api(`/workouts/${workoutId}/sets/${setId}`, { method: "DELETE" }),
     onSuccess: refresh,
     onError: (e) => setError(e.message),
   });
@@ -147,11 +178,31 @@ export function WorkoutsPage() {
                     {exercise.targetRepsMax ?? "—"} 次 · RPE{" "}
                     {exercise.targetRpe ?? "—"}
                   </p>
-                  <div className="set-row">
+                  <div className="workout-set-list">
                     {exercise.sets.map((set) => (
-                      <span key={set.id}>
-                        <b>{set.weightKg}kg</b> × {set.reps}
-                      </span>
+                      <WorkoutSetEditor
+                        key={set.id}
+                        set={set}
+                        busy={
+                          (updateSet.isPending &&
+                            updateSet.variables?.setId === set.id) ||
+                          (deleteSet.isPending &&
+                            deleteSet.variables?.setId === set.id)
+                        }
+                        onSave={(payload) =>
+                          updateSet.mutate({
+                            workoutId: active.data!.id,
+                            setId: set.id,
+                            payload,
+                          })
+                        }
+                        onDelete={() =>
+                          deleteSet.mutate({
+                            workoutId: active.data!.id,
+                            setId: set.id,
+                          })
+                        }
+                      />
                     ))}
                   </div>
                   <form

@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -110,7 +111,7 @@ public class AgentWorkflowService {
     }
     private AgentDtos.PendingActionView createPending(UUID executionId,long userId,TrainingPlanDtos.CreateRequest proposal) {
         UUID id=UUID.randomUUID(); byte[] bytes=new byte[32]; random.nextBytes(bytes); String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        LocalDateTime expires=LocalDateTime.now().plusSeconds(properties.getConfirmationTtlSeconds());
+        Instant expires=Instant.now().plusSeconds(properties.getConfirmationTtlSeconds());
         repository.createPending(id,executionId,userId,"create_training_plan",proposal,sha256(token),expires,LocalDateTime.now());
         repository.toolCall(executionId,"create_training_plan",proposal,Map.of("pendingActionId",id,"confirmationRequired",true),"AWAITING_CONFIRMATION",0);
         return new AgentDtos.PendingActionView(id,"create_training_plan",token,expires,proposal,List.of());
@@ -119,7 +120,7 @@ public class AgentWorkflowService {
     public Object confirm(long userId, UUID actionId, String token) {
         AgentRepository.Pending pending=repository.lockPending(actionId,userId).orElseThrow(() -> error(ErrorCode.AGENT_CONFIRMATION_INVALID,"confirmation not found",HttpStatus.NOT_FOUND));
         if (!"AWAITING_CONFIRMATION".equals(pending.status())) throw error(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,"action already processed",HttpStatus.CONFLICT);
-        if (pending.expiresAt().isBefore(LocalDateTime.now()) || !MessageDigest.isEqual(pending.confirmationHash().getBytes(StandardCharsets.UTF_8),sha256(token).getBytes(StandardCharsets.UTF_8)))
+        if (pending.expiresAt().isBefore(Instant.now()) || !MessageDigest.isEqual(pending.confirmationHash().getBytes(StandardCharsets.UTF_8),sha256(token).getBytes(StandardCharsets.UTF_8)))
             throw error(ErrorCode.AGENT_CONFIRMATION_INVALID,"confirmation is expired or invalid",HttpStatus.FORBIDDEN);
         TrainingPlanDtos.CreateRequest proposal=repository.read(pending.payload(),TrainingPlanDtos.CreateRequest.class);
         List<String> issues=guardrail.validate(proposal);

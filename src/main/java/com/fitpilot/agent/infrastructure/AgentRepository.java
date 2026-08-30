@@ -6,9 +6,10 @@ import com.fitpilot.agent.dto.AgentDtos;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 @Repository
@@ -49,14 +50,14 @@ public class AgentRepository {
                 UUID.randomUUID(), executionId, name, write(request), write(response), status, latency);
     }
     public void createPending(UUID id, UUID executionId, long userId, String tool, Object payload, String hash,
-                              LocalDateTime expiresAt, LocalDateTime now) {
+                              Instant expiresAt, LocalDateTime now) {
         jdbc.update("INSERT INTO agent_pending_action(id,execution_id,user_id,tool_name,payload,confirmation_hash,status,expires_at,created_at) VALUES (?,?,?,?,?::jsonb,?,'AWAITING_CONFIRMATION',?,?)",
-                id, executionId, userId, tool, write(payload), hash, expiresAt, now);
+                id, executionId, userId, tool, write(payload), hash, expiresAt.atOffset(ZoneOffset.UTC), now);
     }
     public Optional<Pending> lockPending(UUID id, long userId) {
         return jdbc.query("SELECT execution_id,tool_name,payload::text,confirmation_hash,status,expires_at FROM agent_pending_action WHERE id=? AND user_id=? FOR UPDATE",
                 rs -> rs.next() ? Optional.of(new Pending((UUID) rs.getObject(1), rs.getString(2), rs.getString(3),
-                        rs.getString(4), rs.getString(5), rs.getTimestamp(6).toLocalDateTime())) : Optional.empty(), id, userId);
+                        rs.getString(4), rs.getString(5), rs.getObject(6, java.time.OffsetDateTime.class).toInstant())) : Optional.empty(), id, userId);
     }
     public void markExecuted(UUID id) { jdbc.update("UPDATE agent_pending_action SET status='EXECUTED',executed_at=now() WHERE id=?", id); }
     public void upsertMemory(long userId, String key, Object value) {
@@ -82,5 +83,5 @@ public class AgentRepository {
     public <T> T read(String value, Class<T> type) { try { return json.readValue(value, type); } catch (Exception e) { throw new IllegalStateException(e); } }
     private String write(Object value) { try { return json.writeValueAsString(value == null ? Map.of() : value); } catch (Exception e) { throw new IllegalArgumentException(e); } }
     private double round(double value) { return Math.round(value * 10000d) / 10000d; }
-    public record Pending(UUID executionId, String tool, String payload, String confirmationHash, String status, LocalDateTime expiresAt) {}
+    public record Pending(UUID executionId, String tool, String payload, String confirmationHash, String status, Instant expiresAt) {}
 }

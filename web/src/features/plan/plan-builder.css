@@ -1,0 +1,204 @@
+.plan-builder {
+  display: grid;
+  gap: 18px;
+}
+.plan-builder-meta {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.5fr) minmax(150px, 0.7fr) 130px;
+  gap: 12px;
+}
+.plan-builder-meta label,
+.plan-exercise-fields label {
+  display: grid;
+  gap: 7px;
+  color: #9aa49f;
+  font-size: 10px;
+}
+.plan-builder-meta input,
+.plan-builder-meta select,
+.plan-builder-meta textarea,
+.plan-day-editor > textarea,
+.plan-day-editor header input,
+.plan-exercise-fields input,
+.plan-exercise-notes,
+.exercise-picker-search input {
+  width: 100%;
+  border: 1px solid #303633;
+  background: #0d1110;
+  color: #fff;
+  padding: 10px;
+  outline: 0;
+}
+.plan-builder-meta input:focus,
+.plan-builder-meta select:focus,
+.plan-builder-meta textarea:focus,
+.plan-day-editor input:focus,
+.plan-day-editor textarea:focus,
+.exercise-picker-search:focus-within {
+  border-color: var(--lime);
+}
+.plan-description-field {
+  grid-column: 1 / -1;
+}
+.plan-days-editor {
+  display: grid;
+  gap: 14px;
+}
+.plan-day-editor {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #101512;
+}
+.plan-day-editor > header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.plan-day-editor > header > span {
+  color: var(--lime);
+  font: 700 13px "Barlow Condensed";
+  letter-spacing: 0.08em;
+}
+.plan-day-editor header input {
+  padding-block: 8px;
+  font-weight: 700;
+}
+.plan-day-editor > textarea {
+  resize: vertical;
+}
+.plan-exercise-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 13px;
+}
+.plan-exercise-editor {
+  padding: 12px;
+  border: 1px solid #2a302d;
+  background: #0b0f0d;
+}
+.plan-exercise-title {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+  color: var(--lime);
+}
+.plan-exercise-title span {
+  display: grid;
+}
+.plan-exercise-title strong {
+  color: #fff;
+  font-size: 12px;
+}
+.plan-exercise-title small {
+  color: #6f7973;
+  font-size: 9px;
+}
+.plan-exercise-fields {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(75px, 1fr));
+  gap: 8px;
+}
+.plan-exercise-fields input,
+.plan-exercise-notes {
+  padding: 8px;
+}
+.plan-exercise-notes {
+  margin-top: 8px;
+}
+.plan-day-empty {
+  margin: 0;
+  padding: 15px;
+  border: 1px dashed #353d39;
+  color: #78837d;
+  font-size: 11px;
+  text-align: center;
+}
+.exercise-picker {
+  margin-top: 13px;
+}
+.exercise-picker-search {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #303633;
+  padding-left: 10px;
+  color: #75817a;
+}
+.exercise-picker-search input {
+  border: 0;
+}
+.exercise-picker-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 6px;
+  max-height: 190px;
+  margin-top: 8px;
+  overflow: auto;
+}
+.exercise-picker-results > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #2b332f;
+  background: #141a16;
+  color: #fff;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.exercise-picker-results > button:hover:not(:disabled) {
+  border-color: var(--lime);
+}
+.exercise-picker-results > button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.exercise-picker-results span {
+  display: grid;
+  gap: 3px;
+}
+.exercise-picker-results strong {
+  font-size: 11px;
+}
+.exercise-picker-results small,
+.exercise-picker-results p {
+  color: #79847e;
+  font-size: 9px;
+}
+.plan-add-day {
+  justify-self: start;
+}
+.plan-builder-error {
+  margin: 0;
+}
+.plan-builder-actions {
+  display: flex;
+  gap: 9px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 820px) {
+  .plan-builder-meta,
+  .plan-exercise-fields {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .plan-name-field,
+  .plan-description-field {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 520px) {
+  .plan-builder-meta,
+  .plan-exercise-fields {
+    grid-template-columns: 1fr;
+  }
+  .plan-builder-actions {
+    display: grid;
+  }
+}

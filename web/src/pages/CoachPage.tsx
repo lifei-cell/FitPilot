@@ -1,21 +1,29 @@
-import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { Bot, Send, ShieldCheck } from "lucide-react";
+import {
+  clearPendingAction,
+  loadPendingAction,
+  storePendingAction,
+} from "../agent/pendingActionStorage";
 import { clearAgentSession, loadAgentSession, storeAgentSession } from "../agent/sessionStorage";
-import { accessTokenSubject, api } from "../api/client";
+import { accessTokenSubject, api, ApiError } from "../api/client";
+import type { AgentPendingAction, Plan } from "../api/types";
 import { PageHeader, Panel } from "../components/PageParts";
+import { PendingPlanCard } from "../features/agent/PendingPlanCard";
 
 type Reply = {
   answer: string;
   selectedTools: string[];
   degraded: boolean;
   confirmationRequired: boolean;
-  pendingAction?: {
-    id: string;
-    confirmationToken: string;
-    preview: unknown;
-    guardrailWarnings: string[];
-  };
+  pendingAction?: AgentPendingAction;
 };
 type Chat = { role: "user" | "assistant"; text: string; tools?: string[] };
 type StoredMessage = { role: "user" | "assistant"; content: string };
@@ -26,10 +34,24 @@ const welcome: Chat = {
 };
 
 export function CoachPage() {
+  const client = useQueryClient();
   const userId = accessTokenSubject();
   const [session, setSession] = useState(() => loadAgentSession(userId) ?? "");
   const [chats, setChats] = useState<Chat[]>([welcome]);
+  const [pending, setPending] = useState<AgentPendingAction | null>(() =>
+    loadPendingAction(userId),
+  );
+  const [pendingStatus, setPendingStatus] = useState<
+    "pending" | "confirming" | "expired" | "error"
+  >("pending");
+  const [pendingError, setPendingError] = useState("");
   const sessionRef = useRef(session);
+
+  useEffect(() => {
+    setPending(loadPendingAction(userId));
+    setPendingStatus("pending");
+    setPendingError("");
+  }, [userId]);
 
   useEffect(() => {
     sessionRef.current = session;
@@ -84,12 +106,71 @@ export function CoachPage() {
         body: JSON.stringify({ message }),
       });
     },
-    onSuccess: (r) =>
+    onSuccess: (r) => {
       setChats((c) => [
         ...c,
         { role: "assistant", text: r.answer, tools: r.selectedTools },
-      ]),
+      ]);
+      if (r.pendingAction) {
+        setPending(r.pendingAction);
+        setPendingStatus("pending");
+        setPendingError("");
+        storePendingAction(userId, r.pendingAction);
+      }
+    },
   });
+  const confirm = useMutation({
+    mutationFn: (action: AgentPendingAction) =>
+      api<Plan>(`/agent/pending-actions/${action.id}/confirm`, {
+        method: "POST",
+        body: JSON.stringify({
+          confirmationToken: action.confirmationToken,
+        }),
+      }),
+    onMutate: () => {
+      setPendingStatus("confirming");
+      setPendingError("");
+    },
+    onSuccess: (plan) => {
+      clearPendingAction(userId);
+      setPending(null);
+      setPendingStatus("pending");
+      setChats((current) => [
+        ...current,
+        {
+          role: "assistant",
+          text: `计划“${plan.name}”已确认并保存为草稿，你可以前往训练计划页面检查或激活。`,
+        },
+      ]);
+      void client.invalidateQueries({ queryKey: ["plans"] });
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 80003) {
+        clearPendingAction(userId);
+        setPendingStatus("expired");
+        setPendingError("确认令牌已过期或失效，请重新生成计划。");
+        return;
+      }
+      if (error instanceof ApiError && error.code === 80005) {
+        clearPendingAction(userId);
+        setPending(null);
+        setPendingStatus("pending");
+        setPendingError("");
+        setChats((current) => [
+          ...current,
+          { role: "assistant", text: "该计划已经处理，不能重复确认。" },
+        ]);
+        return;
+      }
+      setPendingStatus("error");
+      setPendingError(error.message);
+    },
+  });
+  const expirePending = useCallback(() => {
+    clearPendingAction(userId);
+    setPendingStatus("expired");
+    setPendingError("");
+  }, [userId]);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const input = e.currentTarget.elements.namedItem(
@@ -141,6 +222,15 @@ export function CoachPage() {
               </div>
             </div>
           )}
+          {pending && (
+            <PendingPlanCard
+              action={pending}
+              status={pendingStatus}
+              error={pendingError}
+              onConfirm={() => confirm.mutate(pending)}
+              onExpire={expirePending}
+            />
+          )}
         </div>
         <form className="coach-input" onSubmit={submit}>
           <input
@@ -148,7 +238,10 @@ export function CoachPage() {
             maxLength={4000}
             placeholder="例如：根据我最近的训练量，今天深蹲该如何安排？"
           />
-          <button className="primary-button" disabled={send.isPending}>
+          <button
+            className="primary-button"
+            disabled={send.isPending || confirm.isPending}
+          >
             <Send size={17} />
           </button>
         </form>
