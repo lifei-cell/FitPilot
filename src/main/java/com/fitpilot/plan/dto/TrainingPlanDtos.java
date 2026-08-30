@@ -34,7 +34,7 @@ public final class TrainingPlanDtos {
                                 @Min(1) @Max(104) Integer durationWeeks,
                                 @NotEmpty @Size(max = 7) List<@Valid DayRequest> days) {}
 
-    public record ExerciseView(long id, long exerciseId, int sequence, int targetSets, int targetRepsMin,
+    public record ExerciseView(long id, long exerciseId, String exerciseName, int sequence, int targetSets, int targetRepsMin,
                                int targetRepsMax, BigDecimal targetRpe, Integer restSeconds, String notes) {}
     public record DayView(long id, int dayNumber, String name, String notes, List<ExerciseView> exercises) {}
     public record PlanView(long id, String name, String description, String goal, Integer durationWeeks,

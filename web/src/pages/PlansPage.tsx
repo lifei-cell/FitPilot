@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Plus } from "lucide-react";
+import { Check, Eye, Plus } from "lucide-react";
 import { useState } from "react";
 import { api } from "../api/client";
 import type {
@@ -16,10 +16,12 @@ import {
   Status,
 } from "../components/PageParts";
 import { PlanBuilder } from "../features/plan/PlanBuilder";
+import { PlanDetailPanel } from "../features/plan/PlanDetailPanel";
 
 export function PlansPage() {
   const client = useQueryClient();
   const [builder, setBuilder] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const plans = useQuery({
     queryKey: ["plans"],
@@ -41,7 +43,8 @@ export function PlansPage() {
   const activate = useMutation({
     mutationFn: (id: number) =>
       api<Plan>(`/training-plans/${id}/activate`, { method: "POST" }),
-    onSuccess: () => {
+    onSuccess: (plan) => {
+      client.setQueryData(["plan", plan.id], plan);
       setMessage("计划已激活");
       void refresh();
       void client.invalidateQueries({ queryKey: ["active-plan"] });
@@ -59,6 +62,7 @@ export function PlansPage() {
             className="primary-button compact"
             onClick={() => {
               setBuilder((open) => !open);
+              setSelectedPlanId(null);
               setMessage("");
               create.reset();
             }}
@@ -91,6 +95,13 @@ export function PlansPage() {
           />
         </Panel>
       )}
+      {selectedPlanId !== null && (
+        <PlanDetailPanel
+          planId={selectedPlanId}
+          onClose={() => setSelectedPlanId(null)}
+          onChanged={setMessage}
+        />
+      )}
       <Panel>
         <SectionTitle
           title="我的计划"
@@ -108,15 +119,28 @@ export function PlansPage() {
                     {plan.daysPerWeek} 练
                   </p>
                 </div>
-                {plan.status !== "ACTIVE" && (
+                <div className="plan-list-actions">
                   <button
                     className="secondary-button"
-                    disabled={activate.isPending}
-                    onClick={() => activate.mutate(plan.id)}
+                    onClick={() => {
+                      setBuilder(false);
+                      setMessage("");
+                      setSelectedPlanId(plan.id);
+                    }}
                   >
-                    激活计划
+                    <Eye size={16} />
+                    查看
                   </button>
-                )}
+                  {plan.status !== "ACTIVE" && (
+                    <button
+                      className="secondary-button"
+                      disabled={activate.isPending}
+                      onClick={() => activate.mutate(plan.id)}
+                    >
+                      激活计划
+                    </button>
+                  )}
+                </div>
               </article>
             ))}
           </div>

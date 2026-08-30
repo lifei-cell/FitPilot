@@ -10,12 +10,15 @@ import {
   validatePlanDraft,
   type DraftDay,
   type DraftExercise,
+  type PlanDraft,
 } from "./planBuilderModel";
 import "./plan-builder.css";
 
 type Props = {
   submitting: boolean;
   serverError?: string;
+  initialDraft?: PlanDraft;
+  submitLabel?: string;
   onSubmit(payload: PlanCreateInput): void;
   onCancel(): void;
 };
@@ -23,10 +26,12 @@ type Props = {
 export function PlanBuilder({
   submitting,
   serverError,
+  initialDraft,
+  submitLabel = "保存为草稿",
   onSubmit,
   onCancel,
 }: Props) {
-  const [draft, setDraft] = useState(initialPlanDraft);
+  const [draft, setDraft] = useState(() => initialDraft ?? initialPlanDraft());
   const [validationError, setValidationError] = useState("");
 
   function updateDay(key: string, patch: Partial<DraftDay>) {
@@ -191,7 +196,7 @@ export function PlanBuilder({
       <footer className="plan-builder-actions">
         <button className="primary-button" disabled={submitting}>
           <Save size={17} />
-          {submitting ? "保存中…" : "保存为草稿"}
+          {submitting ? "保存中…" : submitLabel}
         </button>
         <button
           type="button"

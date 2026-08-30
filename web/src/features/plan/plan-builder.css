@@ -61,6 +61,28 @@
   font: 700 13px "Barlow Condensed";
   letter-spacing: 0.08em;
 }
+.plan-icon-button {
+  display: inline-grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 1px solid #333b37;
+  background: #141a16;
+  color: #aab4ae;
+  cursor: pointer;
+}
+.plan-icon-button:hover:not(:disabled) {
+  border-color: var(--lime);
+  color: var(--lime);
+}
+.plan-icon-button.danger:hover:not(:disabled) {
+  border-color: #ff6b64;
+  color: #ff6b64;
+}
+.plan-icon-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 .plan-day-editor header input {
   padding-block: 8px;
   font-weight: 700;

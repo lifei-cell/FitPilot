@@ -1,4 +1,4 @@
-import type { Exercise, PlanCreateInput } from "../../api/types";
+import type { Exercise, Plan, PlanCreateInput } from "../../api/types";
 
 export type DraftExercise = {
   key: string;
@@ -6,8 +6,8 @@ export type DraftExercise = {
   targetSets: number;
   targetRepsMin: number;
   targetRepsMax: number;
-  targetRpe: number;
-  restSeconds: number;
+  targetRpe: number | "";
+  restSeconds: number | "";
   notes: string;
 };
 
@@ -62,6 +62,37 @@ export function initialPlanDraft(): PlanDraft {
   };
 }
 
+export function planToDraft(plan: Plan): PlanDraft {
+  return {
+    name: plan.name,
+    description: plan.description ?? "",
+    goal: plan.goal,
+    durationWeeks: plan.durationWeeks,
+    days: [...plan.days]
+      .sort((left, right) => left.dayNumber - right.dayNumber)
+      .map((day) => ({
+        key: key(),
+        name: day.name,
+        notes: day.notes ?? "",
+        exercises: [...day.exercises]
+          .sort((left, right) => left.sequence - right.sequence)
+          .map((exercise) => ({
+            key: key(),
+            exercise: {
+              id: exercise.exerciseId,
+              name: exercise.exerciseName ?? `动作 #${exercise.exerciseId}`,
+            },
+            targetSets: exercise.targetSets,
+            targetRepsMin: exercise.targetRepsMin,
+            targetRepsMax: exercise.targetRepsMax,
+            targetRpe: exercise.targetRpe ?? "",
+            restSeconds: exercise.restSeconds ?? "",
+            notes: exercise.notes ?? "",
+          })),
+      })),
+  };
+}
+
 export function validatePlanDraft(draft: PlanDraft) {
   if (!draft.name.trim()) return "请输入计划名称。";
   if (draft.days.length === 0) return "计划至少需要一个训练日。";
@@ -96,8 +127,10 @@ export function toPlanCreateInput(draft: PlanDraft): PlanCreateInput {
         targetSets: exercise.targetSets,
         targetRepsMin: exercise.targetRepsMin,
         targetRepsMax: exercise.targetRepsMax,
-        targetRpe: exercise.targetRpe,
-        restSeconds: exercise.restSeconds,
+        targetRpe:
+          exercise.targetRpe === "" ? undefined : exercise.targetRpe,
+        restSeconds:
+          exercise.restSeconds === "" ? undefined : exercise.restSeconds,
         notes: exercise.notes.trim() || undefined,
       })),
     })),

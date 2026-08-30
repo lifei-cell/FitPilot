@@ -36,7 +36,7 @@ export function PlanDayEditor({
         />
         <button
           type="button"
-          className="set-icon-button danger"
+          className="plan-icon-button danger"
           disabled={!canRemove}
           aria-label={`删除第 ${index + 1} 个训练日`}
           onClick={onRemove}
@@ -63,7 +63,7 @@ export function PlanDayEditor({
               </span>
               <button
                 type="button"
-                className="set-icon-button"
+                className="plan-icon-button"
                 aria-label={`移除${item.exercise.name}`}
                 onClick={() => onRemoveExercise(item.key)}
               >
@@ -123,7 +123,10 @@ export function PlanDayEditor({
                   value={item.targetRpe}
                   onChange={(event) =>
                     onChangeExercise(item.key, {
-                      targetRpe: Number(event.target.value),
+                      targetRpe:
+                        event.target.value === ""
+                          ? ""
+                          : Number(event.target.value),
                     })
                   }
                 />
@@ -137,7 +140,10 @@ export function PlanDayEditor({
                   value={item.restSeconds}
                   onChange={(event) =>
                     onChangeExercise(item.key, {
-                      restSeconds: Number(event.target.value),
+                      restSeconds:
+                        event.target.value === ""
+                          ? ""
+                          : Number(event.target.value),
                     })
                   }
                 />

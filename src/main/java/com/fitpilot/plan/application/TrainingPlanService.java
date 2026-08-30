@@ -92,11 +92,14 @@ public class TrainingPlanService {
     public TrainingPlanDtos.PlanView get(long userId, long planId) {
         TrainingPlan plan = repository.findOwned(userId, planId).orElseThrow(this::notFound);
         List<TrainingPlanDay> days = repository.findDays(planId);
-        Map<Long, List<TrainingPlanExercise>> byDay = repository.findExercisesByDays(days.stream().map(d -> d.id).toList())
+        List<TrainingPlanExercise> planExercises = repository.findExercisesByDays(days.stream().map(d -> d.id).toList());
+        Map<Long, String> exerciseNames = exercises.findActiveByIds(planExercises.stream().map(e -> e.exerciseId).collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(e -> e.id, e -> e.name));
+        Map<Long, List<TrainingPlanExercise>> byDay = planExercises
                 .stream().collect(Collectors.groupingBy(e -> e.trainingPlanDayId, LinkedHashMap::new, Collectors.toList()));
         List<TrainingPlanDtos.DayView> dayViews = days.stream().map(day -> new TrainingPlanDtos.DayView(
                 day.id, day.dayNumber, day.name, day.notes,
-                byDay.getOrDefault(day.id, List.of()).stream().map(this::exerciseView).toList())).toList();
+                byDay.getOrDefault(day.id, List.of()).stream().map(e -> exerciseView(e, exerciseNames.get(e.exerciseId))).toList())).toList();
         return planView(plan, dayViews);
     }
 
@@ -167,8 +170,8 @@ public class TrainingPlanService {
         return get(userId, planId);
     }
 
-    private TrainingPlanDtos.ExerciseView exerciseView(TrainingPlanExercise e) {
-        return new TrainingPlanDtos.ExerciseView(e.id, e.exerciseId, e.sequence, e.targetSets,
+    private TrainingPlanDtos.ExerciseView exerciseView(TrainingPlanExercise e, String exerciseName) {
+        return new TrainingPlanDtos.ExerciseView(e.id, e.exerciseId, exerciseName, e.sequence, e.targetSets,
                 e.targetRepsMin, e.targetRepsMax, e.targetRpe, e.restSeconds, e.notes);
     }
 

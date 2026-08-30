@@ -202,6 +202,7 @@ class FitPilotApiIT {
                     ]}
                     """), 200);
         assertThat(updated.path("data").path("version").asInt()).isEqualTo(2);
+        assertThat(updated.path("data").path("days").get(0).path("exercises").get(0).path("exerciseName").asText()).isEqualTo("杠铃卧推");
         long dayId = updated.path("data").path("days").get(0).path("id").asLong();
         mvc.perform(put("/api/v1/training-plans/{id}", planId).header("Authorization", bearer(token))
                         .contentType("application/json").content("""

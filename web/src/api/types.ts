@@ -19,6 +19,7 @@ export type Exercise = {
 export type PlanExercise = {
   id: number;
   exerciseId: number;
+  exerciseName?: string;
   sequence: number;
   targetSets: number;
   targetRepsMin: number;
@@ -43,6 +44,8 @@ export type Plan = {
   daysPerWeek: number;
   status: string;
   version: number;
+  startedAt?: string;
+  endedAt?: string;
   days: PlanDay[];
 };
 export type PlanSummary = Omit<Plan, "days" | "description" | "version"> & {
@@ -71,6 +74,7 @@ export type PlanCreateInput = {
   durationWeeks: number;
   days: PlanDayInput[];
 };
+export type PlanUpdateInput = PlanCreateInput & { version: number };
 export type AgentPendingAction = {
   id: string;
   toolName: string;
