@@ -9,6 +9,11 @@ npm run dev
 
 - 本地开发地址：`http://localhost:4173`
 - 生产构建：`npm run build`
+- 统一质量门禁：`npm run quality`
+- ESLint：`npm run lint`
+- TypeScript：`npm run typecheck`
+- Vitest / RTL / MSW：`npm run test:coverage`
+- Playwright：`npm run test:e2e`
 - Compose 入口：`http://localhost:4173`
 - Kubernetes 入口：`https://fitpilot.example.com`
 

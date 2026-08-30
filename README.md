@@ -160,11 +160,23 @@ mvn spring-boot:run
 ## 测试
 
 ```powershell
-mvn test
-mvn verify
+./scripts/run-quality-gate.ps1
 ```
 
-`mvn test` 执行领域和服务单元测试；`mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路，并阻断测试跳过、整体行覆盖率低于 60% 或关键包低于 70% 的构建。
+统一门禁依次执行 Maven、真实 ESLint、TypeScript 类型检查、Vitest + React Testing Library + MSW 覆盖率测试、生产构建和 Playwright Chromium E2E。首次运行会安装锁定依赖和 Chromium；已准备环境可使用 `-SkipInstall -SkipBrowserInstall`，但不会跳过任何测试。
+
+`mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
+
+前端也可单独执行：
+
+```powershell
+cd web
+npm run lint          # ESLint
+npm run typecheck     # TypeScript
+npm run test:coverage # Vitest / RTL / MSW
+npm run test:e2e      # Playwright
+npm run quality       # 全部前端门禁
+```
 
 V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/architecture/v2-events.md)。
 V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。

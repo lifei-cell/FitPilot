@@ -26,22 +26,9 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - name: Verify web application
-        working-directory: web
-        run: |
-          npm ci
-          npm run lint
-          npm run build
-      - name: Unit and Testcontainers E2E
-        run: mvn -B verify
-      - name: Reject skipped tests
-        shell: python
-        run: |
-          import glob, sys, xml.etree.ElementTree as ET
-          reports = glob.glob("target/surefire-reports/TEST-*.xml") + glob.glob("target/failsafe-reports/TEST-*.xml")
-          skipped = sum(int(ET.parse(path).getroot().attrib.get("skipped", 0)) for path in reports)
-          if not reports or skipped:
-              raise SystemExit(f"expected test reports with zero skips, reports={len(reports)} skipped={skipped}")
+      - name: Backend and web quality gate
+        shell: pwsh
+        run: ./scripts/run-quality-gate.ps1
       - name: OWASP dependency check
         run: >-
           mvn -B org.owasp:dependency-check-maven:12.1.3:check
@@ -102,6 +89,9 @@ jobs:
             target/site/jacoco/
             target/bom.json
             target/dependency-check-report.*
+            web/coverage/
+            web/playwright-report/
+            web/test-results/
             trivy-results.sarif
             trivy-web-results.sarif
             web/dist/

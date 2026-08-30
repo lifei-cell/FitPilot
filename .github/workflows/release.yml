@@ -27,10 +27,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - name: Verify release candidate
-        run: mvn -B verify
-      - name: Verify web release candidate
-        working-directory: web
-        run: npm ci && npm run build
+        shell: pwsh
+        run: ./scripts/run-quality-gate.ps1
       - name: Build image for security gate
         run: docker build --build-arg APP_VERSION=${GITHUB_REF_NAME} --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:release-candidate .
       - name: Scan release candidate
