@@ -80,7 +80,7 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
 ```powershell
 docker compose up --build -d
 docker compose ps
-curl.exe http://localhost:8080/actuator/health
+curl.exe http://localhost:9091/actuator/health
 ```
 
 启动完整可观测栈：
@@ -90,7 +90,7 @@ $env:OTEL_TRACING_EXPORT_ENABLED = "true"
 docker compose --profile observability up --build -d --wait
 ```
 
-Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。`prod` profile 默认关闭 Swagger/OpenAPI，并将 Actuator 管理端口隔离到 9091。
+Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。Compose 将 Actuator 管理端口隔离到仅本机可访问的 <http://localhost:9091/actuator/health>；`prod` profile 默认关闭 Swagger/OpenAPI。
 
 只在本机开发时，也可先启动 pgvector PostgreSQL、Redis、Kafka 和 Elasticsearch，再执行：
 

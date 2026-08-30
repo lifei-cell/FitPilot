@@ -23,8 +23,9 @@ COPY --from=build /workspace/target/fitpilot-backend-*.jar app.jar
 RUN mkdir -p /var/log/fitpilot \
     && chown -R fitpilot:fitpilot /app /var/log/fitpilot
 USER 10001:10001
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -Djava.io.tmpdir=/tmp"
-EXPOSE 8080
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -Djava.io.tmpdir=/tmp" \
+    MANAGEMENT_SERVER_PORT=9091
+EXPOSE 8080 9091
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=6 \
-    CMD curl -fsS http://localhost:8080/actuator/health/liveness || exit 1
+    CMD curl -fsS http://127.0.0.1:9091/actuator/health/liveness || exit 1
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

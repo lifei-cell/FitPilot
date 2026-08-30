@@ -126,7 +126,7 @@ services:
       EMBEDDING_API_URL: ${EMBEDDING_API_URL:-}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
-    ports: ["8080:8080"]
+    ports: ["8080:8080", "127.0.0.1:9091:9091"]
     volumes: ["app-logs:/var/log/fitpilot"]
     read_only: true
     tmpfs:
@@ -161,7 +161,7 @@ services:
     depends_on:
       app: {condition: service_healthy}
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 10s
       timeout: 3s
       retries: 10
