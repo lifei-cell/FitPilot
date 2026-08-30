@@ -22,6 +22,7 @@ import com.fitpilot.workout.repository.WorkoutRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +52,9 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.WorkoutView create(long userId, WorkoutDtos.CreateRequest request) {
+        if (repository.findInProgress(userId).isPresent()) {
+            throw alreadyInProgress();
+        }
         TrainingPlan plan = plans.findOwned(userId, request.trainingPlanId()).orElseThrow(this::planNotFound);
         if (!"ACTIVE".equals(plan.status)) {
             throw new BusinessException(ErrorCode.INVALID_TRAINING_PLAN, "only an active plan can start a workout");
@@ -79,7 +83,11 @@ public class WorkoutService {
         workout.notes = request.notes();
         workout.createdAt = now;
         workout.updatedAt = now;
-        repository.insert(workout);
+        try {
+            repository.insert(workout);
+        } catch (DuplicateKeyException ex) {
+            throw alreadyInProgress();
+        }
 
         for (TrainingPlanExercise source : plannedExercises) {
             WorkoutExercise snapshot = new WorkoutExercise();
@@ -105,6 +113,11 @@ public class WorkoutService {
         Map<Long, List<WorkoutSet>> setsByExercise = repository.findSets(exerciseList.stream().map(e -> e.id).toList())
                 .stream().collect(Collectors.groupingBy(s -> s.workoutExerciseId, LinkedHashMap::new, Collectors.toList()));
         return view(workout, exerciseList, setsByExercise);
+    }
+
+    public WorkoutDtos.WorkoutView active(long userId) {
+        Workout workout = repository.findInProgress(userId).orElseThrow(this::workoutNotFound);
+        return get(userId, workout.id);
     }
 
     public PageResult<WorkoutDtos.WorkoutSummary> list(long userId, LocalDateTime start, LocalDateTime end,
@@ -260,5 +273,9 @@ public class WorkoutService {
     }
     private BusinessException planNotFound() {
         return new BusinessException(ErrorCode.TRAINING_PLAN_NOT_FOUND, "training plan resource not found", HttpStatus.NOT_FOUND);
+    }
+    private BusinessException alreadyInProgress() {
+        return new BusinessException(ErrorCode.WORKOUT_ALREADY_IN_PROGRESS,
+                "finish or cancel the current workout before starting another", HttpStatus.CONFLICT);
     }
 }

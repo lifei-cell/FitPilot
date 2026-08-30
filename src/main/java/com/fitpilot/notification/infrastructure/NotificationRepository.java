@@ -33,4 +33,14 @@ public class NotificationRepository {
     public boolean markRead(long userId, long id) {
         return jdbc.update("UPDATE user_notification SET is_read=TRUE WHERE id=? AND user_id=?", id, userId) == 1;
     }
+
+    public long unreadCount(long userId) {
+        Long count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM user_notification WHERE user_id=? AND is_read=FALSE", Long.class, userId);
+        return count == null ? 0 : count;
+    }
+
+    public int markAllRead(long userId) {
+        return jdbc.update("UPDATE user_notification SET is_read=TRUE WHERE user_id=? AND is_read=FALSE", userId);
+    }
 }

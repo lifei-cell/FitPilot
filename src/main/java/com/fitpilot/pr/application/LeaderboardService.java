@@ -48,10 +48,7 @@ public class LeaderboardService {
     public void update(PersonalRecord record) {
         String key = key(record.exerciseId, record.recordType);
         try {
-            redis.opsForZSet().add(key, String.valueOf(record.userId), score(record).doubleValue());
-            Duration ttl = Duration.ofSeconds(properties.leaderboard().ttlSeconds());
-            redis.expire(key, ttl);
-            redis.opsForValue().set(key + ":loaded", "1", ttl);
+            redis.delete(List.of(key, key + ":loaded"));
         } catch (RuntimeException ex) {
             log.warn("Leaderboard update degraded; exerciseId={} reason={}", record.exerciseId,
                     ex.getClass().getSimpleName());
@@ -60,7 +57,7 @@ public class LeaderboardService {
 
     private void load(String key, long exerciseId, String recordType) {
         List<LeaderboardRow> rows = mapper.selectLeaderboard(exerciseId, recordType, 100);
-        for (LeaderboardRow row : rows) redis.opsForZSet().add(key, String.valueOf(row.userId), row.score.doubleValue());
+        for (LeaderboardRow row : rows) redis.opsForZSet().add(key, member(row.userId, row.username), row.score.doubleValue());
         Duration ttl = Duration.ofSeconds(properties.leaderboard().ttlSeconds());
         if (!rows.isEmpty()) redis.expire(key, ttl);
         redis.opsForValue().set(key + ":loaded", "1", ttl);
@@ -69,7 +66,10 @@ public class LeaderboardService {
     private List<Entry> database(long exerciseId, String recordType, int limit) {
         List<LeaderboardRow> rows = mapper.selectLeaderboard(exerciseId, recordType, limit);
         List<Entry> result = new ArrayList<>(rows.size());
-        for (int i = 0; i < rows.size(); i++) result.add(new Entry(i + 1L, rows.get(i).userId, rows.get(i).score));
+        for (int i = 0; i < rows.size(); i++) {
+            LeaderboardRow row = rows.get(i);
+            result.add(new Entry(i + 1L, row.userId, row.username, row.score));
+        }
         return result;
     }
 
@@ -78,26 +78,24 @@ public class LeaderboardService {
         long rank = 1;
         for (var tuple : tuples) {
             if (tuple.getValue() != null && tuple.getScore() != null) {
-                result.add(new Entry(rank++, Long.parseLong(tuple.getValue()), BigDecimal.valueOf(tuple.getScore())));
+                String[] member = tuple.getValue().split("\\|", 2);
+                if (member.length == 2) {
+                    result.add(new Entry(rank++, Long.parseLong(member[0]), member[1],
+                            BigDecimal.valueOf(tuple.getScore())));
+                }
             }
         }
         return result;
-    }
-
-    private BigDecimal score(PersonalRecord record) {
-        return switch (record.recordType) {
-            case "ESTIMATED_1RM" -> record.estimated1rm;
-            case "MAX_VOLUME" -> record.weightKg.multiply(BigDecimal.valueOf(record.reps));
-            default -> record.weightKg;
-        };
     }
 
     private String normalize(String type) {
         return type == null || type.isBlank() ? "ESTIMATED_1RM" : type.trim().toUpperCase();
     }
     private String key(long exerciseId, String type) {
-        return "fitpilot:v1:pr:leaderboard:" + exerciseId + ":" + type;
+        return "fitpilot:v2:pr:leaderboard:" + exerciseId + ":" + type;
     }
 
-    public record Entry(long rank, long userId, BigDecimal score) {}
+    private String member(long userId, String username) { return userId + "|" + username; }
+
+    public record Entry(long rank, long userId, String username, BigDecimal score) {}
 }

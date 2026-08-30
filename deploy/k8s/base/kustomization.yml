@@ -12,3 +12,7 @@ resources:
   - hpa.yml
   - network-policy.yml
   - migration-job.yml
+  - web-deployment.yml
+  - web-service.yml
+  - web-backend-alias.yml
+  - web-network-policy.yml

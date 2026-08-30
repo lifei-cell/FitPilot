@@ -4,11 +4,14 @@ metadata:
   name: fitpilot
 spec:
   rules:
-    - host: api.fitpilot.example.com
+    - host: fitpilot.example.com
       http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
             backend:
               service: {name: fitpilot, port: {name: http}}
-
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: fitpilot-web, port: {name: http}}

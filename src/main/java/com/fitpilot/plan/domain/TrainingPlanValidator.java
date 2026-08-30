@@ -10,8 +10,16 @@ public final class TrainingPlanValidator {
     private TrainingPlanValidator() {}
 
     public static void validate(TrainingPlanDtos.CreateRequest request) {
+        validateDays(request.days());
+    }
+
+    public static void validate(TrainingPlanDtos.UpdateRequest request) {
+        validateDays(request.days());
+    }
+
+    private static void validateDays(java.util.List<TrainingPlanDtos.DayRequest> days) {
         var dayNumbers = new HashSet<Integer>();
-        for (var day : request.days()) {
+        for (var day : days) {
             if (!dayNumbers.add(day.dayNumber())) invalid("dayNumber must be unique");
             var sequences = new HashSet<Integer>();
             for (var exercise : day.exercises()) {

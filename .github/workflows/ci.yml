@@ -21,6 +21,17 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Verify web application
+        working-directory: web
+        run: |
+          npm ci
+          npm run lint
+          npm run build
       - name: Unit and Testcontainers E2E
         run: mvn -B verify
       - name: Reject skipped tests
@@ -56,6 +67,8 @@ jobs:
             prom/alertmanager:v0.28.1 check-config /etc/alertmanager/alertmanager.yml
       - name: Build non-root image
         run: docker build --build-arg APP_VERSION=ci --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:${GITHUB_SHA} .
+      - name: Build web image
+        run: docker build -t fitpilot-web:${GITHUB_SHA} web
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@0.33.1
         with:
@@ -68,6 +81,18 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with: {sarif_file: trivy-results.sarif}
+      - name: Trivy web image scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: fitpilot-web:${{ github.sha }}
+          format: sarif
+          output: trivy-web-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Upload web Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: {sarif_file: trivy-web-results.sarif}
       - name: Upload verification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -78,6 +103,8 @@ jobs:
             target/bom.json
             target/dependency-check-report.*
             trivy-results.sarif
+            trivy-web-results.sarif
+            web/dist/
             /tmp/fitpilot-production.yml
             /tmp/fitpilot-migration.yml
 

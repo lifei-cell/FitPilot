@@ -16,3 +16,6 @@ images:
   - name: ghcr.io/example/fitpilot
     newName: ghcr.io/example/fitpilot
     newTag: 5.0.0
+  - name: ghcr.io/example/fitpilot-web
+    newName: ghcr.io/example/fitpilot-web
+    newTag: 5.1.0

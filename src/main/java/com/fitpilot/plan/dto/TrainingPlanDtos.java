@@ -28,6 +28,12 @@ public final class TrainingPlanDtos {
                                 @Min(1) @Max(104) Integer durationWeeks,
                                 @NotEmpty @Size(max = 7) List<@Valid DayRequest> days) {}
 
+    public record UpdateRequest(@NotNull @Positive Integer version,
+                                @NotBlank @Size(max = 100) String name, String description,
+                                @Pattern(regexp = "MUSCLE_GAIN|FAT_LOSS|STRENGTH|GENERAL_FITNESS") String goal,
+                                @Min(1) @Max(104) Integer durationWeeks,
+                                @NotEmpty @Size(max = 7) List<@Valid DayRequest> days) {}
+
     public record ExerciseView(long id, long exerciseId, int sequence, int targetSets, int targetRepsMin,
                                int targetRepsMax, BigDecimal targetRpe, Integer restSeconds, String notes) {}
     public record DayView(long id, int dayNumber, String name, String notes, List<ExerciseView> exercises) {}

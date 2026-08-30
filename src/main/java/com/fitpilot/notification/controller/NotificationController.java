@@ -30,4 +30,17 @@ public class NotificationController {
         }
         return ApiResponse.success(null);
     }
+
+    @GetMapping("/unread-count")
+    ApiResponse<UnreadCount> unreadCount(Authentication auth) {
+        return ApiResponse.success(new UnreadCount(repository.unreadCount(CurrentUser.id(auth))));
+    }
+
+    @PostMapping("/read-all")
+    ApiResponse<Void> markAllRead(Authentication auth) {
+        repository.markAllRead(CurrentUser.id(auth));
+        return ApiResponse.success();
+    }
+
+    public record UnreadCount(long count) {}
 }

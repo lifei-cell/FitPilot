@@ -96,6 +96,7 @@ services:
       REDIS_HOST: redis
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      JWT_REFRESH_COOKIE_SECURE: ${JWT_REFRESH_COOKIE_SECURE:-false}
       CACHE_ENABLED: ${CACHE_ENABLED:-true}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
       RATE_LIMIT_API_CAPACITY: ${RATE_LIMIT_API_CAPACITY:-800}
@@ -145,6 +146,25 @@ services:
       timeout: 3s
       retries: 20
       start_period: 30s
+  web:
+    <<: *service-defaults
+    build: ./web
+    ports: ["4173:8080"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/cache/nginx:size=16m
+    deploy:
+      resources:
+        limits: {cpus: "0.50", memory: 256M}
+        reservations: {cpus: "0.05", memory: 32M}
+    depends_on:
+      app: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
   prometheus:
     <<: *service-defaults
     profiles: ["observability"]

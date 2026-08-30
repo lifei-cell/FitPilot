@@ -100,6 +100,36 @@ public class TrainingPlanService {
         return planView(plan, dayViews);
     }
 
+    @Transactional
+    public TrainingPlanDtos.PlanView update(long userId, long planId, TrainingPlanDtos.UpdateRequest request) {
+        TrainingPlanValidator.validate(request);
+        Set<Long> requestedIds = request.days().stream().flatMap(day -> day.exercises().stream())
+                .map(TrainingPlanDtos.ExerciseRequest::exerciseId).collect(Collectors.toSet());
+        if (exercises.findActiveByIds(requestedIds).size() != requestedIds.size()) {
+            throw new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "one or more exercises do not exist", HttpStatus.NOT_FOUND);
+        }
+        TrainingPlan plan = repository.findOwned(userId, planId).orElseThrow(this::notFound);
+        if (!"DRAFT".equals(plan.status)) {
+            throw new BusinessException(ErrorCode.INVALID_TRAINING_PLAN, "only a draft plan can be edited", HttpStatus.CONFLICT);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        plan.name = request.name();
+        plan.description = request.description();
+        plan.goal = request.goal();
+        plan.durationWeeks = request.durationWeeks();
+        plan.daysPerWeek = request.days().size();
+        plan.updatedAt = now;
+        if (!repository.updateDraft(userId, plan, request.version())) {
+            throw new BusinessException(ErrorCode.CONCURRENT_MODIFICATION,
+                    "training plan has changed; reload before saving", HttpStatus.CONFLICT);
+        }
+        repository.deleteDays(planId);
+        insertDays(planId, request.days(), now);
+        events.append("TrainingPlan", plan.id, EventTypes.TRAINING_PLAN_UPDATED,
+                new EventPayloads.TrainingPlanChanged(plan.id, userId, plan.status, request.version() + 1, now));
+        return get(userId, planId);
+    }
+
     public PageResult<TrainingPlanDtos.PlanSummary> list(long userId, String status, long page, long size) {
         String normalizedStatus = status == null || status.isBlank() ? null : status.toUpperCase();
         Page<TrainingPlan> result = repository.findPage(userId, normalizedStatus, page, size);
@@ -140,6 +170,32 @@ public class TrainingPlanService {
     private TrainingPlanDtos.ExerciseView exerciseView(TrainingPlanExercise e) {
         return new TrainingPlanDtos.ExerciseView(e.id, e.exerciseId, e.sequence, e.targetSets,
                 e.targetRepsMin, e.targetRepsMax, e.targetRpe, e.restSeconds, e.notes);
+    }
+
+    private void insertDays(long planId, List<TrainingPlanDtos.DayRequest> requests, LocalDateTime now) {
+        for (var dayRequest : requests) {
+            TrainingPlanDay day = new TrainingPlanDay();
+            day.trainingPlanId = planId;
+            day.dayNumber = dayRequest.dayNumber();
+            day.name = dayRequest.name();
+            day.notes = dayRequest.notes();
+            day.createdAt = now;
+            repository.insert(day);
+            for (var exerciseRequest : dayRequest.exercises()) {
+                TrainingPlanExercise exercise = new TrainingPlanExercise();
+                exercise.trainingPlanDayId = day.id;
+                exercise.exerciseId = exerciseRequest.exerciseId();
+                exercise.sequence = exerciseRequest.sequence();
+                exercise.targetSets = exerciseRequest.targetSets();
+                exercise.targetRepsMin = exerciseRequest.targetRepsMin();
+                exercise.targetRepsMax = exerciseRequest.targetRepsMax();
+                exercise.targetRpe = exerciseRequest.targetRpe();
+                exercise.restSeconds = exerciseRequest.restSeconds();
+                exercise.notes = exerciseRequest.notes();
+                exercise.createdAt = now;
+                repository.insert(exercise);
+            }
+        }
     }
 
     private TrainingPlanDtos.PlanView planView(TrainingPlan p, List<TrainingPlanDtos.DayView> days) {

@@ -1,0 +1,113 @@
+import { useMutation } from "@tanstack/react-query";
+import { useState, type FormEvent } from "react";
+import { Bot, Send, ShieldCheck } from "lucide-react";
+import { api } from "../api/client";
+import { PageHeader, Panel } from "../components/PageParts";
+
+type Reply = {
+  answer: string;
+  selectedTools: string[];
+  degraded: boolean;
+  confirmationRequired: boolean;
+  pendingAction?: {
+    id: string;
+    confirmationToken: string;
+    preview: unknown;
+    guardrailWarnings: string[];
+  };
+};
+type Chat = { role: "user" | "assistant"; text: string; tools?: string[] };
+export function CoachPage() {
+  const [session, setSession] = useState("");
+  const [chats, setChats] = useState<Chat[]>([
+    {
+      role: "assistant",
+      text: "你好，我是 FitPilot 教练。告诉我你的目标、训练经验或今天的状态。",
+    },
+  ]);
+  const send = useMutation({
+    mutationFn: async (message: string) => {
+      let id = session;
+      if (!id) {
+        id = (await api<{ id: string }>("/agent/sessions", { method: "POST" }))
+          .id;
+        setSession(id);
+      }
+      return api<Reply>(`/agent/sessions/${id}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ message }),
+      });
+    },
+    onSuccess: (r) =>
+      setChats((c) => [
+        ...c,
+        { role: "assistant", text: r.answer, tools: r.selectedTools },
+      ]),
+  });
+  function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const input = e.currentTarget.elements.namedItem(
+      "message",
+    ) as HTMLInputElement;
+    const value = input.value.trim();
+    if (!value) return;
+    setChats((c) => [...c, { role: "user", text: value }]);
+    send.mutate(value);
+    input.value = "";
+  }
+  return (
+    <main className="page coach-page">
+      <PageHeader
+        eyebrow="AI TRAINING PARTNER"
+        title="AI 教练"
+        description="基于你的计划、训练数据和知识库给出可执行建议。"
+        action={
+          <span className="date-chip">
+            <ShieldCheck size={16} />
+            高风险操作需确认
+          </span>
+        }
+      />
+      <Panel className="chat-panel">
+        <div className="chat-log">
+          {chats.map((chat, index) => (
+            <div className={`chat-message ${chat.role}`} key={index}>
+              {chat.role === "assistant" && (
+                <span className="bot-avatar">
+                  <Bot size={18} />
+                </span>
+              )}
+              <div>
+                <p>{chat.text}</p>
+                {chat.tools?.length ? (
+                  <small>已使用：{chat.tools.join(" · ")}</small>
+                ) : null}
+              </div>
+            </div>
+          ))}
+          {send.isPending && (
+            <div className="chat-message assistant">
+              <span className="bot-avatar">
+                <Bot size={18} />
+              </span>
+              <div>
+                <p>正在分析你的训练上下文…</p>
+              </div>
+            </div>
+          )}
+        </div>
+        <form className="coach-input" onSubmit={submit}>
+          <input
+            name="message"
+            maxLength={4000}
+            placeholder="例如：根据我最近的训练量，今天深蹲该如何安排？"
+          />
+          <button className="primary-button" disabled={send.isPending}>
+            <Send size={17} />
+          </button>
+        </form>
+        {send.error && <p className="form-error">{send.error.message}</p>}
+      </Panel>
+    </main>
+  );
+}

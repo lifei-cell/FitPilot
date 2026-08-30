@@ -21,14 +21,29 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
       - name: Verify release candidate
         run: mvn -B verify
+      - name: Verify web release candidate
+        working-directory: web
+        run: npm ci && npm run build
       - name: Build image for security gate
         run: docker build --build-arg APP_VERSION=${GITHUB_REF_NAME} --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:release-candidate .
       - name: Scan release candidate
         uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: fitpilot:release-candidate
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Build and scan web release candidate
+        run: docker build -t fitpilot-web:release-candidate web
+      - uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: fitpilot-web:release-candidate
           severity: HIGH,CRITICAL
           exit-code: "1"
       - uses: docker/setup-buildx-action@v3
@@ -59,8 +74,31 @@ jobs:
             GITHUB_REPOSITORY=${{ github.repository }}
           provenance: mode=max
           sbom: true
+      - id: web-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/fitpilot-web
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha
+      - id: web-build
+        uses: docker/build-push-action@v6
+        with:
+          context: web
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.web-meta.outputs.tags }}
+          labels: ${{ steps.web-meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
       - uses: actions/attest-build-provenance@v2
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/fitpilot
           subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/fitpilot-web
+          subject-digest: ${{ steps.web-build.outputs.digest }}
           push-to-registry: true

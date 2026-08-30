@@ -34,6 +34,11 @@ public class WorkoutController {
         return ApiResponse.success(service.get(CurrentUser.id(auth), id));
     }
 
+    @GetMapping("/active/current")
+    ApiResponse<WorkoutDtos.WorkoutView> active(Authentication auth) {
+        return ApiResponse.success(service.active(CurrentUser.id(auth)));
+    }
+
     @GetMapping
     ApiResponse<PageResult<WorkoutDtos.WorkoutSummary>> list(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,

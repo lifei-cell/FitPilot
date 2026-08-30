@@ -40,6 +40,13 @@ public class TrainingPlanController {
         return ApiResponse.success(service.get(CurrentUser.id(auth), id));
     }
 
+    @PutMapping("/{id}")
+    ApiResponse<TrainingPlanDtos.PlanView> update(@PathVariable long id,
+                                                  @Valid @RequestBody TrainingPlanDtos.UpdateRequest request,
+                                                  Authentication auth) {
+        return ApiResponse.success(service.update(CurrentUser.id(auth), id, request));
+    }
+
     @GetMapping("/active/current")
     ApiResponse<TrainingPlanDtos.PlanView> active(Authentication auth) {
         return ApiResponse.success(service.active(CurrentUser.id(auth)));

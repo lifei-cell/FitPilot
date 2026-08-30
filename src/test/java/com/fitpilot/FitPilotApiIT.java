@@ -153,6 +153,78 @@ class FitPilotApiIT {
     }
 
     @Test
+    void webContractsSupportRefreshPlanEditingSingleWorkoutAndNotifications() throws Exception {
+        JsonNode user = register("web_contract_user");
+        long userId = user.path("data").path("id").asLong();
+        var login = mvc.perform(post("/api/v1/auth/login").contentType("application/json")
+                        .content(json.writeValueAsBytes(Map.of("username", "web_contract_user", "password", "password123"))))
+                .andExpect(status().isOk()).andExpect(cookie().httpOnly("fitpilot_refresh", true)).andReturn();
+        var refreshCookie = login.getResponse().getCookie("fitpilot_refresh");
+        assertThat(refreshCookie).isNotNull();
+        String token = json.readTree(login.getResponse().getContentAsByteArray()).path("data").path("accessToken").asText();
+        var refreshed = mvc.perform(post("/api/v1/auth/refresh").cookie(refreshCookie))
+                .andExpect(status().isOk()).andExpect(cookie().httpOnly("fitpilot_refresh", true)).andReturn();
+        assertThat(json.readTree(refreshed.getResponse().getContentAsByteArray()).path("data").path("accessToken").asText())
+                .isNotBlank();
+
+        JsonNode plan = call(post("/api/v1/training-plans").header("Authorization", bearer(token))
+                .contentType("application/json").content("""
+                    {"name":"Web Draft","goal":"STRENGTH","durationWeeks":8,"days":[
+                      {"dayNumber":1,"name":"Lower","exercises":[
+                        {"exerciseId":1,"sequence":1,"targetSets":3,"targetRepsMin":4,"targetRepsMax":6,"targetRpe":8,"restSeconds":180}
+                      ]}
+                    ]}
+                    """), 201);
+        long planId = plan.path("data").path("id").asLong();
+        JsonNode updated = call(put("/api/v1/training-plans/{id}", planId).header("Authorization", bearer(token))
+                .contentType("application/json").content("""
+                    {"version":1,"name":"Web Strength","goal":"STRENGTH","durationWeeks":10,"days":[
+                      {"dayNumber":1,"name":"Lower A","exercises":[
+                        {"exerciseId":1,"sequence":1,"targetSets":4,"targetRepsMin":4,"targetRepsMax":6,"targetRpe":8.5,"restSeconds":180}
+                      ]}
+                    ]}
+                    """), 200);
+        assertThat(updated.path("data").path("version").asInt()).isEqualTo(2);
+        long dayId = updated.path("data").path("days").get(0).path("id").asLong();
+        mvc.perform(put("/api/v1/training-plans/{id}", planId).header("Authorization", bearer(token))
+                        .contentType("application/json").content("""
+                            {"version":1,"name":"Stale","goal":"STRENGTH","durationWeeks":8,"days":[
+                              {"dayNumber":1,"name":"Lower","exercises":[{"exerciseId":1,"sequence":1,"targetSets":3,"targetRepsMin":4,"targetRepsMax":6}]}
+                            ]}
+                            """))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value(50001));
+        call(post("/api/v1/training-plans/{id}/activate", planId).header("Authorization", bearer(token)), 200);
+
+        byte[] workoutBody = json.writeValueAsBytes(Map.of("trainingPlanId", planId, "trainingPlanDayId", dayId));
+        JsonNode workout = call(post("/api/v1/workouts").header("Authorization", bearer(token))
+                .header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json").content(workoutBody), 201);
+        mvc.perform(post("/api/v1/workouts").header("Authorization", bearer(token))
+                        .header("Idempotency-Key", UUID.randomUUID().toString()).contentType("application/json").content(workoutBody))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value(40005));
+        mvc.perform(get("/api/v1/workouts/active/current").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.id").value(workout.path("data").path("id").asLong()));
+
+        jdbc.update("""
+                INSERT INTO personal_record(user_id, exercise_id, record_type, weight_kg, reps, estimated_1rm, achieved_at, created_at)
+                VALUES (?, 50, 'ESTIMATED_1RM', 100, 5, 116.67, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                """, userId);
+        mvc.perform(get("/api/v1/leaderboards/exercises/50").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].username").value("web_contract_user"));
+
+        jdbc.update("INSERT INTO user_notification(user_id, source_event_id, type, title, message) VALUES (?, ?, 'TEST', '测试通知', '前端契约')",
+                userId, UUID.randomUUID());
+        mvc.perform(get("/api/v1/notifications/unread-count").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.count").value(1));
+        mvc.perform(post("/api/v1/notifications/read-all").header("Authorization", bearer(token)))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/notifications/unread-count").header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.count").value(0));
+
+        mvc.perform(post("/api/v1/auth/logout").cookie(refreshed.getResponse().getCookie("fitpilot_refresh")))
+                .andExpect(status().isOk()).andExpect(cookie().maxAge("fitpilot_refresh", 0));
+    }
+
+    @Test
     void performancePrimitivesAreAtomicAndBlockPenetration() throws Exception {
         String scope = UUID.randomUUID().toString();
         assertThat(rateLimiter.consume(scope, 2, 1).allowed()).isTrue();

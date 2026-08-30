@@ -33,6 +33,16 @@ public class TrainingPlanRepository {
     public void insert(TrainingPlanDay day) { days.insert(day); }
     public void insert(TrainingPlanExercise exercise) { exercises.insert(exercise); }
     public void update(TrainingPlan plan) { plans.updateById(plan); }
+    public boolean updateDraft(long userId, TrainingPlan plan, int expectedVersion) {
+        return plans.update(null, new UpdateWrapper<TrainingPlan>()
+                .eq("id", plan.id).eq("user_id", userId).eq("status", "DRAFT").eq("version", expectedVersion)
+                .set("name", plan.name).set("description", plan.description).set("goal", plan.goal)
+                .set("duration_weeks", plan.durationWeeks).set("days_per_week", plan.daysPerWeek)
+                .set("version", expectedVersion + 1).set("updated_at", plan.updatedAt)) == 1;
+    }
+    public void deleteDays(long planId) {
+        days.delete(new QueryWrapper<TrainingPlanDay>().eq("training_plan_id", planId));
+    }
     public Optional<TrainingPlan> findOwned(long userId, long id) {
         return Optional.ofNullable(plans.selectOne(new QueryWrapper<TrainingPlan>().eq("id", id).eq("user_id", userId)));
     }

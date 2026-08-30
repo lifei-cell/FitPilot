@@ -20,6 +20,26 @@ patches:
       metadata: {name: fitpilot}
       $patch: delete
   - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: fitpilot-web}
+      $patch: delete
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata: {name: fitpilot-web}
+      $patch: delete
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: {name: fitpilot-web}
+      $patch: delete
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata: {name: app}
+      $patch: delete
+  - patch: |-
       apiVersion: policy/v1
       kind: PodDisruptionBudget
       metadata: {name: fitpilot}

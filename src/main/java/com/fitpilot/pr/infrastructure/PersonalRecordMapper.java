@@ -13,15 +13,16 @@ public interface PersonalRecordMapper extends BaseMapper<PersonalRecord> {
     List<PersonalRecord> selectCurrent(long userId);
 
     @Select("""
-            SELECT user_id,
+            SELECT pr.user_id, u.username,
                    MAX(CASE record_type
                          WHEN 'ESTIMATED_1RM' THEN estimated_1rm
                          WHEN 'MAX_VOLUME' THEN weight_kg * reps
                          ELSE weight_kg END) AS score
-            FROM personal_record
+            FROM personal_record pr
+            JOIN users u ON u.id = pr.user_id
             WHERE exercise_id = #{exerciseId} AND record_type = #{recordType}
-            GROUP BY user_id
-            ORDER BY score DESC, user_id ASC
+            GROUP BY pr.user_id, u.username
+            ORDER BY score DESC, pr.user_id ASC
             LIMIT #{limit}
             """)
     List<LeaderboardRow> selectLeaderboard(long exerciseId, String recordType, int limit);

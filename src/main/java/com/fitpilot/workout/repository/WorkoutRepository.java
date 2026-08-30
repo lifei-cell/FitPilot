@@ -37,6 +37,10 @@ public class WorkoutRepository {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>().eq("id", id).eq("user_id", userId)));
     }
     public Optional<Workout> findById(long id) { return Optional.ofNullable(workouts.selectById(id)); }
+    public Optional<Workout> findInProgress(long userId) {
+        return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>()
+                .eq("user_id", userId).eq("status", "IN_PROGRESS").last("LIMIT 1")));
+    }
     public Optional<WorkoutExercise> findExercise(long workoutId, long exerciseId) {
         return Optional.ofNullable(exercises.selectOne(new QueryWrapper<WorkoutExercise>()
                 .eq("id", exerciseId).eq("workout_id", workoutId)));
