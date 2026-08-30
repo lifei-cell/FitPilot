@@ -1,7 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Bot, Send, ShieldCheck } from "lucide-react";
-import { api } from "../api/client";
+import { clearAgentSession, loadAgentSession, storeAgentSession } from "../agent/sessionStorage";
+import { accessTokenSubject, api } from "../api/client";
 import { PageHeader, Panel } from "../components/PageParts";
 
 type Reply = {
@@ -17,21 +18,66 @@ type Reply = {
   };
 };
 type Chat = { role: "user" | "assistant"; text: string; tools?: string[] };
+type StoredMessage = { role: "user" | "assistant"; content: string };
+
+const welcome: Chat = {
+  role: "assistant",
+  text: "你好，我是 FitPilot 教练。告诉我你的目标、训练经验或今天的状态。",
+};
+
 export function CoachPage() {
-  const [session, setSession] = useState("");
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      role: "assistant",
-      text: "你好，我是 FitPilot 教练。告诉我你的目标、训练经验或今天的状态。",
-    },
-  ]);
+  const userId = accessTokenSubject();
+  const [session, setSession] = useState(() => loadAgentSession(userId) ?? "");
+  const [chats, setChats] = useState<Chat[]>([welcome]);
+  const sessionRef = useRef(session);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  useEffect(() => {
+    const restoredSession = loadAgentSession(userId);
+    sessionRef.current = restoredSession ?? "";
+    setSession(restoredSession ?? "");
+    if (!restoredSession) {
+      setChats([welcome]);
+      return;
+    }
+
+    let cancelled = false;
+    void api<StoredMessage[]>(`/agent/sessions/${restoredSession}/messages`)
+      .then((messages) => {
+        if (cancelled) return;
+        if (messages.length === 0) {
+          clearAgentSession(userId);
+          sessionRef.current = "";
+          setSession("");
+          setChats([welcome]);
+          return;
+        }
+        setChats(messages.map((message) => ({ role: message.role, text: message.content })));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearAgentSession(userId);
+        sessionRef.current = "";
+        setSession("");
+        setChats([welcome]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   const send = useMutation({
     mutationFn: async (message: string) => {
-      let id = session;
+      let id = sessionRef.current;
       if (!id) {
         id = (await api<{ id: string }>("/agent/sessions", { method: "POST" }))
           .id;
+        sessionRef.current = id;
         setSession(id);
+        storeAgentSession(userId, id);
       }
       return api<Reply>(`/agent/sessions/${id}/messages`, {
         method: "POST",

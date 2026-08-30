@@ -13,6 +13,22 @@ export function clearToken() {
   sessionStorage.removeItem("fitpilot_access");
 }
 
+/** The subject is used only to namespace browser state; the server still enforces ownership. */
+export function accessTokenSubject(): string | null {
+  const token = accessToken();
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="));
+    const subject = (JSON.parse(json) as { sub?: unknown }).sub;
+    return typeof subject === "string" && subject.length > 0 ? subject : null;
+  } catch {
+    return null;
+  }
+}
+
 async function refresh(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = fetch(`${API}/auth/refresh`, {

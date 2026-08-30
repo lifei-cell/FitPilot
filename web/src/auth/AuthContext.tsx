@@ -5,7 +5,8 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import { api, clearToken, storeToken } from "../api/client";
+import { accessTokenSubject, api, clearToken, storeToken } from "../api/client";
+import { clearAgentSession } from "../agent/sessionStorage";
 
 type AuthContextValue = {
   authenticated: boolean;
@@ -56,9 +57,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setAuthenticated(true);
       },
       async logout() {
+        const userId = accessTokenSubject();
         try {
           await api("/auth/logout", { method: "POST" }, false);
         } finally {
+          clearAgentSession(userId);
           clearToken();
           setAuthenticated(false);
         }
