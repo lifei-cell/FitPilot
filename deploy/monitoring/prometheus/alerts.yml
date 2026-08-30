@@ -1,6 +1,11 @@
 groups:
   - name: fitpilot-production
     rules:
+      - alert: FitPilotTargetDown
+        expr: up{job="fitpilot"} == 0
+        for: 30s
+        labels: {severity: critical}
+        annotations: {summary: "FitPilot metrics target has been unreachable for 30 seconds"}
       - alert: FitPilotApiHighErrorRate
         expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 1) > 0.01
         for: 5m

@@ -10,6 +10,8 @@ data:
   KAFKA_BOOTSTRAP_SERVERS: kafka.example.internal:9092
   RAG_ELASTICSEARCH_URL: https://elasticsearch.example.internal:9200
   EVENTS_ENABLED: "true"
+  RATE_LIMIT_API_CAPACITY: "800"
+  RATE_LIMIT_API_REFILL_PER_SECOND: "400"
   RAG_ENABLED: "true"
   LLM_ENABLED: "true"
   LLM_PRIMARY_URL: https://llm-primary.example.internal/v1/chat/completions
@@ -22,8 +24,10 @@ data:
   LLM_FALLBACK_STRONG_MODEL: fitpilot-strong-fallback
   EMBEDDING_PROVIDER: LOCAL
   SPRING_FLYWAY_ENABLED: "false"
+  MANAGEMENT_SERVER_PORT: "9091"
+  SPRINGDOC_API_DOCS_ENABLED: "false"
+  SPRINGDOC_SWAGGER_UI_ENABLED: "false"
   TRACING_SAMPLING_PROBABILITY: "0.10"
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
   LOG_STRUCTURED_FORMAT: logstash
   SHUTDOWN_TIMEOUT: 30s
-

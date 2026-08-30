@@ -98,6 +98,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
       CACHE_ENABLED: ${CACHE_ENABLED:-true}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_API_CAPACITY: ${RATE_LIMIT_API_CAPACITY:-800}
+      RATE_LIMIT_API_REFILL_PER_SECOND: ${RATE_LIMIT_API_REFILL_PER_SECOND:-400}
       IDEMPOTENCY_ENABLED: ${IDEMPOTENCY_ENABLED:-true}
       EVENTS_ENABLED: ${EVENTS_ENABLED:-true}
       OPERATIONS_TOKEN: ${OPERATIONS_TOKEN:?OPERATIONS_TOKEN must be set}
@@ -117,6 +119,7 @@ services:
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_TRACING_EXPORT_ENABLED: ${OTEL_TRACING_EXPORT_ENABLED:-false}
       TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLING_PROBABILITY:-1.0}
+      MANAGEMENT_SERVER_PORT: 9091
       LOG_FILE: /var/log/fitpilot/app.json
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-LOCAL}
       EMBEDDING_API_URL: ${EMBEDDING_API_URL:-}
@@ -137,7 +140,7 @@ services:
       kafka: {condition: service_healthy}
       elasticsearch: {condition: service_healthy}
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:9091/actuator/health/readiness"]
       interval: 10s
       timeout: 3s
       retries: 20
@@ -151,9 +154,19 @@ services:
       - ./deploy/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./deploy/monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
-    ports: ["9090:9090"]
+    ports: ["127.0.0.1:9090:9090"]
     depends_on:
       app: {condition: service_healthy}
+      alertmanager: {condition: service_started}
+  alertmanager:
+    <<: *service-defaults
+    profiles: ["observability"]
+    image: prom/alertmanager:v0.28.1
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml", "--storage.path=/alertmanager"]
+    volumes:
+      - ./deploy/monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    ports: ["127.0.0.1:9093:9093"]
   grafana:
     <<: *service-defaults
     profiles: ["observability"]
@@ -166,7 +179,7 @@ services:
       - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./deploy/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana-data:/var/lib/grafana
-    ports: ["3000:3000"]
+    ports: ["127.0.0.1:3000:3000"]
     depends_on: [prometheus, tempo, loki]
   tempo:
     <<: *service-defaults
@@ -176,7 +189,7 @@ services:
     volumes:
       - ./deploy/monitoring/tempo/tempo.yml:/etc/tempo.yml:ro
       - tempo-data:/var/tempo
-    ports: ["3200:3200"]
+    ports: ["127.0.0.1:3200:3200"]
   loki:
     <<: *service-defaults
     profiles: ["observability"]
@@ -185,7 +198,7 @@ services:
     volumes:
       - ./deploy/monitoring/loki/loki.yml:/etc/loki/loki.yml:ro
       - loki-data:/loki
-    ports: ["3100:3100"]
+    ports: ["127.0.0.1:3100:3100"]
   promtail:
     <<: *service-defaults
     profiles: ["observability"]
@@ -225,6 +238,7 @@ volumes:
   elasticsearch-data:
   app-logs:
   prometheus-data:
+  alertmanager-data:
   grafana-data:
   tempo-data:
   loki-data:

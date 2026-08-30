@@ -46,6 +46,14 @@ jobs:
           docker compose config --quiet
           kubectl kustomize deploy/k8s/overlays/production >/tmp/fitpilot-production.yml
           kubectl kustomize deploy/k8s/overlays/production-migration >/tmp/fitpilot-migration.yml
+      - name: Validate Prometheus and Alertmanager
+        run: |
+          docker run --rm --entrypoint /bin/promtool \
+            -v "${PWD}/deploy/monitoring/prometheus:/etc/prometheus:ro" \
+            prom/prometheus:v3.5.0 check config /etc/prometheus/prometheus.yml
+          docker run --rm --entrypoint /bin/amtool \
+            -v "${PWD}/deploy/monitoring/alertmanager:/etc/alertmanager:ro" \
+            prom/alertmanager:v0.28.1 check-config /etc/alertmanager/alertmanager.yml
       - name: Build non-root image
         run: docker build --build-arg APP_VERSION=ci --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:${GITHUB_SHA} .
       - name: Trivy image scan
@@ -70,6 +78,8 @@ jobs:
             target/bom.json
             target/dependency-check-report.*
             trivy-results.sarif
+            /tmp/fitpilot-production.yml
+            /tmp/fitpilot-migration.yml
 
   secret-scan:
     runs-on: ubuntu-latest

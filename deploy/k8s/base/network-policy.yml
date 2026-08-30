@@ -10,10 +10,13 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels: {kubernetes.io/metadata.name: ingress-nginx}
+      ports:
+        - {protocol: TCP, port: 8080}
+    - from:
         - namespaceSelector:
             matchLabels: {kubernetes.io/metadata.name: observability}
       ports:
-        - {protocol: TCP, port: 8080}
+        - {protocol: TCP, port: 9091}
   egress:
     - to:
         - namespaceSelector: {}
@@ -29,4 +32,3 @@ spec:
         - {protocol: TCP, port: 9092}
         - {protocol: TCP, port: 9200}
         - {protocol: TCP, port: 4318}
-

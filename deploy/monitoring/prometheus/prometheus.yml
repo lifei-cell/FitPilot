@@ -1,6 +1,11 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
 
 rule_files:
   - /etc/prometheus/alerts.yml
@@ -9,8 +14,7 @@ scrape_configs:
   - job_name: fitpilot
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["app:8080"]
+      - targets: ["app:9091"]
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
-

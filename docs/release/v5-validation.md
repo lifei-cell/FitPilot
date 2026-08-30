@@ -1,18 +1,17 @@
 # FitPilot 5.0.0 发布清单
 
-## 本地已验证
+## 本地已通过
 
-- Maven 构建、29 个自动化测试、Flyway V1–V9、JaCoCo 门禁和 CycloneDX SBOM 生成通过。
-- Agent/RAG 版本化数据集门禁通过，评测临时知识文档在任务成功前完成清理。
-- Compose 应用健康启动，生产镜像以 UID/GID 10001 运行并支持只读根文件系统配置。
-- 主备 LLM 与规则降级、Redis/Kafka/Elasticsearch 故障语义通过演练。
-- Compose、Kustomize production、独立 migration Job 和压测脚本完成静态验证。
+- Maven 29 个自动化测试、Flyway V1–V9、JaCoCo、SBOM、Compose 与生产镜像构建通过。
+- 30 分钟混合流量、5 分钟突发流量及 CPU/内存/Hikari/Kafka Lag/Outbox Age 采集通过。
+- Prometheus/Grafana/Loki/Tempo/Alertmanager 在线联调、真实告警触发、服务恢复和告警解除通过。
+- `prod` profile 关闭 Swagger/OpenAPI；管理端口独立为 9091，Kubernetes NetworkPolicy 仅允许 observability 命名空间访问。
+- CI 增加 Prometheus/Alertmanager 校验；生产发布使用不可变 GHCR digest，归档迁移、滚动升级、readiness、回滚演练和集群证据。
 
-## 远端发布前门禁
+## 远端阻断门禁
 
-- 在 GitHub Actions 完成 OWASP Dependency Check、Gitleaks、Trivy、SBOM/provenance 和 GHCR 多架构镜像推送。
-- 在目标 Kubernetes 集群先运行 migration overlay，再验证 2 副本滚动升级、PDB、HPA、NetworkPolicy、readiness 和自动停止 rollout。
-- 执行备份恢复、密钥轮换和应用版本回滚手册；确认回滚版本兼容 V9 数据库结构。
-- 补跑 30 分钟混合流量和五分钟突发场景，取得完整门禁报告后再批准生产流量。
+- GitHub Actions 完成 OWASP、Gitleaks、Trivy、SBOM/provenance 和 GHCR 多架构镜像推送。
+- 真实 Kubernetes 执行 migration Job、2 副本滚动升级、PDB/HPA/NetworkPolicy/readiness、回滚与候选版本恢复。
+- 在真实数据副本完成备份恢复与密钥轮换，并上传审计证据。
 
-本清单不把本机清单渲染等同于真实 Kubernetes 发布，也不把一分钟预检等同于长稳容量验收。
+远端三项完成前发布结论保持 `BLOCKED`。本机清单渲染和 Compose 结果不等同于真实生产发布。

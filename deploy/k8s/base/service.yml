@@ -6,4 +6,4 @@ spec:
   selector: {app.kubernetes.io/name: fitpilot}
   ports:
     - {name: http, port: 80, targetPort: http}
-
+    - {name: management, port: 9091, targetPort: management}

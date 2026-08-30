@@ -90,7 +90,7 @@ $env:OTEL_TRACING_EXPORT_ENABLED = "true"
 docker compose --profile observability up --build -d --wait
 ```
 
-Swagger：<http://localhost:8080/swagger-ui.html>
+Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。`prod` profile 默认关闭 Swagger/OpenAPI，并将 Actuator 管理端口隔离到 9091。
 
 只在本机开发时，也可先启动 pgvector PostgreSQL、Redis、Kafka 和 Elasticsearch，再执行：
 
@@ -174,9 +174,7 @@ docker compose up --build -d
 ## V5 生产验证
 
 ```powershell
-./load-test/run-v5.ps1 -Scenario all
-./scripts/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
-kubectl kustomize deploy/k8s/overlays/production
+./scripts/run-production-validation.ps1
 ```
 
-V5 的混合流量预检、故障演练和未完成门禁见 [V5 验证报告](docs/performance/v5-production-validation.md)，本次发布证据见 [V5 发布清单](docs/release/v5-validation.md)。
+脚本执行 Maven/Testcontainers、完整 observability 在线联调与真实告警演练、30 分钟混合流量、5 分钟突发流量、运行时资源采集和隔离环境清理，并生成 [P0 生产验收报告](docs/release/p0-production-validation.md)。性能结果见 [V5 验证报告](docs/performance/v5-production-validation.md)，远端门禁见 [V5 发布清单](docs/release/v5-validation.md)。

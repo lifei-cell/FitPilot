@@ -9,7 +9,9 @@ export const options = {
       executor: 'ramping-arrival-rate',
       startRate,
       timeUnit: '1s',
-      preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 50),
+      // Pre-allocate above the measured peak (57 VUs at 200 RPS) so the
+      // injector does not drop iterations while dynamically adding VUs.
+      preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 100),
       maxVUs: Number(__ENV.MAX_VUS || 400),
       stages: [
         { target: peakRate, duration: '1m' },
