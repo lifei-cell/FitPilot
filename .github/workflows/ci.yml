@@ -51,7 +51,9 @@ jobs:
       - name: Upload dependency Trivy SARIF
         if: always() && hashFiles('trivy-dependency-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
-        with: {sarif_file: trivy-dependency-results.sarif}
+        with:
+          sarif_file: trivy-dependency-results.sarif
+          category: dependency-sbom
       - name: Validate Compose and Kubernetes
         env:
           DB_PASSWORD: ci-database-password
@@ -86,7 +88,9 @@ jobs:
       - name: Upload Trivy SARIF
         if: always() && hashFiles('trivy-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
-        with: {sarif_file: trivy-results.sarif}
+        with:
+          sarif_file: trivy-results.sarif
+          category: application-image
       - name: Trivy web image scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -99,7 +103,9 @@ jobs:
       - name: Upload web Trivy SARIF
         if: always() && hashFiles('trivy-web-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
-        with: {sarif_file: trivy-web-results.sarif}
+        with:
+          sarif_file: trivy-web-results.sarif
+          category: web-image
       - name: Upload verification evidence
         if: always()
         uses: actions/upload-artifact@v4
