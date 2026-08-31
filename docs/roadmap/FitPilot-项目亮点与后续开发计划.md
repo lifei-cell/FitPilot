@@ -1,6 +1,6 @@
 # FitPilot 项目亮点与后续开发计划
 
-> 梳理基线：2026-08-31，`main@8c1a9ef`。本文只把当前代码、自动化报告和已归档验证记录作为“已实现”证据；配置完成但尚未在真实生产环境执行的能力单独标注。
+> 梳理基线：2026-08-31，`main@1d98621`。本文只把当前代码、自动化报告和已归档验证记录作为“已实现”证据；配置完成但尚未在真实生产环境执行的能力单独标注。
 
 ## 1. 项目定位
 
@@ -35,7 +35,7 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 ### 3.2 仍需补齐
 
 - 前端目前只有 5 个 Vitest 测试和 1 个 Playwright E2E；当前覆盖率汇总约为行 15.82%、分支 18.07%，多数业务页面、AI 会话恢复和 Workout 编辑链路尚无单元测试保护。
-- GitHub CI、Release、GHCR Digest 清单与真实 Kubernetes 生产门禁的最终远端结果仍需形成可审计证据；Kind 演练不能表述为生产上线。
+- GitHub CI、Release、GHCR 多架构镜像、Digest 清单和 provenance 已形成可审计证据；真实 Kubernetes Production Delivery Gate 按用户决定跳过，Kind 演练仍不能表述为生产上线。
 - 当前机器无法连接 Docker Desktop named pipe，因此本次梳理没有重新启动 Compose 或执行浏览器回归；这是本机环境阻断，不是应用通过或失败的证据。
 - AI 会话历史存放于 Redis，受 TTL 和消息上限约束。浏览器只保存用户隔离的 session ID，当前实现解决刷新恢复，但不等于跨设备、长期会话归档。
 - 系统实现的是 `At-least-once + 幂等消费 + 最终一致性`，不应表述为 Exactly Once；本机压测结果也不能直接外推为生产容量。
