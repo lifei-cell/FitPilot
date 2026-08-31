@@ -1,16 +1,35 @@
-name: Production Rollout
+name: Production Delivery Gate
 
 on:
   workflow_dispatch:
     inputs:
       image_digest:
-        description: Immutable GHCR digest, for example sha256:...
+        description: Immutable FitPilot GHCR digest (sha256:...)
         required: true
       web_image_digest:
-        description: Immutable FitPilot Web GHCR digest, for example sha256:...
+        description: Immutable FitPilot Web GHCR digest (sha256:...)
         required: true
+      kube_context:
+        description: Exact kubeconfig context allowed for this delivery
+        required: true
+        default: fitpilot-production
       rollback_drill:
-        description: Roll back once and re-apply the candidate to prove recovery
+        description: Roll back to the previous ReplicaSet and recover the candidate
+        required: true
+        type: boolean
+        default: true
+      backup_restore_drill:
+        description: Restore a logical backup into the isolated restore database
+        required: true
+        type: boolean
+        default: true
+      secret_rotation_drill:
+        description: Rotate JWT and Operations credentials with live verification
+        required: true
+        type: boolean
+        default: true
+      revoke_previous_jwt:
+        description: Revoke the previous JWT key after the compatibility window
         required: true
         type: boolean
         default: false
@@ -19,123 +38,90 @@ permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: fitpilot-production-delivery
+  cancel-in-progress: false
+
 jobs:
-  rollout:
+  delivery:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment: production
     env:
       EVIDENCE_DIR: release-evidence
+      APP_IMAGE: ghcr.io/${{ github.repository_owner }}/fitpilot@${{ inputs.image_digest }}
+      WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/fitpilot-web@${{ inputs.web_image_digest }}
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-kubectl@v4
-      - uses: imranismail/setup-kustomize@v2
-      - name: Configure cluster
+      - name: Configure exact production context
+        env:
+          KUBE_CONFIG_VALUE: ${{ secrets.KUBE_CONFIG }}
         run: |
+          set -euo pipefail
+          test -n "$KUBE_CONFIG_VALUE"
           mkdir -p ~/.kube
-          printf '%s' '${{ secrets.KUBE_CONFIG }}' >~/.kube/config
+          printf '%s' "$KUBE_CONFIG_VALUE" >~/.kube/config
           chmod 600 ~/.kube/config
-      - name: Preflight immutable image and cluster access
-        shell: bash
+          test "$(kubectl config current-context)" = '${{ inputs.kube_context }}'
+      - name: Preflight delivery authority and secrets
+        env:
+          SOURCE_DATABASE_URL: ${{ secrets.DELIVERY_SOURCE_DATABASE_URL }}
+          RESTORE_DATABASE_URL: ${{ secrets.DELIVERY_RESTORE_DATABASE_URL }}
+          ROTATED_JWT_SECRET: ${{ secrets.ROTATED_JWT_SECRET }}
+          ROTATED_OPERATIONS_TOKEN: ${{ secrets.ROTATED_OPERATIONS_TOKEN }}
         run: |
           set -euo pipefail
           [[ '${{ inputs.image_digest }}' =~ ^sha256:[a-f0-9]{64}$ ]]
           [[ '${{ inputs.web_image_digest }}' =~ ^sha256:[a-f0-9]{64}$ ]]
-          mkdir -p "$EVIDENCE_DIR"
-          kubectl auth can-i create jobs -n fitpilot | tee "$EVIDENCE_DIR/auth-create-jobs.txt"
-          kubectl auth can-i patch deployments -n fitpilot | tee "$EVIDENCE_DIR/auth-patch-deployments.txt"
-          test "$(cat "$EVIDENCE_DIR/auth-create-jobs.txt")" = yes
-          test "$(cat "$EVIDENCE_DIR/auth-patch-deployments.txt")" = yes
-          kubectl -n fitpilot get deployment fitpilot -o jsonpath='{.spec.template.spec.containers[?(@.name=="fitpilot")].image}' \
-            >"$EVIDENCE_DIR/previous-image.txt" 2>/dev/null || true
-          kubectl -n fitpilot get deployment fitpilot-web -o jsonpath='{.spec.template.spec.containers[?(@.name=="web")].image}' \
-            >"$EVIDENCE_DIR/previous-web-image.txt" 2>/dev/null || true
-      - name: Run forward-only migration
+          test -n "$SOURCE_DATABASE_URL"
+          test -n "$RESTORE_DATABASE_URL"
+          test -n "$ROTATED_JWT_SECRET"
+          test -n "$ROTATED_OPERATIONS_TOKEN"
+          test "$(kubectl auth can-i create jobs -n fitpilot)" = yes
+          test "$(kubectl auth can-i patch deployments -n fitpilot)" = yes
+          test "$(kubectl auth can-i patch secrets -n fitpilot)" = yes
+      - name: Prepare isolated restore target
+        if: inputs.backup_restore_drill
+        shell: pwsh
+        env:
+          SOURCE_DATABASE_URL: ${{ secrets.DELIVERY_SOURCE_DATABASE_URL }}
+          RESTORE_DATABASE_URL: ${{ secrets.DELIVERY_RESTORE_DATABASE_URL }}
+        run: >-
+          ./scripts/delivery/prepare-database-drill.ps1
+          -KubeContext '${{ inputs.kube_context }}'
+          -SourceDatabaseUrl $env:SOURCE_DATABASE_URL
+          -RestoreDatabaseUrl $env:RESTORE_DATABASE_URL
+      - name: Run migration, rollout, rollback, restore and rotation gates
+        shell: pwsh
+        env:
+          ROTATED_JWT_SECRET: ${{ secrets.ROTATED_JWT_SECRET }}
+          ROTATED_OPERATIONS_TOKEN: ${{ secrets.ROTATED_OPERATIONS_TOKEN }}
         run: |
-          set -euo pipefail
-          cd deploy/k8s/overlays/production-migration
-          kustomize edit set image ghcr.io/example/fitpilot=ghcr.io/${{ github.repository_owner }}/fitpilot@${{ inputs.image_digest }}
-          kubectl delete job -n fitpilot fitpilot-migrate --ignore-not-found
-          kubectl apply -k .
-          kubectl wait -n fitpilot --for=condition=complete job/fitpilot-migrate --timeout=5m
-          kubectl logs -n fitpilot job/fitpilot-migrate >"$GITHUB_WORKSPACE/$EVIDENCE_DIR/migration.log"
-      - name: Roll out application
-        id: rollout
-        run: |
-          set -euo pipefail
-          cd deploy/k8s/overlays/production
-          kustomize edit set image ghcr.io/example/fitpilot=ghcr.io/${{ github.repository_owner }}/fitpilot@${{ inputs.image_digest }}
-          kustomize edit set image ghcr.io/example/fitpilot-web=ghcr.io/${{ github.repository_owner }}/fitpilot-web@${{ inputs.web_image_digest }}
-          kubectl apply -k .
-          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m
-          kubectl rollout status -n fitpilot deployment/fitpilot-web --timeout=3m
-      - name: Verify digest, replicas and readiness
-        shell: bash
-        run: |
-          set -euo pipefail
-          kubectl wait -n fitpilot --for=condition=available deployment/fitpilot --timeout=3m
-          kubectl wait -n fitpilot --for=condition=available deployment/fitpilot-web --timeout=3m
-          kubectl get -n fitpilot deployment fitpilot -o json >"$EVIDENCE_DIR/deployment.json"
-          kubectl get -n fitpilot deployment fitpilot-web -o json >"$EVIDENCE_DIR/web-deployment.json"
-          kubectl get -n fitpilot pods -l app.kubernetes.io/name=fitpilot -o wide >"$EVIDENCE_DIR/pods.txt"
-          ready=$(kubectl get -n fitpilot deployment fitpilot -o jsonpath='{.status.readyReplicas}')
-          test "${ready:-0}" -ge 2
-          kubectl port-forward -n fitpilot service/fitpilot 19091:9091 >"$EVIDENCE_DIR/port-forward.log" 2>&1 &
-          forward_pid=$!
-          trap 'kill $forward_pid 2>/dev/null || true' EXIT
-          for attempt in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:19091/actuator/health/readiness >"$EVIDENCE_DIR/readiness.json"; then break; fi
-            sleep 2
-          done
-          grep -q '"status":"UP"' "$EVIDENCE_DIR/readiness.json"
-          kubectl port-forward -n fitpilot service/fitpilot-web 14173:80 >"$EVIDENCE_DIR/web-port-forward.log" 2>&1 &
-          web_forward_pid=$!
-          trap 'kill $forward_pid $web_forward_pid 2>/dev/null || true' EXIT
-          for attempt in {1..20}; do
-            if curl --fail --silent http://127.0.0.1:14173/healthz >"$EVIDENCE_DIR/web-health.txt"; then break; fi
-            sleep 1
-          done
-          grep -q 'ok' "$EVIDENCE_DIR/web-health.txt"
-      - name: Prove rollback and candidate recovery
-        if: inputs.rollback_drill
-        shell: bash
-        run: |
-          set -euo pipefail
-          previous=$(cat "$EVIDENCE_DIR/previous-image.txt")
-          previous_web=$(cat "$EVIDENCE_DIR/previous-web-image.txt")
-          test -n "$previous"
-          test -n "$previous_web"
-          kubectl set image -n fitpilot deployment/fitpilot "fitpilot=$previous"
-          kubectl set image -n fitpilot deployment/fitpilot-web "web=$previous_web"
-          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m
-          kubectl rollout status -n fitpilot deployment/fitpilot-web --timeout=3m
-          kubectl set image -n fitpilot deployment/fitpilot \
-            "fitpilot=ghcr.io/${{ github.repository_owner }}/fitpilot@${{ inputs.image_digest }}"
-          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m
-          kubectl set image -n fitpilot deployment/fitpilot-web \
-            "web=ghcr.io/${{ github.repository_owner }}/fitpilot-web@${{ inputs.web_image_digest }}"
-          kubectl rollout status -n fitpilot deployment/fitpilot-web --timeout=3m
-          echo PASS >"$EVIDENCE_DIR/rollback-drill.txt"
-      - name: Roll back failed application rollout
-        if: failure() && steps.rollout.outcome != 'skipped'
-        run: |
-          kubectl rollout undo -n fitpilot deployment/fitpilot
-          kubectl rollout undo -n fitpilot deployment/fitpilot-web
-          kubectl rollout status -n fitpilot deployment/fitpilot --timeout=5m
-          kubectl rollout status -n fitpilot deployment/fitpilot-web --timeout=3m
-      - name: Collect Kubernetes evidence
+          $parameters = @{
+            KubeContext = '${{ inputs.kube_context }}'
+            AppImage = $env:APP_IMAGE
+            WebImage = $env:WEB_IMAGE
+            RotatedJwtSecret = $env:ROTATED_JWT_SECRET
+            RotatedOperationsToken = $env:ROTATED_OPERATIONS_TOKEN
+            EvidenceDirectory = $env:EVIDENCE_DIR
+          }
+          if ('${{ inputs.rollback_drill }}' -eq 'true') { $parameters.RollbackDrill = $true }
+          if ('${{ inputs.backup_restore_drill }}' -eq 'true') { $parameters.BackupRestoreDrill = $true }
+          if ('${{ inputs.secret_rotation_drill }}' -eq 'true') { $parameters.SecretRotationDrill = $true }
+          if ('${{ inputs.revoke_previous_jwt }}' -eq 'true') { $parameters.RevokePreviousJwt = $true }
+          ./scripts/delivery/run-delivery-gate.ps1 @parameters
+      - name: Collect final Kubernetes evidence
         if: always()
-        shell: bash
         run: |
           mkdir -p "$EVIDENCE_DIR"
-          kubectl get -n fitpilot all -o wide >"$EVIDENCE_DIR/all.txt" 2>&1 || true
-          kubectl get -n fitpilot events --sort-by=.lastTimestamp >"$EVIDENCE_DIR/events.txt" 2>&1 || true
-          kubectl get -n fitpilot pdb,hpa,networkpolicy,ingress -o yaml >"$EVIDENCE_DIR/policies.yaml" 2>&1 || true
-          kubectl describe -n fitpilot deployment/fitpilot >"$EVIDENCE_DIR/deployment-describe.txt" 2>&1 || true
-          kubectl describe -n fitpilot deployment/fitpilot-web >"$EVIDENCE_DIR/web-deployment-describe.txt" 2>&1 || true
-      - name: Upload production evidence
+          kubectl -n fitpilot get all -o wide >"$EVIDENCE_DIR/all.txt" 2>&1 || true
+          kubectl -n fitpilot get events --sort-by=.lastTimestamp >"$EVIDENCE_DIR/events.txt" 2>&1 || true
+          kubectl -n fitpilot get pdb,hpa,networkpolicy,ingress -o yaml >"$EVIDENCE_DIR/policies.yaml" 2>&1 || true
+      - name: Upload production delivery evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: production-rollout-${{ github.run_id }}
+          name: production-delivery-${{ github.run_id }}
           path: release-evidence/
           if-no-files-found: error

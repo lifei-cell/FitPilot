@@ -32,14 +32,14 @@ jobs:
       - name: Build image for security gate
         run: docker build --build-arg APP_VERSION=${GITHUB_REF_NAME} --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:release-candidate .
       - name: Scan release candidate
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: fitpilot:release-candidate
           severity: HIGH,CRITICAL
           exit-code: "1"
       - name: Build and scan web release candidate
         run: docker build -t fitpilot-web:release-candidate web
-      - uses: aquasecurity/trivy-action@0.33.1
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: fitpilot-web:release-candidate
           severity: HIGH,CRITICAL
@@ -90,6 +90,37 @@ jobs:
           labels: ${{ steps.web-meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+      - name: Verify published digests and create release manifest
+        env:
+          APP_IMAGE: ghcr.io/${{ github.repository_owner }}/fitpilot
+          APP_DIGEST: ${{ steps.build.outputs.digest }}
+          WEB_IMAGE: ghcr.io/${{ github.repository_owner }}/fitpilot-web
+          WEB_DIGEST: ${{ steps.web-build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$APP_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          [[ "$WEB_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          docker buildx imagetools inspect "$APP_IMAGE@$APP_DIGEST"
+          docker buildx imagetools inspect "$WEB_IMAGE@$WEB_DIGEST"
+          mkdir -p release-evidence
+          jq -n \
+            --arg repository "${{ github.repository }}" \
+            --arg revision "${{ github.sha }}" \
+            --arg appImage "$APP_IMAGE" \
+            --arg appDigest "$APP_DIGEST" \
+            --arg webImage "$WEB_IMAGE" \
+            --arg webDigest "$WEB_DIGEST" \
+            '{schemaVersion: 1, repository: $repository, revision: $revision,
+              app: {image: $appImage, digest: $appDigest, reference: ($appImage + "@" + $appDigest)},
+              web: {image: $webImage, digest: $webDigest, reference: ($webImage + "@" + $webDigest)}}' \
+            >release-evidence/release-manifest.json
+          sha256sum release-evidence/release-manifest.json >release-evidence/release-manifest.sha256
+      - name: Upload immutable release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghcr-digests-${{ github.run_id }}
+          path: release-evidence/
+          if-no-files-found: error
       - uses: actions/attest-build-provenance@v2
         with:
           subject-name: ghcr.io/${{ github.repository_owner }}/fitpilot

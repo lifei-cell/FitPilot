@@ -11,6 +11,16 @@ PostgreSQL 是业务与审计真相源；Redis 可重建，Kafka/Elasticsearch �
 3. 每次备份记录数据库版本、Flyway 版本、Git SHA、对象校验和与恢复截止时间。
 4. 每月在隔离环境执行恢复演练；校验 `flyway_schema_history`、用户/计划/训练/outbox/审计表行数和抽样业务查询。
 
+门禁要求源库与恢复库 URL 不同，URL 只写入临时 `fitpilot-delivery-drill` Secret，不进入参数日志。恢复 Job 使用 `pg_dump` custom format 和 `pg_restore --exit-on-error`，对关键表行数、Flyway rank 和备份 SHA-256 做强校验；任何一项不一致即失败，绝不覆盖源库。
+
+```powershell
+.\scripts\delivery\prepare-database-drill.ps1 `
+  -KubeContext fitpilot-production `
+  -SourceDatabaseUrl $env:DELIVERY_SOURCE_DATABASE_URL `
+  -RestoreDatabaseUrl $env:DELIVERY_RESTORE_DATABASE_URL
+.\scripts\delivery\run-backup-restore-drill.ps1 -KubeContext fitpilot-production
+```
+
 ## 恢复
 
 1. 冻结写流量，记录事故时间点，创建新数据库实例，禁止覆盖原实例。
@@ -20,3 +30,5 @@ PostgreSQL 是业务与审计真相源；Redis 可重建，Kafka/Elasticsearch �
 5. 保留旧实例至少一个完整观察窗口，完成审计后再按变更流程释放。
 
 Redis 恢复失败时允许冷缓存启动；Elasticsearch 通过 PostgreSQL 知识块重新索引。Kafka 恢复后由 outbox 自动补发，禁止手工修改 `PUBLISHED` 状态。
+
+审计证据为 `backup-restore.log` 和脱敏后的 Job JSON；完成组合门禁后临时数据库 Secret 会被删除。

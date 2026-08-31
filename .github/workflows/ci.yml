@@ -57,7 +57,7 @@ jobs:
       - name: Build web image
         run: docker build -t fitpilot-web:${GITHUB_SHA} web
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: fitpilot:${{ github.sha }}
           format: sarif
@@ -69,7 +69,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with: {sarif_file: trivy-results.sarif}
       - name: Trivy web image scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: fitpilot-web:${{ github.sha }}
           format: sarif

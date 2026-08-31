@@ -18,6 +18,11 @@ spec:
       ports:
         - {protocol: TCP, port: 8080}
     - from:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: fitpilot-delivery-verifier}
+      ports:
+        - {protocol: TCP, port: 8080}
+    - from:
         - namespaceSelector:
             matchLabels: {kubernetes.io/metadata.name: observability}
       ports:

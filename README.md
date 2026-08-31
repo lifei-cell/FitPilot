@@ -183,6 +183,18 @@ V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构]
 V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见 [Agent 架构](docs/architecture/v4-agent.md)。
 V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Production Ready 架构](docs/architecture/v5-production.md)，故障与恢复流程见 [运维手册](docs/runbooks/)。
 
+## 交付门禁
+
+`CI` 执行零跳过测试、Dependency Check、Gitleaks、Trivy 和构建验证；`Release` 发布 GHCR 多架构镜像并归档不可变 digest 清单；`Production Delivery Gate` 只接受 digest 与精确 Kubernetes context，依次执行隔离备份恢复、Migration、Rollout、Rollback/候选恢复和两阶段密钥轮换。
+
+在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
+
+```powershell
+.\scripts\delivery\run-kind-delivery-drill.ps1 -KindExecutable kind
+```
+
+运行手册见 [发布与回滚](docs/runbooks/release-rollback.md)、[备份恢复](docs/runbooks/backup-restore.md) 和 [密钥轮换](docs/runbooks/secret-rotation.md)。
+
 ## V1 性能验证
 
 ```powershell

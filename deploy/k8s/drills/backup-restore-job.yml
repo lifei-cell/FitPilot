@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fitpilot-backup-restore-drill
+  namespace: fitpilot
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: fitpilot-backup-restore-drill}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: drill
+          image: pgvector/pgvector:pg17
+          command: ["sh", "-ec"]
+          args:
+            - |
+              test "$SOURCE_DATABASE_URL" != "$RESTORE_DATABASE_URL"
+              pg_dump --format=custom --no-owner --no-acl --file=/work/fitpilot.dump "$SOURCE_DATABASE_URL"
+              pg_restore --clean --if-exists --no-owner --no-acl --exit-on-error \
+                --dbname="$RESTORE_DATABASE_URL" /work/fitpilot.dump
+              for table in flyway_schema_history users training_plan workout outbox_event; do
+                source_count=$(psql "$SOURCE_DATABASE_URL" -Atc "select count(*) from $table")
+                restore_count=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from $table")
+                test "$source_count" = "$restore_count"
+                echo "TABLE_COUNT_OK table=$table rows=$restore_count"
+              done
+              source_version=$(psql "$SOURCE_DATABASE_URL" -Atc \
+                "select coalesce(max(installed_rank),0) from flyway_schema_history where success")
+              restore_version=$(psql "$RESTORE_DATABASE_URL" -Atc \
+                "select coalesce(max(installed_rank),0) from flyway_schema_history where success")
+              test "$source_version" = "$restore_version"
+              echo "FLYWAY_HISTORY_OK installed_rank=$restore_version"
+              sha256sum /work/fitpilot.dump | awk '{print "BACKUP_SHA256=" $1}'
+              echo "BACKUP_RESTORE_DRILL=PASS"
+          env:
+            - name: SOURCE_DATABASE_URL
+              valueFrom: {secretKeyRef: {name: fitpilot-delivery-drill, key: SOURCE_DATABASE_URL}}
+            - name: RESTORE_DATABASE_URL
+              valueFrom: {secretKeyRef: {name: fitpilot-delivery-drill, key: RESTORE_DATABASE_URL}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: work
+          emptyDir: {sizeLimit: 1Gi}
+        - name: tmp
+          emptyDir: {sizeLimit: 64Mi}
