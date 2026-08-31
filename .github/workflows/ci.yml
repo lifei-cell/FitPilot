@@ -38,11 +38,19 @@ jobs:
       - name: Backend and web quality gate
         shell: pwsh
         run: ./scripts/run-quality-gate.ps1
-      - name: OWASP dependency check
-        run: >-
-          mvn -B org.owasp:dependency-check-maven:12.1.3:check
-          -DfailBuildOnCVSS=7 -DossindexAnalyzerEnabled=false
-          -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+      - name: Trivy dependency scan from CycloneDX SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: sbom
+          scan-ref: target/bom.json
+          format: sarif
+          output: trivy-dependency-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Upload dependency Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: {sarif_file: trivy-dependency-results.sarif}
       - name: Validate Compose and Kubernetes
         env:
           DB_PASSWORD: ci-database-password
@@ -97,7 +105,7 @@ jobs:
           path: |
             target/site/jacoco/
             target/bom.json
-            target/dependency-check-report.*
+            trivy-dependency-results.sarif
             web/coverage/
             web/playwright-report/
             web/test-results/

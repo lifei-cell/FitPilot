@@ -43,7 +43,7 @@ Span 只记录匿名用户标识和低基数字段，不记录问题正文、Too
 
 ## 5. 交付与部署
 
-PR 流程执行 Java 21 `mvn verify`、0 跳过校验、JaCoCo、OWASP、Gitleaks、Docker、Trivy 和 CycloneDX。Release Workflow 构建非 root、多架构 GHCR 镜像，附带版本、Git SHA、SBOM 和 provenance。
+PR 流程执行 Java 21 `mvn verify`、0 跳过校验、JaCoCo、Gitleaks、CycloneDX SBOM 依赖扫描和 Trivy 镜像扫描。Release Workflow 仅在最新 `main` 的 CI 成功后构建非 root、多架构 GHCR 镜像，附带版本、Git SHA、SBOM 和 provenance。
 
 Compose 镜像以 UID 10001 运行并兼容只读根文件系统，设置资源限制、日志轮转、健康检查和 30 秒优雅停机。Secret 仅从环境变量注入。
 

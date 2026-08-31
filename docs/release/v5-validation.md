@@ -10,7 +10,7 @@
 
 ## 远端阻断门禁
 
-- GitHub Actions 完成 OWASP、Gitleaks、Trivy、SBOM/provenance 和 GHCR 多架构镜像推送。
+- GitHub Actions 完成 Gitleaks、CycloneDX SBOM/Trivy 依赖扫描、Trivy 镜像扫描、provenance 和 GHCR 多架构镜像推送。
 - 真实 Kubernetes 执行 migration Job、2 副本滚动升级、PDB/HPA/NetworkPolicy/readiness、回滚与候选版本恢复。
 - 在真实数据副本完成备份恢复与密钥轮换，并上传审计证据。
 

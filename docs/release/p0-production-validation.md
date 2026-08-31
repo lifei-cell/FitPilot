@@ -58,7 +58,7 @@
 
 ## 远端发布待办
 
-1. GitHub Actions 完成 OWASP、Gitleaks、Trivy、SBOM/provenance 与 GHCR 多架构镜像推送。
+1. GitHub Actions 完成 Gitleaks、CycloneDX SBOM/Trivy 依赖扫描、Trivy 镜像扫描、provenance 与 GHCR 多架构镜像推送。
 2. 使用不可变镜像 Digest 执行 migration Job、2 副本滚动升级、readiness 和 PDB/HPA 验证。
 3. 在真实数据副本完成备份恢复、密钥轮换和版本回滚演练，并上传流水线与集群证据。
 4. 远端门禁未完成前，本报告结论保持 BLOCKED，不将本机渲染或 Compose 结果等同生产发布。
