@@ -182,6 +182,7 @@ V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/ar
 V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。
 V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见 [Agent 架构](docs/architecture/v4-agent.md)。
 V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Production Ready 架构](docs/architecture/v5-production.md)，故障与恢复流程见 [运维手册](docs/runbooks/)。
+当前能力边界、项目亮点与分阶段演进顺序见 [项目亮点与后续开发计划](docs/roadmap/FitPilot-项目亮点与后续开发计划.md)。
 
 ## 交付门禁
 
