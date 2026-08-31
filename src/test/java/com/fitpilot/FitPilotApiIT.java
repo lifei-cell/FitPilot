@@ -334,6 +334,12 @@ class FitPilotApiIT {
         String actionId=proposal.path("data").path("pendingAction").path("id").asText();
         String confirmationToken=proposal.path("data").path("pendingAction").path("confirmationToken").asText();
         assertThat(Instant.parse(proposal.path("data").path("pendingAction").path("expiresAt").asText())).isAfter(Instant.now());
+        JsonNode pending=call(get("/api/v1/agent/sessions/"+sessionId+"/pending-actions")
+                .header("Authorization",bearer(ownerToken)),200);
+        assertThat(pending.path("data")).hasSize(1);
+        JsonNode rotated=call(post("/api/v1/agent/pending-actions/"+actionId+"/confirmation-token")
+                .header("Authorization",bearer(ownerToken)),200);
+        confirmationToken=rotated.path("data").path("confirmationToken").asText();
         long ownerId=owner.path("data").path("id").asLong();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=?",Long.class,ownerId)).isZero();
 
@@ -353,6 +359,36 @@ class FitPilotApiIT {
                 .header("MCP-Protocol-Version","2026-07-28").header("Mcp-Method","tools/call").header("Mcp-Name","get_user_profile")
                 .contentType("application/json").content("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{}}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result.content[0].type").value("text"));
+    }
+
+    @Test
+    void persistsAndManagesAgentConversationHistory() throws Exception {
+        register("history_owner"); String token=login("history_owner");
+        register("history_other"); String other=login("history_other");
+        String sessionId=call(post("/api/v1/agent/sessions").header("Authorization",bearer(token)),201)
+                .path("data").path("id").asText();
+        call(post("/api/v1/agent/sessions/"+sessionId+"/messages").header("Authorization",bearer(token))
+                .contentType("application/json").content("{\"message\":\"查看我的用户画像\"}"),200);
+
+        JsonNode sessions=call(get("/api/v1/agent/sessions").header("Authorization",bearer(token)),200);
+        assertThat(sessions.path("data").path("items")).hasSize(1);
+        assertThat(sessions.path("data").path("items").get(0).path("title").asText()).isEqualTo("查看我的用户画像");
+        JsonNode history=call(get("/api/v1/agent/sessions/"+sessionId+"/history?limit=1")
+                .header("Authorization",bearer(token)),200);
+        assertThat(history.path("data").path("items")).hasSize(1);
+        assertThat(history.path("data").path("nextBeforeId").isNumber()).isTrue();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM agent_message WHERE session_id=?::uuid",Long.class,sessionId))
+                .isEqualTo(2);
+
+        mvc.perform(get("/api/v1/agent/sessions/"+sessionId+"/history").header("Authorization",bearer(other)))
+                .andExpect(status().isNotFound());
+        call(patch("/api/v1/agent/sessions/"+sessionId).header("Authorization",bearer(token))
+                .contentType("application/json").content("{\"title\":\"跨设备训练咨询\",\"status\":\"ARCHIVED\"}"),200);
+        JsonNode archived=call(get("/api/v1/agent/sessions?status=ARCHIVED").header("Authorization",bearer(token)),200);
+        assertThat(archived.path("data").path("items").get(0).path("title").asText()).isEqualTo("跨设备训练咨询");
+        call(delete("/api/v1/agent/sessions/"+sessionId).header("Authorization",bearer(token)),200);
+        mvc.perform(get("/api/v1/agent/sessions/"+sessionId+"/history").header("Authorization",bearer(token)))
+                .andExpect(status().isNotFound());
     }
 
     @Test

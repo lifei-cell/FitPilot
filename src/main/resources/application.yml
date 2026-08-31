@@ -123,6 +123,8 @@ fitpilot:
     session-ttl-seconds: ${AGENT_SESSION_TTL_SECONDS:7200}
     confirmation-ttl-seconds: ${AGENT_CONFIRMATION_TTL_SECONDS:600}
     max-messages: ${AGENT_MAX_MESSAGES:30}
+    retention-days: ${AGENT_RETENTION_DAYS:180}
+    retention-batch-size: ${AGENT_RETENTION_BATCH_SIZE:100}
   rag:
     enabled: ${RAG_ENABLED:true}
     elasticsearch:

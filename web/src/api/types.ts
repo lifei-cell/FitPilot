@@ -83,6 +83,35 @@ export type AgentPendingAction = {
   preview: PlanCreateInput;
   guardrailWarnings: string[];
 };
+export type AgentSessionSummary = {
+  id: string;
+  title: string;
+  status: "ACTIVE" | "ARCHIVED";
+  lastMessageAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+export type ConversationMessage = {
+  id: number;
+  role: "user" | "assistant" | "system";
+  content: string;
+  status: "COMPLETED" | "ERROR";
+  executionId?: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+export type MessagePage = {
+  items: ConversationMessage[];
+  nextBeforeId?: number;
+};
+export type PendingActionSummary = {
+  id: string;
+  sessionId: string;
+  toolName: string;
+  status: string;
+  expiresAt: string;
+  preview: PlanCreateInput;
+};
 export type WorkoutSet = {
   id: number;
   setNumber: number;

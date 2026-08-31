@@ -906,7 +906,76 @@ a {
   height: 340px;
 }
 .coach-page {
-  max-width: 1150px;
+  max-width: 1350px;
+}
+.coach-workspace {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 18px;
+}
+.conversation-sidebar {
+  min-height: 640px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 14px;
+}
+.conversation-new {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #52632a;
+  background: rgba(201, 255, 61, 0.08);
+  color: var(--lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.conversation-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.conversation-list > p {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+.conversation-item {
+  border: 1px solid transparent;
+  background: #0d1110;
+  padding: 8px;
+}
+.conversation-item.active {
+  border-color: #52632a;
+}
+.conversation-title {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: #dce3df;
+  text-align: left;
+  font-size: 12px;
+  padding: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+}
+.conversation-actions button {
+  border: 0;
+  background: none;
+  color: #718079;
+  padding: 4px;
+  cursor: pointer;
+}
+.conversation-actions button:hover {
+  color: var(--lime);
 }
 .chat-panel {
   padding: 0;
@@ -947,6 +1016,12 @@ a {
   margin-top: 8px;
   color: #84908a;
   font-size: 9px;
+}
+.chat-message.error > div {
+  border: 1px solid #8f4439;
+}
+.history-button {
+  margin: 0 auto;
 }
 .bot-avatar {
   flex: none;
@@ -1075,8 +1150,12 @@ a {
   }
   .library-layout,
   .profile-grid,
-  .chart-grid {
+  .chart-grid,
+  .coach-workspace {
     grid-template-columns: 1fr;
+  }
+  .conversation-sidebar {
+    min-height: 0;
   }
   .exercise-detail {
     position: static;

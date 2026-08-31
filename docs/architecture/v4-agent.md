@@ -18,7 +18,9 @@ V4 采用一个 Agent、确定性意图路由和显式 Workflow，不做 Multi-A
 
 ## Memory 与审计
 
-- Redis key：`agent:session:{sessionId}`，默认 TTL 2 小时，最多 30 条消息。
+- PostgreSQL `agent_message` 是会话正文真源，默认保留 180 天；Redis key `agent:session:{sessionId}` 仅缓存最近 30 条消息、TTL 2 小时。
+- Redis 未命中或故障时回源 PostgreSQL；升级前仅在 Redis 中的近期消息在首次读取时懒迁移。
+- 会话列表、历史游标分页、重命名、归档和删除均使用 JWT Owner 校验；浏览器仅保存当前会话 ID。
 - PostgreSQL `agent_memory`：按 `(user_id, memory_key)` 保存 JSONB 长期偏好；`weekly_frequency` 会直接约束无现有计划时的草案频率。
 - PostgreSQL `agent_execution`：意图、选择工具、期望工具标签、状态、模型、时延、违规数。
 - PostgreSQL `agent_tool_call`：请求、响应、状态和时延；MCP 调用也进入相同审计链路。

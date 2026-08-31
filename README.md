@@ -52,7 +52,7 @@ Intent → owner-scoped read tools → structured plan → domain validation
        → guardrail → pending action → explicit user confirmation → DRAFT plan
 ```
 
-短期对话保存在 Redis（TTL + 消息上限），长期偏好保存在 PostgreSQL。每次执行和工具调用分别写入 `agent_execution`、`agent_tool_call`；工具入参不接受 `userId`，统一继承 JWT 当前用户。
+会话与消息以 PostgreSQL 为真源并默认保留 180 天，Redis 只缓存最近 30 条消息（TTL 2 小时）；缓存故障时自动回源数据库。Web 支持跨设备历史、重命名、归档、删除和待确认动作恢复。长期偏好保存在 PostgreSQL；每次执行和工具调用分别写入 `agent_execution`、`agent_tool_call`，工具入参不接受 `userId`，统一继承 JWT 当前用户。
 
 LLM 调用链路：
 
@@ -129,7 +129,7 @@ mvn spring-boot:run
 | 事件运维 | `GET /api/v1/operations/events/status`、死信查询/回放 |
 | RAG 检索 | `GET /api/v1/rag/search?q=...&topK=5&category=...` |
 | 知识库运维 | `POST/GET /api/v1/operations/rag/documents`、重建索引、删除 |
-| Agent | `POST /api/v1/agent/sessions`、发送消息、确认待执行动作、长期偏好 |
+| Agent | 会话分页/归档/删除、持久化历史、发送消息、跨设备恢复待确认动作、长期偏好 |
 | Agent 评测 | `GET /api/v1/operations/agent/metrics`、标注期望工具 |
 | LLM 运维 | `GET /api/v1/operations/llm/status`、`GET /invocations` |
 | 离线评测 | `POST /api/v1/operations/evaluations/agent/runs`、`POST /rag/runs`、`GET /runs/{id}` |

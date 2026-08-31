@@ -7,6 +7,7 @@ import com.fitpilot.agent.infrastructure.AgentRepository;
 import com.fitpilot.agent.memory.AgentSessionStore;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
+import com.fitpilot.common.response.PageResult;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.llm.application.LlmGateway;
@@ -48,6 +49,31 @@ public class AgentWorkflowService {
         return new AgentDtos.SessionView(id, now);
     }
     public List<AgentSessionStore.Message> messages(long userId, UUID sessionId) { owned(userId,sessionId); return sessions.messages(sessionId); }
+    public PageResult<AgentDtos.SessionSummary> sessions(long userId, String status, long page, long size) {
+        return repository.sessions(userId, status, page, size);
+    }
+    public AgentDtos.MessagePage history(long userId, UUID sessionId, Long beforeId, int limit) {
+        ownedAny(userId, sessionId);
+        return sessions.history(sessionId, beforeId, limit);
+    }
+    public void updateSession(long userId, UUID sessionId, AgentDtos.SessionUpdateRequest request) {
+        if (!repository.updateSession(sessionId, userId, request.title(), request.status())) throw sessionNotFound();
+    }
+    public void deleteSession(long userId, UUID sessionId) {
+        if (!repository.deleteSession(sessionId, userId)) throw sessionNotFound();
+    }
+    public List<AgentDtos.PendingActionSummary> pendingActions(long userId, UUID sessionId) {
+        ownedAny(userId, sessionId);
+        return repository.pendingActions(userId, sessionId);
+    }
+    public AgentDtos.ConfirmationTokenView rotateConfirmationToken(long userId, UUID actionId) {
+        String token = token();
+        Instant expires = Instant.now().plusSeconds(properties.getConfirmationTtlSeconds());
+        if (!repository.rotatePendingToken(actionId, userId, sha256(token), expires)) {
+            throw error(ErrorCode.AGENT_CONFIRMATION_INVALID, "pending action not found", HttpStatus.NOT_FOUND);
+        }
+        return new AgentDtos.ConfirmationTokenView(actionId, token, expires);
+    }
 
     @Observed(name="fitpilot.agent.workflow")
     public AgentDtos.MessageView message(long userId, UUID sessionId, AgentDtos.MessageRequest request) {
@@ -55,10 +81,18 @@ public class AgentWorkflowService {
         if(observations.getCurrentObservation()!=null)observations.getCurrentObservation().highCardinalityKeyValue("enduser.id",sha256("user:"+userId).substring(0,16));
         AgentPlanner.Decision fallbackDecision=planner.decide(request.message()); UUID executionId=UUID.randomUUID();
         repository.startExecution(executionId,userId,sessionId,fallbackDecision.intent(),fallbackDecision.tools(),LocalDateTime.now());
-        LlmModels.Result<AgentPlanner.Decision> decisionResult=llm.decide(executionId,request.message(),fallbackDecision);
+        sessions.append(sessionId,"user",request.message(),"COMPLETED",executionId,Map.of());
+        LlmModels.Result<AgentPlanner.Decision> decisionResult;
+        try {
+            decisionResult=llm.decide(executionId,request.message(),fallbackDecision);
+        } catch (RuntimeException failure) {
+            repository.finishExecution(executionId,"FAILED",elapsed(started),0);
+            sessions.append(sessionId,"assistant","本次响应失败，请稍后重试。","ERROR",executionId,Map.of());
+            metrics.agent("FAILED",true,elapsed(started),0);
+            throw failure;
+        }
         AgentPlanner.Decision decision=decisionResult.value(); repository.updateDecision(executionId,decision.intent(),decision.tools());
         apply(executionId,decisionResult);
-        sessions.append(sessionId,"user",request.message());
         Map<String,Object> results=new LinkedHashMap<>();
         try {
             for (String tool : decision.tools()) {
@@ -89,7 +123,7 @@ public class AgentWorkflowService {
                     repository.finishExecution(executionId,"REJECTED",elapsed(started),violations);
                     metrics.agent("REJECTED",degraded,elapsed(started),violations);
                     String answer="计划草案未通过安全规则："+String.join("；",issues);
-                    sessions.append(sessionId,"assistant",answer);
+                    sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of());
                     return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
                             model,degraded,promptVersion,citations(results));
                 }
@@ -100,17 +134,19 @@ public class AgentWorkflowService {
                     :new LlmModels.Result<>(fallbackAnswer,model,degraded,promptVersion,0,0,BigDecimal.ZERO);
             apply(executionId,answerResult); model=answerResult.model(); degraded|=answerResult.degraded(); promptVersion=answerResult.promptVersion();
             String answer=answerResult.value();
-            sessions.append(sessionId,"assistant",answer); repository.touchSession(sessionId);
+            sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of()); repository.touchSession(sessionId);
             repository.finishExecution(executionId,pending==null?"SUCCEEDED":"AWAITING_CONFIRMATION",elapsed(started),violations);
             metrics.agent(pending==null?"SUCCEEDED":"AWAITING_CONFIRMATION",degraded,elapsed(started),violations);
             return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,pending!=null,pending,
                     model,degraded,promptVersion,citations(results));
         } catch (RuntimeException failure) {
-            repository.finishExecution(executionId,"FAILED",elapsed(started),0);metrics.agent("FAILED",true,elapsed(started),0); throw failure;
+            repository.finishExecution(executionId,"FAILED",elapsed(started),0);
+            sessions.append(sessionId,"assistant","本次响应失败，请稍后重试。","ERROR",executionId,Map.of());
+            metrics.agent("FAILED",true,elapsed(started),0); throw failure;
         }
     }
     private AgentDtos.PendingActionView createPending(UUID executionId,long userId,TrainingPlanDtos.CreateRequest proposal) {
-        UUID id=UUID.randomUUID(); byte[] bytes=new byte[32]; random.nextBytes(bytes); String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        UUID id=UUID.randomUUID(); String token=token();
         Instant expires=Instant.now().plusSeconds(properties.getConfirmationTtlSeconds());
         repository.createPending(id,executionId,userId,"create_training_plan",proposal,sha256(token),expires,LocalDateTime.now());
         repository.toolCall(executionId,"create_training_plan",proposal,Map.of("pendingActionId",id,"confirmationRequired",true),"AWAITING_CONFIRMATION",0);
@@ -167,6 +203,9 @@ public class AgentWorkflowService {
     private void apply(UUID executionId,LlmModels.Result<?> result){repository.addLlmUsage(executionId,result.model(),result.promptVersion(),result.degraded(),result.inputTokens(),result.outputTokens(),result.costUsd());}
     private List<RagDtos.Citation> citations(Map<String,Object> results){Object value=results.get("search_knowledge");if(!(value instanceof RagDtos.SearchResponse response))return List.of();return response.contexts().stream().map(RagDtos.RetrievedContext::citation).filter(Objects::nonNull).distinct().toList();}
     private void owned(long userId,UUID sessionId) { if(!repository.ownsSession(sessionId,userId)) throw error(ErrorCode.AGENT_SESSION_NOT_FOUND,"agent session not found",HttpStatus.NOT_FOUND); }
+    private void ownedAny(long userId,UUID sessionId) { if(!repository.ownsAnySession(sessionId,userId)) throw sessionNotFound(); }
+    private BusinessException sessionNotFound() { return error(ErrorCode.AGENT_SESSION_NOT_FOUND,"agent session not found",HttpStatus.NOT_FOUND); }
+    private String token(){byte[] bytes=new byte[32];random.nextBytes(bytes);return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);}
     private BusinessException error(ErrorCode code,String message,HttpStatus status){ return new BusinessException(code,message,status); }
     private long elapsed(long started){return (System.nanoTime()-started)/1_000_000;}
     private String safeMessage(Throwable t){return t.getMessage()==null?t.getClass().getSimpleName():t.getMessage();}
