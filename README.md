@@ -52,6 +52,8 @@ Intent → owner-scoped read tools → structured plan → domain validation
        → guardrail → pending action → explicit user confirmation → DRAFT plan
 ```
 
+训练完成后可提交疲劳、疼痛与备注；Agent 基于最近 28 天的完成率、工作组 RPE、容量和 PR 趋势生成可解释调整。疼痛和数据不足会阻断草案，确认通过后只创建新的 DRAFT，不直接修改 ACTIVE 计划。
+
 会话与消息以 PostgreSQL 为真源并默认保留 180 天，Redis 只缓存最近 30 条消息（TTL 2 小时）；缓存故障时自动回源数据库。Web 支持跨设备历史、重命名、归档、删除和待确认动作恢复。长期偏好保存在 PostgreSQL；每次执行和工具调用分别写入 `agent_execution`、`agent_tool_call`，工具入参不接受 `userId`，统一继承 JWT 当前用户。
 
 LLM 调用链路：
@@ -182,6 +184,7 @@ V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/ar
 V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。
 V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见 [Agent 架构](docs/architecture/v4-agent.md)。
 V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Production Ready 架构](docs/architecture/v5-production.md)，故障与恢复流程见 [运维手册](docs/runbooks/)。
+V6 的持久化会话与训练计划调节见 [AI 产品价值闭环](docs/architecture/v6-ai-product.md)。
 当前能力边界、项目亮点与分阶段演进顺序见 [项目亮点与后续开发计划](docs/roadmap/FitPilot-项目亮点与后续开发计划.md)。
 
 ## 交付门禁

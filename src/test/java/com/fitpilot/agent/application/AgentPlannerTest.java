@@ -16,6 +16,7 @@ class AgentPlannerTest {
                 new Case("本周训练量",List.of("get_training_volume")),
                 new Case("当前训练计划",List.of("get_training_plan")),
                 new Case("深蹲动作怎么练",List.of("search_knowledge")),
+                new Case("根据最近疲劳调整计划",List.of("get_training_adjustment_context","search_knowledge","adjust_training_plan")),
                 new Case("帮我制定新计划",List.of("get_user_profile","get_workout_history","get_personal_records","get_training_plan","get_training_volume","search_knowledge","create_training_plan")));
         long correct=dataset.stream().filter(c->planner.decide(c.query()).tools().equals(c.tools())).count();
         assertThat((double)correct/dataset.size()).isEqualTo(1.0);

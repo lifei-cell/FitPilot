@@ -1,5 +1,6 @@
 package com.fitpilot.workout.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -28,4 +29,10 @@ public final class WorkoutDtos {
     public record WorkoutSummary(long id, String name, String status, LocalDateTime startedAt,
                                  LocalDateTime completedAt, Integer durationSeconds) {}
     public record CompleteView(WorkoutView workout, int newPersonalRecords) {}
+    public record FeedbackRequest(@NotNull @Min(1) @Max(10) Integer fatigueScore,
+                                  @NotNull @Min(0) @Max(10) Integer painScore,
+                                  @Size(max = 1000) String notes) {}
+    public record FeedbackView(long workoutId, int fatigueScore, int painScore, String notes,
+                               LocalDateTime updatedAt) {}
+    public record CompleteRequest(@Valid FeedbackRequest feedback) {}
 }

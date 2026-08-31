@@ -8,6 +8,7 @@ import type {
   Workout,
   WorkoutSetInput,
   WorkoutSummary,
+  WorkoutFeedbackInput,
 } from "../api/types";
 import {
   Empty,
@@ -17,10 +18,14 @@ import {
   Status,
 } from "../components/PageParts";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
+import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
+import { navigate } from "../components/AppShell";
 
 export function WorkoutsPage() {
   const client = useQueryClient();
   const [error, setError] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
   const active = useQuery({
     queryKey: ["active-workout"],
     queryFn: () => api<Workout>("/workouts/active/current"),
@@ -58,11 +63,17 @@ export function WorkoutsPage() {
     mutationFn: ({
       id,
       action,
+      feedback,
     }: {
       id: number;
       action: "complete" | "cancel";
-    }) => api(`/workouts/${id}/${action}`, { method: "POST" }),
-    onSuccess: refresh,
+      feedback?: WorkoutFeedbackInput;
+    }) => api(`/workouts/${id}/${action}`, { method: "POST", body: feedback ? JSON.stringify({ feedback }) : undefined }),
+    onSuccess: (_, variables) => {
+      setShowFeedback(false);
+      if (variables.action === "complete") setShowAdjustmentPrompt(true);
+      refresh();
+    },
     onError: (e) => setError(e.message),
   });
   const addSet = useMutation({
@@ -155,15 +166,16 @@ export function WorkoutsPage() {
               </button>
               <button
                 className="primary-button compact"
-                onClick={() =>
-                  finish.mutate({ id: active.data!.id, action: "complete" })
-                }
+                onClick={() => setShowFeedback(true)}
               >
                 <CheckCircle2 size={17} />
                 完成训练
               </button>
             </div>
           </div>
+          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending}
+            onSubmit={(feedback) => finish.mutate({ id: active.data!.id, action: "complete", feedback })}
+            onSkip={() => finish.mutate({ id: active.data!.id, action: "complete" })} /> : null}
           <div className="exercise-stack">
             {active.data.exercises.map((exercise, index) => (
               <article className="exercise-live" key={exercise.id}>
@@ -265,6 +277,7 @@ export function WorkoutsPage() {
           )}
         </Panel>
       )}
+      {showAdjustmentPrompt ? <Panel className="adjustment-prompt"><strong>训练已记录</strong><p>积累至少 3 次训练和 2 份反馈后，AI Coach 可根据完成率、RPE、疲劳、容量和 PR 趋势评估计划。</p><button className="primary-button inline" onClick={() => navigate("/coach")}>前往 AI Coach 评估调整</button></Panel> : null}
       <Panel>
         <SectionTitle title="最近训练" detail="最近 10 次" />
         {history.data?.items.length ? (

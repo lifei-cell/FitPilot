@@ -3,6 +3,7 @@ package com.fitpilot.agent.infrastructure;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.agent.dto.AgentDtos;
+import com.fitpilot.agent.adjustment.TrainingAdjustmentDtos;
 import com.fitpilot.common.response.PageResult;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -131,9 +132,15 @@ public class AgentRepository {
                 FROM agent_pending_action p JOIN agent_execution e ON e.id=p.execution_id
                 WHERE p.user_id=? AND e.session_id=? AND p.status='AWAITING_CONFIRMATION'
                 ORDER BY p.created_at DESC
-                """, (rs, row) -> new AgentDtos.PendingActionSummary(rs.getObject(1, UUID.class),
-                rs.getObject(2, UUID.class), rs.getString(3), rs.getString(4),
-                rs.getObject(5, java.time.OffsetDateTime.class).toInstant(), read(rs.getString(6), Object.class)),
+                """, (rs, row) -> {
+                    String tool = rs.getString(3);
+                    Object preview = "adjust_training_plan".equals(tool)
+                            ? read(rs.getString(6), TrainingAdjustmentDtos.AdjustmentProposal.class).plan()
+                            : read(rs.getString(6), Object.class);
+                    return new AgentDtos.PendingActionSummary(rs.getObject(1, UUID.class),
+                            rs.getObject(2, UUID.class), tool, rs.getString(4),
+                            rs.getObject(5, java.time.OffsetDateTime.class).toInstant(), preview);
+                },
                 userId, sessionId);
     }
 
@@ -177,6 +184,9 @@ public class AgentRepository {
                         rs.getString(4), rs.getString(5), rs.getObject(6, java.time.OffsetDateTime.class).toInstant())) : Optional.empty(), id, userId);
     }
     public void markExecuted(UUID id) { jdbc.update("UPDATE agent_pending_action SET status='EXECUTED',executed_at=now() WHERE id=?", id); }
+    public void markRejected(UUID id, long userId) {
+        jdbc.update("UPDATE agent_pending_action SET status='REJECTED',executed_at=now() WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'", id, userId);
+    }
     public void upsertMemory(long userId, String key, Object value) {
         jdbc.update("INSERT INTO agent_memory(user_id,memory_key,memory_value,updated_at) VALUES (?,?,?::jsonb,now()) ON CONFLICT(user_id,memory_key) DO UPDATE SET memory_value=excluded.memory_value,updated_at=now()",
                 userId, key, write(value));

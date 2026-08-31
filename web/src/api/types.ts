@@ -157,3 +157,35 @@ export type WorkoutSummary = Pick<
   Workout,
   "id" | "name" | "status" | "startedAt" | "completedAt" | "durationSeconds"
 >;
+export type WorkoutFeedbackInput = {
+  fatigueScore: number;
+  painScore: number;
+  notes?: string;
+};
+export type AdjustmentEvidence = {
+  windowDays: number;
+  completedWorkouts: number;
+  planCompletionRate: number;
+  setCompletionRate: number;
+  averageRpe: number;
+  feedbackCount: number;
+  averageFatigue: number;
+  latestPain: number;
+  currentVolume: number;
+  previousVolume: number;
+  volumeChangeRate: number;
+  personalRecords: number;
+};
+export type PlanAdjustment = {
+  id: string;
+  sourcePlanId: number;
+  sourcePlanVersion: number;
+  rule: string;
+  status: string;
+  evidence: AdjustmentEvidence;
+  reasons: string[];
+  proposal?: PlanCreateInput;
+  pendingActionId?: string;
+  draftPlanId?: number;
+  createdAt: string;
+};

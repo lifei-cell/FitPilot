@@ -2,6 +2,8 @@ package com.fitpilot.agent.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.agent.config.AgentProperties;
+import com.fitpilot.agent.adjustment.TrainingAdjustmentDtos;
+import com.fitpilot.agent.adjustment.TrainingAdjustmentService;
 import com.fitpilot.agent.dto.AgentDtos;
 import com.fitpilot.agent.infrastructure.AgentRepository;
 import com.fitpilot.agent.memory.AgentSessionStore;
@@ -33,6 +35,7 @@ public class AgentWorkflowService {
     private final AgentPlanner planner; private final AgentToolExecutor tools; private final AgentRepository repository;
     private final AgentSessionStore sessions; private final TrainingPlanGuardrail guardrail;
     private final TrainingPlanService plans; private final AgentProperties properties; private final ObjectMapper json;
+    private final TrainingAdjustmentService adjustments;
     private final LlmGateway llm;
     private final FitPilotMetrics metrics;private final ObservationRegistry observations;
     private final SecureRandom random = new SecureRandom();
@@ -40,9 +43,11 @@ public class AgentWorkflowService {
     public AgentWorkflowService(AgentPlanner planner, AgentToolExecutor tools, AgentRepository repository,
                                 AgentSessionStore sessions, TrainingPlanGuardrail guardrail,
                                 TrainingPlanService plans, AgentProperties properties, ObjectMapper json,
-                                LlmGateway llm, FitPilotMetrics metrics, ObservationRegistry observations) {
+                                LlmGateway llm, FitPilotMetrics metrics, ObservationRegistry observations,
+                                TrainingAdjustmentService adjustments) {
         this.planner=planner; this.tools=tools; this.repository=repository; this.sessions=sessions;
-        this.guardrail=guardrail; this.plans=plans; this.properties=properties; this.json=json; this.llm=llm;this.metrics=metrics;this.observations=observations;
+        this.guardrail=guardrail; this.plans=plans; this.properties=properties; this.json=json; this.llm=llm;
+        this.metrics=metrics;this.observations=observations;this.adjustments=adjustments;
     }
     public AgentDtos.SessionView createSession(long userId) {
         UUID id=UUID.randomUUID(); LocalDateTime now=LocalDateTime.now(); repository.createSession(id,userId,now);
@@ -96,7 +101,7 @@ public class AgentWorkflowService {
         Map<String,Object> results=new LinkedHashMap<>();
         try {
             for (String tool : decision.tools()) {
-                if ("create_training_plan".equals(tool)) continue;
+                if (Set.of("create_training_plan","adjust_training_plan").contains(tool)) continue;
                 long toolStart=System.nanoTime();
                 try {
                     Object result=tools.execute(tool,userId,request.message()); results.put(tool,result);
@@ -127,7 +132,39 @@ public class AgentWorkflowService {
                     return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
                             model,degraded,promptVersion,citations(results));
                 }
-                pending=createPending(executionId,userId,proposal);
+                pending=createPending(executionId,userId,"create_training_plan",proposal,proposal,List.of());
+            } else if (decision.tools().contains("adjust_training_plan")) {
+                TrainingAdjustmentService.Analysis analysis=adjustments.analyze(userId);
+                if (!analysis.proposalAllowed()) {
+                    adjustments.recordDecision(userId,analysis);
+                    String answer=String.join("；",analysis.reasons());
+                    sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of("rule",analysis.rule()));
+                    repository.finishExecution(executionId,"SUCCEEDED",elapsed(started),0);
+                    metrics.agent("SUCCEEDED",degraded,elapsed(started),0);
+                    return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
+                            model,degraded,promptVersion,citations(results));
+                }
+                if(adjustments.hasPending(userId,analysis.source().id())) {
+                    String answer="已有一份待确认的计划调整，请先确认或拒绝后再重新生成。";
+                    sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of("rule",analysis.rule()));
+                    repository.finishExecution(executionId,"SUCCEEDED",elapsed(started),0);
+                    metrics.agent("SUCCEEDED",degraded,elapsed(started),0);
+                    return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
+                            model,degraded,promptVersion,citations(results));
+                }
+                TrainingPlanDtos.CreateRequest fallbackPlan=adjustments.deterministicPlan(analysis);
+                LlmModels.Result<TrainingPlanDtos.CreateRequest> planResult=llm.generatePlan(executionId,request.message(),results,fallbackPlan);
+                apply(executionId,planResult);model=planResult.model();degraded|=planResult.degraded();promptVersion=planResult.promptVersion();
+                TrainingPlanDtos.CreateRequest plan=planResult.value();
+                List<String> issues=new ArrayList<>(guardrail.validate(plan));
+                issues.addAll(adjustments.validate(analysis,plan,!citations(results).isEmpty()));violations=issues.size();
+                if(!issues.isEmpty()) {
+                    plan=fallbackPlan;issues=new ArrayList<>(guardrail.validate(plan));issues.addAll(adjustments.validate(analysis,plan,false));violations=issues.size();
+                }
+                if(!issues.isEmpty()) throw error(ErrorCode.AGENT_GUARDRAIL_REJECTED,String.join("; ",issues),HttpStatus.UNPROCESSABLE_ENTITY);
+                TrainingAdjustmentDtos.AdjustmentProposal proposal=adjustments.proposal(analysis,plan);
+                pending=createPending(executionId,userId,"adjust_training_plan",proposal,plan,analysis.reasons());
+                adjustments.record(userId,proposal,pending.id(),model,degraded,promptVersion);
             }
             String fallbackAnswer=compose(decision.intent(),results,pending!=null);
             LlmModels.Result<String> answerResult=pending==null?llm.answer(executionId,request.message(),results,fallbackAnswer)
@@ -145,12 +182,13 @@ public class AgentWorkflowService {
             metrics.agent("FAILED",true,elapsed(started),0); throw failure;
         }
     }
-    private AgentDtos.PendingActionView createPending(UUID executionId,long userId,TrainingPlanDtos.CreateRequest proposal) {
+    private AgentDtos.PendingActionView createPending(UUID executionId,long userId,String tool,Object payload,
+                                                       Object preview,List<String> warnings) {
         UUID id=UUID.randomUUID(); String token=token();
         Instant expires=Instant.now().plusSeconds(properties.getConfirmationTtlSeconds());
-        repository.createPending(id,executionId,userId,"create_training_plan",proposal,sha256(token),expires,LocalDateTime.now());
-        repository.toolCall(executionId,"create_training_plan",proposal,Map.of("pendingActionId",id,"confirmationRequired",true),"AWAITING_CONFIRMATION",0);
-        return new AgentDtos.PendingActionView(id,"create_training_plan",token,expires,proposal,List.of());
+        repository.createPending(id,executionId,userId,tool,payload,sha256(token),expires,LocalDateTime.now());
+        repository.toolCall(executionId,tool,payload,Map.of("pendingActionId",id,"confirmationRequired",true),"AWAITING_CONFIRMATION",0);
+        return new AgentDtos.PendingActionView(id,tool,token,expires,preview,warnings);
     }
     @Transactional
     public Object confirm(long userId, UUID actionId, String token) {
@@ -158,6 +196,13 @@ public class AgentWorkflowService {
         if (!"AWAITING_CONFIRMATION".equals(pending.status())) throw error(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,"action already processed",HttpStatus.CONFLICT);
         if (pending.expiresAt().isBefore(Instant.now()) || !MessageDigest.isEqual(pending.confirmationHash().getBytes(StandardCharsets.UTF_8),sha256(token).getBytes(StandardCharsets.UTF_8)))
             throw error(ErrorCode.AGENT_CONFIRMATION_INVALID,"confirmation is expired or invalid",HttpStatus.FORBIDDEN);
+        if("adjust_training_plan".equals(pending.tool())) {
+            TrainingAdjustmentDtos.AdjustmentProposal proposal=repository.read(pending.payload(),TrainingAdjustmentDtos.AdjustmentProposal.class);
+            List<String> issues=guardrail.validate(proposal.plan());
+            if(!issues.isEmpty()) throw error(ErrorCode.AGENT_GUARDRAIL_REJECTED,String.join("; ",issues),HttpStatus.UNPROCESSABLE_ENTITY);
+            long started=System.nanoTime();Object result=adjustments.confirm(userId,proposal);repository.markExecuted(actionId);
+            repository.toolCall(pending.executionId(),pending.tool(),proposal,result,"SUCCEEDED",elapsed(started));return result;
+        }
         TrainingPlanDtos.CreateRequest proposal=repository.read(pending.payload(),TrainingPlanDtos.CreateRequest.class);
         List<String> issues=guardrail.validate(proposal);
         if (!issues.isEmpty()) throw error(ErrorCode.AGENT_GUARDRAIL_REJECTED,String.join("; ",issues),HttpStatus.UNPROCESSABLE_ENTITY);

@@ -16,8 +16,9 @@ import java.util.*;
 public class LlmGateway {
     public static final List<String> PLAN_TOOLS = List.of("get_user_profile", "get_workout_history",
             "get_personal_records", "get_training_plan", "get_training_volume", "search_knowledge", "create_training_plan");
+    public static final List<String> ADJUSTMENT_TOOLS = List.of("get_training_adjustment_context", "search_knowledge", "adjust_training_plan");
     public static final Set<String> READ_TOOLS = Set.of("get_user_profile", "get_workout_history",
-            "get_personal_records", "get_training_plan", "get_training_volume", "search_knowledge");
+            "get_personal_records", "get_training_plan", "get_training_volume", "get_training_adjustment_context", "search_knowledge");
     private final LlmProperties properties; private final PromptRegistry prompts;
     private final OpenAiCompatibleClient client; private final ObjectMapper json;
     public LlmGateway(LlmProperties properties, PromptRegistry prompts, OpenAiCompatibleClient client, ObjectMapper json) {
@@ -59,11 +60,12 @@ public class LlmGateway {
         List<String> names=new ArrayList<>();
         for(LlmModels.ToolCall call:raw.toolCalls()) {
             if(call==null||call.name()==null) throw new IllegalArgumentException("missing tool name");
-            if(!READ_TOOLS.contains(call.name())&&!"create_training_plan".equals(call.name())) throw new IllegalArgumentException("tool not allowed");
+            if(!READ_TOOLS.contains(call.name())&&!Set.of("create_training_plan","adjust_training_plan").contains(call.name())) throw new IllegalArgumentException("tool not allowed");
             if(containsUserId(call.arguments())) throw new IllegalArgumentException("identity arguments are forbidden");
             if(!names.contains(call.name())) names.add(call.name());
         }
         if(names.contains("create_training_plan")&&!names.equals(PLAN_TOOLS)) throw new IllegalArgumentException("write workflow is incomplete");
+        if(names.contains("adjust_training_plan")&&!names.equals(ADJUSTMENT_TOOLS)) throw new IllegalArgumentException("adjustment workflow is incomplete");
         return new AgentPlanner.Decision(raw.intent().trim().toUpperCase(Locale.ROOT),List.copyOf(names));
     }
     private boolean containsUserId(Object value) {

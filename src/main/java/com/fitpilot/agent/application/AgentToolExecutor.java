@@ -1,6 +1,7 @@
 package com.fitpilot.agent.application;
 
 import com.fitpilot.analytics.application.AnalyticsService;
+import com.fitpilot.agent.adjustment.TrainingAdjustmentService;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.pr.dto.PersonalRecordView;
 import com.fitpilot.pr.repository.PersonalRecordRepository;
@@ -17,10 +18,13 @@ import java.util.Map;
 public class AgentToolExecutor {
     private final UserService users; private final WorkoutService workouts; private final PersonalRecordRepository records;
     private final TrainingPlanService plans; private final AnalyticsService analytics;
+    private final TrainingAdjustmentService adjustments;
     private final ObjectProvider<HybridRetrievalService> retrieval;
     public AgentToolExecutor(UserService users, WorkoutService workouts, PersonalRecordRepository records,
-                             TrainingPlanService plans, AnalyticsService analytics, ObjectProvider<HybridRetrievalService> retrieval) {
-        this.users=users; this.workouts=workouts; this.records=records; this.plans=plans; this.analytics=analytics; this.retrieval=retrieval;
+                             TrainingPlanService plans, AnalyticsService analytics, TrainingAdjustmentService adjustments,
+                             ObjectProvider<HybridRetrievalService> retrieval) {
+        this.users=users; this.workouts=workouts; this.records=records; this.plans=plans; this.analytics=analytics;
+        this.adjustments=adjustments;this.retrieval=retrieval;
     }
     @Observed(name="fitpilot.agent.tool")
     public Object execute(String tool, long currentUserId, String query) {
@@ -30,6 +34,7 @@ public class AgentToolExecutor {
             case "get_personal_records" -> records.findCurrent(currentUserId).stream().map(PersonalRecordView::from).toList();
             case "get_training_plan" -> safePlan(currentUserId);
             case "get_training_volume" -> analytics.overview(currentUserId);
+            case "get_training_adjustment_context" -> adjustments.context(currentUserId);
             case "search_knowledge" -> search(query);
             default -> throw new IllegalArgumentException("unknown or non-readable tool: " + tool);
         };

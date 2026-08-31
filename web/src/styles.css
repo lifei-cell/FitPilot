@@ -717,6 +717,40 @@ a {
   padding: 25px 0;
   border-bottom: 1px solid var(--line);
 }
+.workout-feedback {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid #52632a;
+  background: rgba(201, 255, 61, 0.04);
+}
+.workout-feedback > div:first-child,
+.workout-feedback textarea,
+.workout-feedback .action-row {
+  grid-column: 1 / -1;
+}
+.workout-feedback small,
+.workout-feedback label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.workout-feedback input {
+  width: 100%;
+}
+.workout-feedback textarea {
+  min-height: 76px;
+  resize: vertical;
+  border: 1px solid #303633;
+  background: #0d1110;
+  color: #fff;
+  padding: 10px;
+}
+.adjustment-prompt {
+  margin-bottom: 20px;
+}
 .exercise-index {
   font: 700 30px "Barlow Condensed";
   color: #404945;
@@ -976,6 +1010,38 @@ a {
 }
 .conversation-actions button:hover {
   color: var(--lime);
+}
+.coach-chat-column {
+  min-width: 0;
+}
+.adjustment-insight {
+  border: 1px solid #52632a;
+  background: rgba(201, 255, 61, 0.04);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.adjustment-insight > div:first-child {
+  display: flex;
+  justify-content: space-between;
+}
+.adjustment-insight span,
+.adjustment-insight p,
+.adjustment-insight dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.adjustment-insight dl {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.adjustment-insight dl div {
+  border: 1px solid var(--line);
+  padding: 8px;
+}
+.adjustment-insight dd {
+  margin: 5px 0 0;
+  font-weight: 700;
 }
 .chat-panel {
   padding: 0;

@@ -148,6 +148,10 @@ class FitPilotApiIT {
         JsonNode repeated = call(post("/api/v1/workouts/{id}/complete", workoutId)
                 .header("Authorization", bearer(token)), 200);
         assertThat(repeated.path("data").path("newPersonalRecords").asInt()).isZero();
+        JsonNode feedback = call(put("/api/v1/workouts/{id}/feedback", workoutId)
+                .header("Authorization", bearer(token)).contentType("application/json")
+                .content("{\"fatigueScore\":7,\"painScore\":2,\"notes\":\"左膝轻微紧张\"}"), 200);
+        assertThat(feedback.path("data").path("fatigueScore").asInt()).isEqualTo(7);
 
         mvc.perform(get("/api/v1/personal-records").header("Authorization", bearer(token)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
@@ -166,6 +170,9 @@ class FitPilotApiIT {
         register("other_user");
         String otherToken = login("other_user");
         mvc.perform(get("/api/v1/workouts/{id}", workoutId).header("Authorization", bearer(otherToken)))
+                .andExpect(status().isNotFound());
+        mvc.perform(put("/api/v1/workouts/{id}/feedback", workoutId).header("Authorization", bearer(otherToken))
+                .contentType("application/json").content("{\"fatigueScore\":3,\"painScore\":0}"))
                 .andExpect(status().isNotFound());
     }
 
@@ -389,6 +396,44 @@ class FitPilotApiIT {
         call(delete("/api/v1/agent/sessions/"+sessionId).header("Authorization",bearer(token)),200);
         mvc.perform(get("/api/v1/agent/sessions/"+sessionId+"/history").header("Authorization",bearer(token)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void confirmsExplainableAdjustmentAsNewDraftWithoutChangingActivePlan() throws Exception {
+        JsonNode user=register("adjustment_owner"); String token=login("adjustment_owner");
+        long userId=user.path("data").path("id").asLong();
+        JsonNode plan=call(post("/api/v1/training-plans").header("Authorization",bearer(token))
+                .contentType("application/json").content("""
+                {"name":"调整基线","goal":"STRENGTH","durationWeeks":8,"days":[
+                  {"dayNumber":1,"name":"上肢","exercises":[{"exerciseId":1,"sequence":1,"targetSets":3,"targetRepsMin":6,"targetRepsMax":8,"targetRpe":8,"restSeconds":120}]},
+                  {"dayNumber":2,"name":"下肢","exercises":[{"exerciseId":3,"sequence":1,"targetSets":3,"targetRepsMin":6,"targetRepsMax":8,"targetRpe":8,"restSeconds":120}]}
+                ]}
+                """),201);
+        long planId=plan.path("data").path("id").asLong();
+        long dayId=plan.path("data").path("days").get(0).path("id").asLong();
+        call(post("/api/v1/training-plans/{id}/activate",planId).header("Authorization",bearer(token)),200);
+        for(int i=0;i<3;i++) {
+            Long workoutId=jdbc.queryForObject("""
+                    INSERT INTO workout(user_id,training_plan_id,training_plan_day_id,name,status,started_at,completed_at,duration_seconds)
+                    VALUES (?,?,?,'历史训练','COMPLETED',CURRENT_TIMESTAMP-INTERVAL '2 hours',CURRENT_TIMESTAMP-INTERVAL '1 hour',3600)
+                    RETURNING id
+                    """,Long.class,userId,planId,dayId);
+            if(i<2) jdbc.update("INSERT INTO workout_feedback(workout_id,user_id,fatigue_score,pain_score) VALUES (?,?,5,0)",workoutId,userId);
+        }
+        String sessionId=call(post("/api/v1/agent/sessions").header("Authorization",bearer(token)),201)
+                .path("data").path("id").asText();
+        JsonNode response=call(post("/api/v1/agent/sessions/"+sessionId+"/messages")
+                .header("Authorization",bearer(token)).contentType("application/json")
+                .content("{\"message\":\"根据最近训练反馈调整计划\"}"),200);
+        assertThat(response.path("data").path("pendingAction").path("toolName").asText()).isEqualTo("adjust_training_plan");
+        String actionId=response.path("data").path("pendingAction").path("id").asText();
+        String confirmation=response.path("data").path("pendingAction").path("confirmationToken").asText();
+        call(post("/api/v1/agent/pending-actions/"+actionId+"/confirm").header("Authorization",bearer(token))
+                .contentType("application/json").content(json.writeValueAsBytes(Map.of("confirmationToken",confirmation))),200);
+
+        assertThat(jdbc.queryForObject("SELECT id FROM training_plan WHERE user_id=? AND status='ACTIVE'",Long.class,userId)).isEqualTo(planId);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=? AND status='DRAFT'",Long.class,userId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT status FROM plan_adjustment WHERE user_id=?",String.class,userId)).isEqualTo("ACCEPTED");
     }
 
     @Test

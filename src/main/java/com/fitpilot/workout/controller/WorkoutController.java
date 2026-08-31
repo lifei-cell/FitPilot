@@ -4,6 +4,7 @@ import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.common.response.PageResult;
 import com.fitpilot.common.security.CurrentUser;
 import com.fitpilot.workout.application.WorkoutService;
+import com.fitpilot.workout.application.WorkoutFeedbackService;
 import com.fitpilot.workout.dto.WorkoutDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -21,7 +22,8 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/v1/workouts")
 public class WorkoutController {
     private final WorkoutService service;
-    public WorkoutController(WorkoutService service) { this.service = service; }
+    private final WorkoutFeedbackService feedback;
+    public WorkoutController(WorkoutService service, WorkoutFeedbackService feedback) { this.service = service; this.feedback = feedback; }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -83,7 +85,17 @@ public class WorkoutController {
     }
 
     @PostMapping("/{id}/complete")
-    ApiResponse<WorkoutDtos.CompleteView> complete(@PathVariable long id, Authentication auth) {
-        return ApiResponse.success(service.complete(CurrentUser.id(auth), id));
+    ApiResponse<WorkoutDtos.CompleteView> complete(@PathVariable long id,
+            @Valid @RequestBody(required = false) WorkoutDtos.CompleteRequest request, Authentication auth) {
+        long userId = CurrentUser.id(auth);
+        WorkoutDtos.CompleteView completed = service.complete(userId, id);
+        if (request != null && request.feedback() != null) feedback.upsert(userId, id, request.feedback());
+        return ApiResponse.success(completed);
+    }
+
+    @PutMapping("/{id}/feedback")
+    ApiResponse<WorkoutDtos.FeedbackView> feedback(@PathVariable long id,
+            @Valid @RequestBody WorkoutDtos.FeedbackRequest request, Authentication auth) {
+        return ApiResponse.success(feedback.upsert(CurrentUser.id(auth), id, request));
     }
 }

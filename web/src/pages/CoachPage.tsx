@@ -12,10 +12,12 @@ import type {
   PageResult,
   PendingActionSummary,
   Plan,
+  PlanAdjustment,
 } from "../api/types";
 import { PageHeader, Panel } from "../components/PageParts";
 import { ConversationSidebar } from "../features/agent/ConversationSidebar";
 import { PendingPlanCard } from "../features/agent/PendingPlanCard";
+import { AdjustmentInsightCard } from "../features/agent/AdjustmentInsightCard";
 
 type Reply = {
   answer: string;
@@ -45,6 +47,11 @@ export function CoachPage() {
   const sessions = useQuery({
     queryKey: ["agent-sessions", userId],
     queryFn: () => api<PageResult<AgentSessionSummary>>("/agent/sessions?size=100"),
+    enabled: Boolean(userId),
+  });
+  const adjustments = useQuery({
+    queryKey: ["plan-adjustments", userId],
+    queryFn: () => api<PageResult<PlanAdjustment>>("/agent/plan-adjustments?size=5"),
     enabled: Boolean(userId),
   });
 
@@ -146,6 +153,7 @@ export function CoachPage() {
         storePendingAction(userId, reply.pendingAction);
       }
       void client.invalidateQueries({ queryKey: ["agent-sessions"] });
+      void client.invalidateQueries({ queryKey: ["plan-adjustments"] });
     },
   });
 
@@ -161,8 +169,17 @@ export function CoachPage() {
       setPendingStatus("pending");
       setChats((current) => [...current, { role: "assistant", text: `计划“${plan.name}”已确认并保存为草稿。` }]);
       void client.invalidateQueries({ queryKey: ["plans"] });
+      void client.invalidateQueries({ queryKey: ["plan-adjustments"] });
     },
     onError: (error) => handleConfirmationError(error),
+  });
+  const rejectAdjustment = useMutation({
+    mutationFn: (id: string) => api<void>(`/agent/plan-adjustments/${id}/reject`, { method: "POST" }),
+    onSuccess: async () => {
+      clearPendingAction(userId);
+      setPending(null);
+      await client.invalidateQueries({ queryKey: ["plan-adjustments"] });
+    },
   });
 
   async function loadOlder() {
@@ -217,6 +234,9 @@ export function CoachPage() {
           onCreate={() => createSession.mutate()} onSelect={(id) => void selectSession(id)} onRename={rename}
           onArchive={(item) => updateSession.mutate({ id: item.id, status: "ARCHIVED" })}
           onDelete={(item) => { if (window.confirm(`删除会话“${item.title}”？`)) deleteSession.mutate(item.id); }} />
+        <div className="coach-chat-column">
+          {adjustments.data?.items[0] ? <AdjustmentInsightCard adjustment={adjustments.data.items[0]}
+            onReject={() => rejectAdjustment.mutate(adjustments.data!.items[0].id)} /> : null}
         <Panel className="chat-panel">
           <div className="chat-log">
             {nextBeforeId ? <button className="text-button history-button" onClick={() => void loadOlder()}>加载更早消息</button> : null}
@@ -235,7 +255,7 @@ export function CoachPage() {
             <button className="primary-button" disabled={send.isPending || confirm.isPending}><Send size={17} /></button>
           </form>
           {send.error ? <p className="form-error">{send.error.message}</p> : null}
-        </Panel>
+        </Panel></div>
       </div>
     </main>
   );
