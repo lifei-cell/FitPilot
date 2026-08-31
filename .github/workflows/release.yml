@@ -1,9 +1,9 @@
 name: Release Image
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 
 permissions:
   contents: read
@@ -11,17 +11,55 @@ permissions:
   id-token: write
   attestations: write
 
+concurrency:
+  group: release-main
+  cancel-in-progress: true
+
 jobs:
+  select-revision:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    outputs:
+      current: ${{ steps.revision.outputs.current }}
+      revision: ${{ steps.revision.outputs.revision }}
+      short_revision: ${{ steps.revision.outputs.short_revision }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+      - id: revision
+        name: Reject stale CI results
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          revision="$(git rev-parse HEAD)"
+          echo "revision=$revision" >>"$GITHUB_OUTPUT"
+          echo "short_revision=${revision:0:7}" >>"$GITHUB_OUTPUT"
+          if [[ "$revision" == "$(git rev-parse origin/main)" ]]; then
+            echo "current=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "current=false" >>"$GITHUB_OUTPUT"
+            echo "Skipping stale verified revision $revision"
+          fi
+
   image:
+    needs: select-revision
+    if: needs.select-revision.outputs.current == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.select-revision.outputs.revision }}
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: npm
@@ -30,7 +68,7 @@ jobs:
         shell: pwsh
         run: ./scripts/run-quality-gate.ps1
       - name: Build image for security gate
-        run: docker build --build-arg APP_VERSION=${GITHUB_REF_NAME} --build-arg GIT_REVISION=${GITHUB_SHA} -t fitpilot:release-candidate .
+        run: docker build --build-arg APP_VERSION=main --build-arg GIT_REVISION=${{ needs.select-revision.outputs.revision }} -t fitpilot:release-candidate .
       - name: Scan release candidate
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -55,9 +93,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/fitpilot
           tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=sha
+            type=raw,value=main
+            type=raw,value=sha-${{ needs.select-revision.outputs.short_revision }}
       - id: build
         uses: docker/build-push-action@v6
         with:
@@ -67,8 +104,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            APP_VERSION=${{ github.ref_name }}
-            GIT_REVISION=${{ github.sha }}
+            APP_VERSION=main
+            GIT_REVISION=${{ needs.select-revision.outputs.revision }}
             GITHUB_REPOSITORY=${{ github.repository }}
           provenance: mode=max
           sbom: true
@@ -77,9 +114,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/fitpilot-web
           tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=sha
+            type=raw,value=main
+            type=raw,value=sha-${{ needs.select-revision.outputs.short_revision }}
       - id: web-build
         uses: docker/build-push-action@v6
         with:
@@ -105,7 +141,7 @@ jobs:
           mkdir -p release-evidence
           jq -n \
             --arg repository "${{ github.repository }}" \
-            --arg revision "${{ github.sha }}" \
+            --arg revision "${{ needs.select-revision.outputs.revision }}" \
             --arg appImage "$APP_IMAGE" \
             --arg appDigest "$APP_DIGEST" \
             --arg webImage "$WEB_IMAGE" \

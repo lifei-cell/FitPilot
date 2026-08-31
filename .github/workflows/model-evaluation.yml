@@ -32,7 +32,7 @@ jobs:
       LLM_FALLBACK_MEDIUM_MODEL: ${{ vars.LLM_FALLBACK_MEDIUM_MODEL }}
       LLM_FALLBACK_STRONG_MODEL: ${{ vars.LLM_FALLBACK_STRONG_MODEL }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate required evaluation secrets
         shell: bash
         run: |

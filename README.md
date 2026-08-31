@@ -185,7 +185,7 @@ V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Productio
 
 ## 交付门禁
 
-`CI` 执行零跳过测试、Dependency Check、Gitleaks、Trivy 和构建验证；`Release` 发布 GHCR 多架构镜像并归档不可变 digest 清单；`Production Delivery Gate` 只接受 digest 与精确 Kubernetes context，依次执行隔离备份恢复、Migration、Rollout、Rollback/候选恢复和两阶段密钥轮换。
+`CI` 执行零跳过测试、Dependency Check、Gitleaks、Trivy 和构建验证；只有最新 `main` 提交的 CI 全部成功后，`Release` 才发布 GHCR 多架构镜像并归档不可变 digest 清单，过期 CI 结果不能覆盖发布标签；`Production Delivery Gate` 只接受 digest 与精确 Kubernetes context，依次执行隔离备份恢复、Migration、Rollout、Rollback/候选恢复和两阶段密钥轮换。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 
