@@ -1,5 +1,7 @@
 # P1 AI 产品价值验收报告
 
+验证日期：2026-09-01。功能验收 revision：`6a646299c81cbfc0fcd5f8f99e750226cb4642eb`。本报告只证明该 revision 的本地 Maven/Testcontainers、Web 质量门禁、Docker Compose 与真实 HTTP 冒烟；远端 CI/Release 和真实生产状态见 [P1 远端发布与生产交付验收](p1-delivery-validation.md)。
+
 ## 交付范围
 
 | 迁移 | 能力 | 回滚边界 |
