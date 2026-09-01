@@ -8,6 +8,7 @@ import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
 import com.fitpilot.rag.infrastructure.KnowledgeRepository;
+import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import com.fitpilot.rag.processing.TextAnalyzer;
 import com.fitpilot.observability.FitPilotMetrics;
 import io.micrometer.observation.annotation.Observed;
@@ -25,6 +26,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 
 @Service
 @ConditionalOnProperty(prefix = "fitpilot.rag", name = "enabled", havingValue = "true", matchIfMissing = true)
@@ -36,20 +40,26 @@ public class HybridRetrievalService {
     private final TextAnalyzer analyzer;
     private final RagProperties properties;
     private final FitPilotMetrics metrics;
+    private final RagGovernanceRepository governance;
 
     public HybridRetrievalService(KnowledgeRepository repository, ElasticsearchKnowledgeIndex lexicalIndex,
                                   EmbeddingProvider embeddings, TextAnalyzer analyzer, RagProperties properties,
-                                  FitPilotMetrics metrics) {
+                                  FitPilotMetrics metrics, RagGovernanceRepository governance) {
         this.repository = repository;
         this.lexicalIndex = lexicalIndex;
         this.embeddings = embeddings;
         this.analyzer = analyzer;
         this.properties = properties;
         this.metrics = metrics;
+        this.governance = governance;
     }
 
     @Observed(name = "fitpilot.rag.search")
     public RagDtos.SearchResponse search(String query, int requestedTopK, String category) {
+        return search(null, query, requestedTopK, category);
+    }
+
+    public RagDtos.SearchResponse search(Long userId, String query, int requestedTopK, String category) {
         long started = System.nanoTime();
         int topK = Math.max(1, Math.min(requestedTopK, properties.getRetrieval().getMaxTopK()));
         int candidateLimit = Math.max(topK, properties.getRetrieval().getCandidateLimit());
@@ -83,8 +93,9 @@ public class HybridRetrievalService {
                 .limit(topK).map(this::toDto).toList();
         String mode = lexicalSucceeded && vectorSucceeded ? "HYBRID_RRF"
                 : lexicalSucceeded ? "BM25_ONLY" : "VECTOR_ONLY";
+        UUID retrievalId = governance.saveRetrieval(userId, hash(query), query, normalizedCategory, mode, results);
         metrics.rag(mode, "SUCCEEDED", elapsedMillis(started));
-        return new RagDtos.SearchResponse(query, mode, embeddings.name(), candidates.size(), results);
+        return new RagDtos.SearchResponse(retrievalId, query, mode, embeddings.name(), candidates.size(), results);
     }
 
     private long elapsedMillis(long started) {
@@ -133,7 +144,7 @@ public class HybridRetrievalService {
         String candidateText = (context.title() + " " + context.heading() + " " + context.childContent())
                 .toLowerCase(Locale.ROOT);
         double phraseBoost = normalizedQuery.length() >= 2 && candidateText.contains(normalizedQuery) ? 0.15 : 0;
-        return rrf * 10 + overlap * 0.35 + phraseBoost;
+        return rrf * 10 + overlap * 0.35 + phraseBoost + trustWeight(context.trustLevel()) * 0.04;
     }
 
     private RankedContext better(RankedContext left, RankedContext right) {
@@ -149,11 +160,22 @@ public class HybridRetrievalService {
         KnowledgeModels.ChunkContext context = ranked.context();
         return new RagDtos.RetrievedContext(context.documentId(), context.chunkId(), context.title(),
                 context.category(), context.heading(), context.parentContent(), round(ranked.score()),
-                new RagDtos.Citation(context.sourceUrl(), context.sourceLicense()),
+                new RagDtos.Citation(context.documentId(), context.sourceUrl(), context.sourceLicense(), context.publisher(),
+                        context.trustLevel(), context.version(), context.expiresAt()),
                 List.copyOf(ranked.candidate().sources));
     }
 
     private double round(double score) { return Math.round(score * 1_000_000d) / 1_000_000d; }
+    private double trustWeight(String level) {
+        return switch (level == null ? "COMMUNITY" : level) {
+            case "OFFICIAL" -> 1.00; case "INTERNAL" -> .90; case "PROFESSIONAL" -> .85; default -> .60;
+        };
+    }
+    private String hash(String value) {
+        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(value.getBytes(StandardCharsets.UTF_8))); }
+        catch (Exception e) { throw new IllegalStateException(e); }
+    }
 
     private static final class Candidate {
         private final UUID id;

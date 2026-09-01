@@ -10,8 +10,9 @@ public final class KnowledgeModels {
     public record Document(
             UUID id, String externalId, String title, String category, String sourceUrl, String sourceLicense,
             String format, String contentHash, String rawContent, Map<String, String> metadata,
-            String indexStatus, String indexError, int version, LocalDateTime createdAt,
-            LocalDateTime updatedAt, LocalDateTime indexedAt) {}
+            String indexStatus, String indexError, int version, String publisher, String trustLevel,
+            String lifecycleStatus, LocalDateTime effectiveFrom, LocalDateTime expiresAt,
+            LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime indexedAt) {}
 
     public record StoredChunk(
             UUID id, UUID parentChunkId, String chunkType, int ordinal,
@@ -21,9 +22,11 @@ public final class KnowledgeModels {
 
     public record IndexChunk(
             UUID chunkId, UUID documentId, String title, String category, String heading,
-            String content, String lexicalText, String sourceUrl, String sourceLicense) {}
+            String content, String lexicalText, String sourceUrl, String sourceLicense,
+            String publisher, String trustLevel, int version, LocalDateTime expiresAt) {}
 
     public record ChunkContext(
             UUID chunkId, UUID parentChunkId, UUID documentId, String title, String category,
-            String heading, String childContent, String parentContent, String sourceUrl, String sourceLicense) {}
+            String heading, String childContent, String parentContent, String sourceUrl, String sourceLicense,
+            String publisher, String trustLevel, int version, LocalDateTime expiresAt) {}
 }

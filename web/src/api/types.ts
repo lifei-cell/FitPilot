@@ -189,3 +189,12 @@ export type PlanAdjustment = {
   draftPlanId?: number;
   createdAt: string;
 };
+export type RagCitation = {
+  documentId: string;
+  sourceUrl: string;
+  sourceLicense: string;
+  publisher?: string;
+  trustLevel: "OFFICIAL" | "INTERNAL" | "PROFESSIONAL" | "COMMUNITY";
+  documentVersion: number;
+  expiresAt?: string;
+};

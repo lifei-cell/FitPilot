@@ -3,6 +3,7 @@ package com.fitpilot.rag.application;
 import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
 import com.fitpilot.rag.infrastructure.KnowledgeRepository;
+import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,12 +19,14 @@ public class KnowledgeIndexingService {
     private final KnowledgeRepository repository;
     private final ElasticsearchKnowledgeIndex index;
     private final RagProperties properties;
+    private final RagGovernanceRepository governance;
 
     public KnowledgeIndexingService(KnowledgeRepository repository, ElasticsearchKnowledgeIndex index,
-                                    RagProperties properties) {
+                                    RagProperties properties, RagGovernanceRepository governance) {
         this.repository = repository;
         this.index = index;
         this.properties = properties;
+        this.governance = governance;
     }
 
     public boolean indexNow(UUID documentId) {
@@ -44,19 +47,20 @@ public class KnowledgeIndexingService {
         return indexNow(documentId);
     }
 
-    public void deleteFromIndex(UUID documentId) {
-        try {
-            index.deleteDocument(documentId);
-        } catch (RuntimeException failure) {
-            log.warn("Stale Elasticsearch chunks will be ignored after PostgreSQL delete documentId={}: {}",
-                    documentId, failure.getMessage());
-        }
-    }
-
     @Scheduled(fixedDelayString = "${fitpilot.rag.indexing.fixed-delay-ms:5000}")
     void retryPending() {
         for (UUID documentId : repository.retryCandidates(properties.getIndexing().getRetryBatchSize())) {
             indexNow(documentId);
+        }
+        for (RagGovernanceRepository.DeletionTask task : governance.claimDeletionTasks(
+                properties.getIndexing().getRetryBatchSize())) {
+            try {
+                index.deleteDocument(task.documentId());
+                governance.deletionSucceeded(task.id(), task.documentId());
+            } catch (RuntimeException failure) {
+                governance.deletionFailed(task.id(), failure, task.attempts());
+                log.warn("Knowledge deletion propagation failed documentId={}: {}", task.documentId(), failure.getMessage());
+            }
         }
     }
 }

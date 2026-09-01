@@ -35,14 +35,14 @@ public class AgentToolExecutor {
             case "get_training_plan" -> safePlan(currentUserId);
             case "get_training_volume" -> analytics.overview(currentUserId);
             case "get_training_adjustment_context" -> adjustments.context(currentUserId);
-            case "search_knowledge" -> search(query);
+            case "search_knowledge" -> search(currentUserId, query);
             default -> throw new IllegalArgumentException("unknown or non-readable tool: " + tool);
         };
     }
     private Object safeMetric(long userId) { try { return users.latestMetric(userId); } catch (RuntimeException e) { return Map.of(); } }
     private Object safePlan(long userId) { try { return plans.active(userId); } catch (RuntimeException e) { return Map.of(); } }
-    private Object search(String query) {
+    private Object search(long userId, String query) {
         HybridRetrievalService service = retrieval.getIfAvailable();
-        return service == null ? Map.of("available", false) : service.search(query, 5, null);
+        return service == null ? Map.of("available", false) : service.search(userId, query, 5, null);
     }
 }

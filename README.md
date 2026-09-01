@@ -1,6 +1,6 @@
 # FitPilot V5.0
 
-FitPilot V5 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练后端。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V5 加入主备 LLM Gateway、离线评测、全链路可观测、安全供应链、生产 Compose 与 Kubernetes 部署；保持模块化单体，不引入 Multi-Agent。
+FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
 
 ## 架构
 
@@ -129,8 +129,8 @@ mvn spring-boot:run
 | 缓存统计 | `GET /api/v1/performance/cache-stats` |
 | PR 通知 | `GET /api/v1/notifications`、`POST /{id}/read` |
 | 事件运维 | `GET /api/v1/operations/events/status`、死信查询/回放 |
-| RAG 检索 | `GET /api/v1/rag/search?q=...&topK=5&category=...` |
-| 知识库运维 | `POST/GET /api/v1/operations/rag/documents`、重建索引、删除 |
+| RAG 检索与反馈 | `GET /api/v1/rag/search`、`PUT /api/v1/rag/retrievals/{id}/feedback` |
+| 知识库运维 | 文档摄取/版本历史/恢复/删除状态，反馈审核与汇总 |
 | Agent | 会话分页/归档/删除、持久化历史、发送消息、跨设备恢复待确认动作、长期偏好 |
 | Agent 评测 | `GET /api/v1/operations/agent/metrics`、标注期望工具 |
 | LLM 运维 | `GET /api/v1/operations/llm/status`、`GET /invocations` |
@@ -146,7 +146,9 @@ mvn spring-boot:run
 - 完成 Workout 幂等；PR 来源与类型有唯一约束，不会重复生成。
 - Workout 状态与 Outbox 事件原子提交；Kafka 不可用时核心写入保持可用。
 - 所有消费者使用数据库 Inbox 幂等，失败自动重试并进入 Kafka DLT 与数据库死信表。
-- 知识文档强制记录来源和许可证；检索结果返回完整 Parent Context 与引用信息。
+- 知识文档记录来源治理、不可变版本和生命周期；检索结果返回 Parent Context、`retrievalId` 与治理 Citation。
+- 失效/撤销/待删除文档在 PostgreSQL 与 Elasticsearch 双侧过滤；删除先移除 Chunk，再通过持久化任务重试 ES 传播。
+- RAG 用户反馈采用 Upsert，人工审核后才进入动态评测集；分类 Recall@5/MRR 回退超过 5pp 或 Citation Validity 非 100% 会阻断评测。
 - pgvector 使用 384 维向量和 HNSW cosine 索引，BM25 与向量结果通过 RRF 融合并二次排序。
 - Embedding 默认使用可离线测试的确定性本地实现，生产可切换到返回 384 维向量的 OpenAI-compatible 服务。
 - Agent 写工具必须依次通过结构化反序列化、领域规则、Guardrail 和一次性用户确认；确认令牌只存 SHA-256，过期或重放均拒绝。
@@ -155,7 +157,7 @@ mvn spring-boot:run
 - 所有运维 API 统一使用 `OPERATIONS_TOKEN` 和 `X-Operations-Token`，采用常量时间比较且不记录 Token。
 - LLM 审计脱敏并默认保留 30 天；Prompt、模型、Token、费用、时延与降级状态可追踪。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
-- Flyway 管理全部表、外键、查询索引和 50 个动作种子。
+- Flyway V1-V14 管理全部表、外键、查询索引和 50 个动作种子。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
 - API 和登录分别使用 Redis Lua Token Bucket；Lua compare-and-delete 安全释放分布式锁。
 
@@ -184,7 +186,7 @@ V2 的事件契约、故障语义和回放手册见 [事件驱动架构](docs/ar
 V3 的数据模型、检索公式、配置和运维手册见 [Hybrid RAG 架构](docs/architecture/v3-rag.md)。
 V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见 [Agent 架构](docs/architecture/v4-agent.md)。
 V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Production Ready 架构](docs/architecture/v5-production.md)，故障与恢复流程见 [运维手册](docs/runbooks/)。
-V6 的持久化会话与训练计划调节见 [AI 产品价值闭环](docs/architecture/v6-ai-product.md)。
+V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭环](docs/architecture/v6-ai-product.md)。
 当前能力边界、项目亮点与分阶段演进顺序见 [项目亮点与后续开发计划](docs/roadmap/FitPilot-项目亮点与后续开发计划.md)。
 
 ## 交付门禁

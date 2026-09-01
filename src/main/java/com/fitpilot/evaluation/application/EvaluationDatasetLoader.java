@@ -14,7 +14,7 @@ import java.util.List;
 
 @Component
 public class EvaluationDatasetLoader {
-    public static final String AGENT_VERSION="agent-v1";public static final String RAG_VERSION="rag-v1.1";
+    public static final String AGENT_VERSION="agent-v1";public static final String RAG_VERSION="rag-v1.2";
     private final ObjectMapper json;
     public EvaluationDatasetLoader(ObjectMapper json){this.json=json;}
     public List<EvaluationCases.AgentCase> agent(){return read("eval/agent-v1.jsonl",EvaluationCases.AgentCase.class);}

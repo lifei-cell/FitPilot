@@ -15,3 +15,32 @@ Workout 完成后可提交疲劳 1-10、疼痛 0-10 和备注。`TrainingAdjustm
 - 确认时重新校验源 ACTIVE 计划 ID 和版本，成功后只创建新的 DRAFT；源 ACTIVE 计划保持不变。
 
 调整证据、规则、原因、模型、Prompt、待确认动作和最终草稿均写入 `plan_adjustment`，支持用户拒绝和审计。
+
+## RAG 治理与反馈评测
+
+`knowledge_document` 保存当前版本及 `ACTIVE/EXPIRED/REVOKED/DELETE_PENDING/DELETED` 生命周期；
+`knowledge_document_revision` 保存不可变版本。相同 `externalId` 摄取时版本单调递增，恢复旧内容也会创建新版本。
+已有文档统一迁移为 `COMMUNITY`，在线重排仅给予 `OFFICIAL=1.00`、`INTERNAL=0.90`、
+`PROFESSIONAL=0.85`、`COMMUNITY=0.60` 的有限加分，不覆盖 BM25、向量和 RRF 相关性。
+
+- PostgreSQL 向量查询和 Context 回填均硬过滤失效生命周期和有效期；Elasticsearch 同时过滤生命周期与过期时间。
+- 删除先事务性标记 `DELETE_PENDING` 并移除 PostgreSQL Chunk，确保立即不可检索；ES 删除由任务表重试，成功后清空正文并保留最小审计字段。
+- Citation 返回文档 ID、发布方、可信等级、版本和有效期；每次检索生成 `retrievalId` 和结果快照。
+- 用户可对回答或单个 Citation Upsert `HELPFUL/NOT_HELPFUL`。反馈不会直接改变在线排序，只有 Operations 审核并填写正确来源后才进入动态评测集。
+- 每次评测冻结静态数据集版本和已审核动态样本版本，输出总体及分类 Recall@5、MRR 和 Citation Validity；引用有效率不是 100%，或任一分类相对最近成功基线下降超过 5 个百分点时，评测失败。
+
+V12、V13、V14 均为向前迁移。部署必须按“Flyway 迁移 → 后端 → Web”执行；旧消息接口在新 Web 上线前继续保留。
+
+## API 示例
+
+```http
+PUT /api/v1/workouts/42/feedback
+{"fatigueScore":8,"painScore":1,"notes":"睡眠不足"}
+
+PUT /api/v1/rag/retrievals/{retrievalId}/feedback
+{"targetType":"CITATION","targetKey":"{documentId}","rating":"NOT_HELPFUL","reason":"WRONG_CITATION"}
+
+PUT /api/v1/operations/rag/feedback/{feedbackId}/review
+X-Operations-Token: ***
+{"decision":"APPROVED","reviewer":"ops","correctSourceUrls":["https://publisher.example/guide"]}
+```

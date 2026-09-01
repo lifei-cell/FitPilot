@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import com.fitpilot.common.security.CurrentUser;
 
 @Validated
 @RestController
@@ -27,7 +29,8 @@ public class RagSearchController {
     ApiResponse<RagDtos.SearchResponse> search(
             @RequestParam("q") @NotBlank @Size(max = 1000) String query,
             @RequestParam(defaultValue = "5") @Min(1) @Max(20) int topK,
-            @RequestParam(required = false) @Size(max = 80) String category) {
-        return ApiResponse.success(service.search(query, topK, category));
+            @RequestParam(required = false) @Size(max = 80) String category,
+            Authentication auth) {
+        return ApiResponse.success(service.search(CurrentUser.id(auth), query, topK, category));
     }
 }

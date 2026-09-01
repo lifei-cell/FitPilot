@@ -13,11 +13,13 @@ import type {
   PendingActionSummary,
   Plan,
   PlanAdjustment,
+  RagCitation,
 } from "../api/types";
 import { PageHeader, Panel } from "../components/PageParts";
 import { ConversationSidebar } from "../features/agent/ConversationSidebar";
 import { PendingPlanCard } from "../features/agent/PendingPlanCard";
 import { AdjustmentInsightCard } from "../features/agent/AdjustmentInsightCard";
+import { CitationFeedback } from "../features/agent/CitationFeedback";
 
 type Reply = {
   answer: string;
@@ -25,8 +27,11 @@ type Reply = {
   degraded: boolean;
   confirmationRequired: boolean;
   pendingAction?: AgentPendingAction;
+  retrievalId?: string;
+  citations?: RagCitation[];
 };
-type Chat = { id?: number; role: "user" | "assistant" | "system"; text: string; tools?: string[]; error?: boolean };
+type Chat = { id?: number; role: "user" | "assistant" | "system"; text: string; tools?: string[]; error?: boolean;
+  retrievalId?: string; citations?: RagCitation[] };
 
 const welcome: Chat = {
   role: "assistant",
@@ -145,7 +150,8 @@ export function CoachPage() {
       });
     },
     onSuccess: (reply) => {
-      setChats((current) => [...current, { role: "assistant", text: reply.answer, tools: reply.selectedTools }]);
+      setChats((current) => [...current, { role: "assistant", text: reply.answer, tools: reply.selectedTools,
+        retrievalId: reply.retrievalId, citations: reply.citations }]);
       if (reply.pendingAction) {
         setPending(reply.pendingAction);
         setPendingStatus("pending");
@@ -180,6 +186,13 @@ export function CoachPage() {
       setPending(null);
       await client.invalidateQueries({ queryKey: ["plan-adjustments"] });
     },
+  });
+  const submitRagFeedback = useMutation({
+    mutationFn: ({ retrievalId, targetType, targetKey, rating, reason }: {
+      retrievalId: string; targetType: "ANSWER" | "CITATION"; targetKey: string;
+      rating: "HELPFUL" | "NOT_HELPFUL"; reason?: string;
+    }) => api(`/rag/retrievals/${retrievalId}/feedback`, { method: "PUT",
+      body: JSON.stringify({ targetType, targetKey, rating, reason }) }),
   });
 
   async function loadOlder() {
@@ -243,7 +256,16 @@ export function CoachPage() {
             {chats.map((chat, index) => (
               <div className={`chat-message ${chat.role} ${chat.error ? "error" : ""}`} key={chat.id ?? index}>
                 {chat.role !== "user" && <span className="bot-avatar"><Bot size={18} /></span>}
-                <div><p>{chat.text}</p>{chat.tools?.length ? <small>已使用：{chat.tools.join(" · ")}</small> : null}</div>
+                <div><p>{chat.text}</p>{chat.tools?.length ? <small>已使用：{chat.tools.join(" · ")}</small> : null}
+                  {chat.retrievalId ? <CitationFeedback retrievalId={chat.retrievalId}
+                    citations={chat.citations ?? []}
+                    busy={submitRagFeedback.isPending && submitRagFeedback.variables?.retrievalId === chat.retrievalId}
+                    submitted={submitRagFeedback.isSuccess && submitRagFeedback.variables?.retrievalId === chat.retrievalId}
+                    error={submitRagFeedback.isError && submitRagFeedback.variables?.retrievalId === chat.retrievalId
+                      ? submitRagFeedback.error.message : undefined}
+                    onFeedback={(targetType, targetKey, rating, reason) =>
+                      submitRagFeedback.mutate({ retrievalId: chat.retrievalId!, targetType, targetKey, rating, reason })} /> : null}
+                </div>
               </div>
             ))}
             {send.isPending ? <div className="chat-message assistant"><span className="bot-avatar"><Bot size={18} /></span><div><p>正在分析训练上下文…</p></div></div> : null}
@@ -262,5 +284,7 @@ export function CoachPage() {
 }
 
 function toChat(message: ConversationMessage): Chat {
-  return { id: message.id, role: message.role, text: message.content, error: message.status === "ERROR" };
+  return { id: message.id, role: message.role, text: message.content, error: message.status === "ERROR",
+    retrievalId: typeof message.metadata.retrievalId === "string" ? message.metadata.retrievalId : undefined,
+    citations: Array.isArray(message.metadata.citations) ? message.metadata.citations as RagCitation[] : undefined };
 }

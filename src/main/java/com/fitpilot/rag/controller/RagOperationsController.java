@@ -62,6 +62,24 @@ public class RagOperationsController {
         return ApiResponse.success(service.reindex(id));
     }
 
+    @GetMapping("/{id}/revisions")
+    ApiResponse<List<RagDtos.RevisionView>> revisions(@RequestHeader("X-Operations-Token") String token,
+                                                      @PathVariable UUID id) {
+        authorize(token); return ApiResponse.success(service.revisions(id));
+    }
+
+    @PostMapping("/{id}/revisions/{version}/restore")
+    ApiResponse<RagDtos.DocumentView> restore(@RequestHeader("X-Operations-Token") String token,
+                                              @PathVariable UUID id, @PathVariable @Min(1) int version) {
+        authorize(token); return ApiResponse.success(service.restore(id, version));
+    }
+
+    @GetMapping("/{id}/delete-status")
+    ApiResponse<RagDtos.DeleteStatus> deleteStatus(@RequestHeader("X-Operations-Token") String token,
+                                                   @PathVariable UUID id) {
+        authorize(token); return ApiResponse.success(service.deleteStatus(id));
+    }
+
     @DeleteMapping("/{id}")
     ApiResponse<Void> delete(@RequestHeader("X-Operations-Token") String token, @PathVariable UUID id) {
         authorize(token);

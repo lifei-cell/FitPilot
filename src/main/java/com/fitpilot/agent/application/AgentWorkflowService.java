@@ -130,7 +130,7 @@ public class AgentWorkflowService {
                     String answer="计划草案未通过安全规则："+String.join("；",issues);
                     sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of());
                     return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
-                            model,degraded,promptVersion,citations(results));
+                            model,degraded,promptVersion,retrievalId(results),citations(results));
                 }
                 pending=createPending(executionId,userId,"create_training_plan",proposal,proposal,List.of());
             } else if (decision.tools().contains("adjust_training_plan")) {
@@ -142,7 +142,7 @@ public class AgentWorkflowService {
                     repository.finishExecution(executionId,"SUCCEEDED",elapsed(started),0);
                     metrics.agent("SUCCEEDED",degraded,elapsed(started),0);
                     return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
-                            model,degraded,promptVersion,citations(results));
+                            model,degraded,promptVersion,retrievalId(results),citations(results));
                 }
                 if(adjustments.hasPending(userId,analysis.source().id())) {
                     String answer="已有一份待确认的计划调整，请先确认或拒绝后再重新生成。";
@@ -150,7 +150,7 @@ public class AgentWorkflowService {
                     repository.finishExecution(executionId,"SUCCEEDED",elapsed(started),0);
                     metrics.agent("SUCCEEDED",degraded,elapsed(started),0);
                     return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,false,null,
-                            model,degraded,promptVersion,citations(results));
+                            model,degraded,promptVersion,retrievalId(results),citations(results));
                 }
                 TrainingPlanDtos.CreateRequest fallbackPlan=adjustments.deterministicPlan(analysis);
                 LlmModels.Result<TrainingPlanDtos.CreateRequest> planResult=llm.generatePlan(executionId,request.message(),results,fallbackPlan);
@@ -171,11 +171,14 @@ public class AgentWorkflowService {
                     :new LlmModels.Result<>(fallbackAnswer,model,degraded,promptVersion,0,0,BigDecimal.ZERO);
             apply(executionId,answerResult); model=answerResult.model(); degraded|=answerResult.degraded(); promptVersion=answerResult.promptVersion();
             String answer=answerResult.value();
-            sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,Map.of()); repository.touchSession(sessionId);
+            Map<String,Object> messageMetadata=new LinkedHashMap<>();
+            if(retrievalId(results)!=null)messageMetadata.put("retrievalId",retrievalId(results));
+            if(!citations(results).isEmpty())messageMetadata.put("citations",citations(results));
+            sessions.append(sessionId,"assistant",answer,"COMPLETED",executionId,messageMetadata); repository.touchSession(sessionId);
             repository.finishExecution(executionId,pending==null?"SUCCEEDED":"AWAITING_CONFIRMATION",elapsed(started),violations);
             metrics.agent(pending==null?"SUCCEEDED":"AWAITING_CONFIRMATION",degraded,elapsed(started),violations);
             return new AgentDtos.MessageView(executionId,decision.intent(),decision.tools(),answer,pending!=null,pending,
-                    model,degraded,promptVersion,citations(results));
+                    model,degraded,promptVersion,retrievalId(results),citations(results));
         } catch (RuntimeException failure) {
             repository.finishExecution(executionId,"FAILED",elapsed(started),0);
             sessions.append(sessionId,"assistant","本次响应失败，请稍后重试。","ERROR",executionId,Map.of());
@@ -247,6 +250,7 @@ public class AgentWorkflowService {
     }
     private void apply(UUID executionId,LlmModels.Result<?> result){repository.addLlmUsage(executionId,result.model(),result.promptVersion(),result.degraded(),result.inputTokens(),result.outputTokens(),result.costUsd());}
     private List<RagDtos.Citation> citations(Map<String,Object> results){Object value=results.get("search_knowledge");if(!(value instanceof RagDtos.SearchResponse response))return List.of();return response.contexts().stream().map(RagDtos.RetrievedContext::citation).filter(Objects::nonNull).distinct().toList();}
+    private UUID retrievalId(Map<String,Object> results){Object value=results.get("search_knowledge");return value instanceof RagDtos.SearchResponse response?response.retrievalId():null;}
     private void owned(long userId,UUID sessionId) { if(!repository.ownsSession(sessionId,userId)) throw error(ErrorCode.AGENT_SESSION_NOT_FOUND,"agent session not found",HttpStatus.NOT_FOUND); }
     private void ownedAny(long userId,UUID sessionId) { if(!repository.ownsAnySession(sessionId,userId)) throw sessionNotFound(); }
     private BusinessException sessionNotFound() { return error(ErrorCode.AGENT_SESSION_NOT_FOUND,"agent session not found",HttpStatus.NOT_FOUND); }

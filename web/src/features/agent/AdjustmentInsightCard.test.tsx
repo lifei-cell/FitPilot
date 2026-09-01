@@ -19,4 +19,16 @@ describe("AdjustmentInsightCard", () => {
     await user.click(screen.getByRole("button", { name: "拒绝本次调整" }));
     expect(reject).toHaveBeenCalledOnce();
   });
+
+  it("renders missing evidence without a reject action after decision", () => {
+    render(<AdjustmentInsightCard onReject={vi.fn()} adjustment={{
+      id: "adjustment-2", sourcePlanId: 1, sourcePlanVersion: 2, rule: "INSUFFICIENT_DATA",
+      status: "INSUFFICIENT_DATA", reasons: ["数据不足"], createdAt: "2026-09-01T10:00:00Z",
+      evidence: { windowDays: 28, completedWorkouts: 1, planCompletionRate: .1, setCompletionRate: 0,
+        averageRpe: 0, feedbackCount: 0, averageFatigue: 0, latestPain: 0,
+        currentVolume: 0, previousVolume: 0, volumeChangeRate: 0, personalRecords: 0 },
+    }} />);
+    expect(screen.getAllByText("—")).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "拒绝本次调整" })).not.toBeInTheDocument();
+  });
 });

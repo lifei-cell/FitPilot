@@ -58,7 +58,7 @@ class FitPilotRagFlowIT {
         registry.add("fitpilot.operations.token", () -> OPERATIONS_TOKEN);
         registry.add("fitpilot.rag.elasticsearch.url", () -> "http://" + ELASTICSEARCH.getHttpHostAddress());
         registry.add("fitpilot.rag.elasticsearch.index", () -> "fitpilot-rag-it");
-        registry.add("fitpilot.rag.indexing.fixed-delay-ms", () -> "600000");
+        registry.add("fitpilot.rag.indexing.fixed-delay-ms", () -> "250");
         registry.add("fitpilot.rag.chunking.parent-max-chars", () -> "500");
         registry.add("fitpilot.rag.chunking.child-max-chars", () -> "180");
         registry.add("fitpilot.rag.chunking.child-overlap-chars", () -> "30");
@@ -75,7 +75,8 @@ class FitPilotRagFlowIT {
                 .content(json.writeValueAsBytes(Map.of(
                         "externalId", "fitpilot:rpe-guide", "title", "RPE 与 RIR 训练指南",
                         "category", "training-theory", "sourceUrl", "https://example.org/fitness/rpe-guide",
-                        "sourceLicense", "CC-BY-4.0", "format", "MARKDOWN", "content", """
+                        "sourceLicense", "CC-BY-4.0", "publisher", "FitPilot Research",
+                        "trustLevel", "PROFESSIONAL", "format", "MARKDOWN", "content", """
                         # RPE 与 RIR
                         RPE 是主观用力程度。RPE 8 通常表示这一组结束时还保留大约两次重复，也就是 RIR 2。
                         训练者应优先维持动作技术，再根据当天状态小幅调整负重。
@@ -92,10 +93,29 @@ class FitPilotRagFlowIT {
                 .header("Authorization", bearer(token)).param("q", "RPE 8 还剩多少次重复")
                 .param("category", "training-theory").param("topK", "3"), 200);
         assertThat(result.path("data").path("retrievalMode").asText()).isEqualTo("HYBRID_RRF");
+        String retrievalId = result.path("data").path("retrievalId").asText();
+        assertThat(retrievalId).isNotBlank();
         JsonNode first = result.path("data").path("contexts").get(0);
         assertThat(first.path("content").asText()).contains("RIR 2");
         assertThat(first.path("citation").path("sourceLicense").asText()).isEqualTo("CC-BY-4.0");
+        assertThat(first.path("citation").path("trustLevel").asText()).isEqualTo("PROFESSIONAL");
+        assertThat(first.path("citation").path("documentVersion").asInt()).isEqualTo(1);
         assertThat(first.path("matchedBy")).extracting(JsonNode::asText).contains("BM25", "VECTOR");
+
+        JsonNode feedback = call(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(
+                "/api/v1/rag/retrievals/{id}/feedback", retrievalId).header("Authorization", bearer(token))
+                .contentType("application/json").content(json.writeValueAsBytes(Map.of(
+                        "targetType", "CITATION", "targetKey", documentId, "rating", "NOT_HELPFUL",
+                        "reason", "WRONG_CITATION"))), 200);
+        String feedbackId = feedback.path("data").path("id").asText();
+        call(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(
+                "/api/v1/operations/rag/feedback/{id}/review", feedbackId)
+                .header("X-Operations-Token", OPERATIONS_TOKEN).contentType("application/json")
+                .content(json.writeValueAsBytes(Map.of("decision", "APPROVED", "reviewer", "rag-it",
+                        "correctSourceUrls", java.util.List.of("https://example.org/fitness/rpe-guide")))), 200);
+        JsonNode summary = call(get("/api/v1/operations/rag/feedback/summary")
+                .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
+        assertThat(summary.path("data").path("approvedForEvaluation").asInt()).isEqualTo(1);
 
         JsonNode evalStarted=call(post("/api/v1/operations/evaluations/rag/runs")
                 .header("X-Operations-Token",OPERATIONS_TOKEN),202);
@@ -104,7 +124,7 @@ class FitPilotRagFlowIT {
             JsonNode run=call(get("/api/v1/operations/evaluations/runs/"+evalRunId)
                     .header("X-Operations-Token",OPERATIONS_TOKEN),200).path("data");
             assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
-            assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(50);
+            assertThat(run.path("totalCases").asInt()).isGreaterThanOrEqualTo(51);
             assertThat(run.path("metrics").path("recallAt5").asDouble()).isGreaterThanOrEqualTo(0.85);
             assertThat(run.path("metrics").path("mrr").asDouble()).isGreaterThanOrEqualTo(0.75);
             assertThat(run.path("metrics").path("citationValidity").asDouble()).isEqualTo(1.0);
@@ -114,12 +134,30 @@ class FitPilotRagFlowIT {
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value(1002));
         call(post("/api/v1/operations/rag/documents/{id}/reindex", documentId)
                 .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
+        JsonNode updated = call(post("/api/v1/operations/rag/documents")
+                .header("X-Operations-Token", OPERATIONS_TOKEN).contentType("application/json")
+                .content(json.writeValueAsBytes(Map.of("externalId", "fitpilot:rpe-guide", "title", "RPE 指南 v2",
+                        "category", "training-theory", "sourceUrl", "https://example.org/fitness/rpe-guide",
+                        "sourceLicense", "CC-BY-4.0", "format", "TEXT", "content", "RPE 8 约等于 RIR 2。"))), 201);
+        assertThat(updated.path("data").path("version").asInt()).isEqualTo(2);
+        JsonNode revisions = call(get("/api/v1/operations/rag/documents/{id}/revisions", documentId)
+                .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
+        assertThat(revisions.path("data").size()).isEqualTo(2);
+        JsonNode restored = call(post("/api/v1/operations/rag/documents/{id}/revisions/1/restore", documentId)
+                .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
+        assertThat(restored.path("data").path("version").asInt()).isEqualTo(3);
         call(delete("/api/v1/operations/rag/documents/{id}", documentId)
                 .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
         JsonNode empty = call(get("/api/v1/rag/search").header("Authorization", bearer(token))
                 .param("q", "RPE 8"), 200);
         assertThat(empty.path("data").path("retrievalMode").asText()).isEqualTo("HYBRID_RRF");
         assertThat(empty.path("data").path("contexts")).isEmpty();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            JsonNode deletion = call(get("/api/v1/operations/rag/documents/{id}/delete-status", documentId)
+                    .header("X-Operations-Token", OPERATIONS_TOKEN), 200);
+            assertThat(deletion.path("data").path("lifecycleStatus").asText()).isEqualTo("DELETED");
+            assertThat(deletion.path("data").path("taskStatus").asText()).isEqualTo("SUCCEEDED");
+        });
     }
 
     private String registerAndLogin(String username) throws Exception {

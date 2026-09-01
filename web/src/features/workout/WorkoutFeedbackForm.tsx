@@ -13,7 +13,7 @@ export function WorkoutFeedbackForm({ busy, onSubmit, onSkip }: Props) {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    onSubmit({ fatigueScore: fatigue, painScore: pain, notes: String(data.get("notes") ?? "").trim() || undefined });
+    onSubmit({ fatigueScore: fatigue, painScore: pain, notes: String(data.get("notes")).trim() || undefined });
   }
   return (
     <form className="workout-feedback" onSubmit={submit}>

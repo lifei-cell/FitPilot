@@ -29,7 +29,7 @@ public final class AgentDtos {
     public record MessageView(UUID executionId, String intent, List<String> selectedTools, String answer,
                               boolean confirmationRequired, PendingActionView pendingAction,
                               String model, boolean degraded, String promptVersion,
-                              List<RagDtos.Citation> citations) {}
+                              UUID retrievalId, List<RagDtos.Citation> citations) {}
     public record PendingActionView(UUID id, String toolName, String confirmationToken,
                                     Instant expiresAt, Object preview, List<String> guardrailWarnings) {}
     public record PendingActionSummary(UUID id, UUID sessionId, String toolName, String status,

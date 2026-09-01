@@ -22,4 +22,12 @@ describe("WorkoutFeedbackForm", () => {
     await user.click(screen.getByRole("button", { name: "跳过并完成" }));
     expect(skip).toHaveBeenCalledOnce();
   });
+
+  it("omits an empty note", async () => {
+    const submit = vi.fn();
+    const user = userEvent.setup();
+    render(<WorkoutFeedbackForm busy={false} onSubmit={submit} onSkip={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "提交并完成" }));
+    expect(submit).toHaveBeenCalledWith({ fatigueScore: 5, painScore: 0, notes: undefined });
+  });
 });

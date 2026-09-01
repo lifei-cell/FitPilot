@@ -9,6 +9,30 @@
   --line: #252b29;
   --muted: #8b9590;
 }
+
+.citation-feedback {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+.answer-feedback,
+.citation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.citation-feedback button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 3px 8px;
+}
+.citation-item a {
+  color: var(--green);
+}
 * {
   box-sizing: border-box;
 }
