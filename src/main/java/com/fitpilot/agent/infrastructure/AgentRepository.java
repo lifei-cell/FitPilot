@@ -80,10 +80,15 @@ public class AgentRepository {
                     safeMetadata, rs.getObject(2, java.time.OffsetDateTime.class).toInstant());
         }, sessionId, role, content, status, executionId, write(safeMetadata));
         String firstTitle = "user".equals(role) ? title(content) : null;
-        jdbc.update("""
-                UPDATE agent_session SET last_message_at=?,updated_at=CURRENT_TIMESTAMP,
-                  title=CASE WHEN ? IS NOT NULL AND title='新对话' THEN ? ELSE title END WHERE id=?
-                """, java.time.OffsetDateTime.ofInstant(message.createdAt(), ZoneOffset.UTC), firstTitle, firstTitle, sessionId);
+        if (firstTitle == null) {
+            jdbc.update("UPDATE agent_session SET last_message_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                    java.time.OffsetDateTime.ofInstant(message.createdAt(), ZoneOffset.UTC), sessionId);
+        } else {
+            jdbc.update("""
+                    UPDATE agent_session SET last_message_at=?,updated_at=CURRENT_TIMESTAMP,
+                      title=CASE WHEN title='新对话' THEN ? ELSE title END WHERE id=?
+                    """, java.time.OffsetDateTime.ofInstant(message.createdAt(), ZoneOffset.UTC), firstTitle, sessionId);
+        }
         return message;
     }
 

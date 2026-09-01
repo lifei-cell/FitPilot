@@ -27,7 +27,8 @@ public class LlmInvocationRepository {
         String sql="""
                 SELECT id,execution_id,provider,model,task_type,prompt_version,status,input_tokens,output_tokens,
                   cost_usd,latency_ms,http_status,error_code,created_at FROM llm_invocation
-                WHERE (? IS NULL OR status=?) AND (? IS NULL OR model=?) ORDER BY created_at DESC LIMIT ?
+                WHERE (CAST(? AS VARCHAR) IS NULL OR status=?)
+                  AND (CAST(? AS VARCHAR) IS NULL OR model=?) ORDER BY created_at DESC LIMIT ?
                 """;
         return jdbc.query(sql,(rs,n)->new LlmDtos.InvocationView((UUID)rs.getObject(1),(UUID)rs.getObject(2),rs.getString(3),rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getInt(8),rs.getInt(9),rs.getBigDecimal(10),rs.getLong(11),(Integer)rs.getObject(12),rs.getString(13),rs.getTimestamp(14).toLocalDateTime()),status,status,model,model,Math.max(1,Math.min(100,limit)));
     }
