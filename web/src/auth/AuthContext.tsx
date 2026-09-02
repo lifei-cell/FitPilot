@@ -1,11 +1,18 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
-import { accessTokenSubject, api, clearToken, storeToken } from "../api/client";
+import {
+  accessTokenSubject,
+  api,
+  AUTH_EXPIRED_EVENT,
+  clearToken,
+  storeToken,
+} from "../api/client";
 import { clearAgentSession } from "../agent/sessionStorage";
 import { clearPendingAction } from "../agent/pendingActionStorage";
 
@@ -22,6 +29,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [authenticated, setAuthenticated] = useState(() =>
     Boolean(sessionStorage.getItem("fitpilot_access")),
   );
+  useEffect(() => {
+    const expire = (event: Event) => {
+      const userId = (event as CustomEvent<string | null>).detail ?? null;
+      clearAgentSession(userId);
+      clearPendingAction(userId);
+      setAuthenticated(false);
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, expire);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, expire);
+  }, []);
   const value = useMemo<AuthContextValue>(
     () => ({
       authenticated,
@@ -61,6 +78,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const userId = accessTokenSubject();
         try {
           await api("/auth/logout", { method: "POST" }, false);
+        } catch {
+          // Local logout must still complete when the session is already invalid
+          // or the backend is temporarily unavailable.
         } finally {
           clearAgentSession(userId);
           clearPendingAction(userId);

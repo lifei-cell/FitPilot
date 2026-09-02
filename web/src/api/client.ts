@@ -1,6 +1,7 @@
 export type ApiEnvelope<T> = { code: number; message: string; data: T };
 
 const API = "/api/v1";
+export const AUTH_EXPIRED_EVENT = "fitpilot:auth-expired";
 let refreshPromise: Promise<boolean> | null = null;
 
 export function accessToken() {
@@ -36,7 +37,14 @@ async function refresh(): Promise<boolean> {
       credentials: "include",
     })
       .then(async (response) => {
-        if (!response.ok) return false;
+        if (!response.ok) {
+          const subject = accessTokenSubject();
+          clearToken();
+          window.dispatchEvent(
+            new CustomEvent(AUTH_EXPIRED_EVENT, { detail: subject }),
+          );
+          return false;
+        }
         const body = (await response.json()) as ApiEnvelope<{
           accessToken: string;
         }>;

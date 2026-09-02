@@ -88,4 +88,38 @@ describe("PlanDetailPanel", () => {
     expect(submittedVersion).toBe(1);
     expect(onChanged).toHaveBeenCalledWith("计划修改已保存");
   });
+
+  it("keeps the editor open and reports an optimistic-lock conflict", async () => {
+    let submittedVersion = 0;
+    server.use(
+      http.get("/api/v1/training-plans/42", () =>
+        HttpResponse.json({ code: 0, message: "success", data: draftPlan }),
+      ),
+      http.get("/api/v1/exercises", () =>
+        HttpResponse.json({
+          code: 0,
+          message: "success",
+          data: { items: [], total: 0, page: 1, size: 20, pages: 0 },
+        }),
+      ),
+      http.put("/api/v1/training-plans/42", async ({ request }) => {
+        submittedVersion = (await request.json() as { version: number }).version;
+        return HttpResponse.json(
+          { code: 30006, message: "计划已被其他设备修改，请刷新后重试", data: null },
+          { status: 409 },
+        );
+      }),
+    );
+    const onChanged = vi.fn();
+    const user = userEvent.setup();
+    renderPanel(onChanged);
+
+    await user.click(await screen.findByRole("button", { name: "修改计划" }));
+    await user.click(screen.getByRole("button", { name: "保存修改" }));
+
+    expect(await screen.findByText("计划已被其他设备修改，请刷新后重试")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "保存修改" })).toBeInTheDocument();
+    expect(submittedVersion).toBe(1);
+    expect(onChanged).not.toHaveBeenCalled();
+  });
 });
