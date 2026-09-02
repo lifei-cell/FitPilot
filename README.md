@@ -193,6 +193,7 @@ V4 的 Workflow、Tool 安全边界、确认协议、Memory、审计和评测见
 V5 的 LLM Gateway、评测、可观测、供应链和部署边界见 [Production Ready 架构](docs/architecture/v5-production.md)，故障与恢复流程见 [运维手册](docs/runbooks/)。
 V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭环](docs/architecture/v6-ai-product.md)。
 当前能力边界、项目亮点与分阶段演进顺序见 [项目亮点与后续开发计划](docs/roadmap/FitPilot-项目亮点与后续开发计划.md)。
+面试复习可从 [中间件与原理面试手册](docs/interview/FitPilot-中间件与原理面试手册.md) 开始，按源码落点学习 Java/Spring、PostgreSQL、Redis、Kafka、RAG、Agent、可观测与交付，并使用追问速查进行压力复盘。
 
 ## 交付门禁
 
