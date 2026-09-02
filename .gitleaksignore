@@ -1,3 +1,10 @@
-# Verified non-secret test fixtures in immutable history.
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/e2e/quality-gates.spec.ts:generic-api-key:3
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/App.test.tsx:generic-api-key:29
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/auth/AuthContext.test.tsx:generic-api-key:40
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/auth/AuthContext.test.tsx:generic-api-key:68
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/components/AppShell.test.tsx:generic-api-key:11
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/pages/AuthPage.test.tsx:generic-api-key:22
+e4e04317b03a3780b9712f5dc0750c43f7a71b48:web/src/pages/CoachPage.test.tsx:generic-api-key:59
+a53c27874523de6b5710fbe0d67c7f3a47f5e0a4:web/e2e/ai-product.spec.ts:generic-api-key:3
 5d61e7e985c0b2bffcf98f9cbca25d7333e7e649:web/e2e/plan-edit.spec.ts:generic-api-key:38
 ce1190a543b552b69f19ab11b50dd0aa14e2eb61:.github/workflows/model-evaluation.yml:generic-api-key:17
