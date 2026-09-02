@@ -30,6 +30,31 @@ groups:
         for: 10m
         labels: {severity: warning}
         annotations: {summary: "LLM fallback rate is above 10%"}
+      - alert: FitPilotAgentRuleFallbackHigh
+        expr: fitpilot_agent_product_execution_count >= 20 and fitpilot_agent_product_rule_fallback_rate > 0.20
+        for: 15m
+        labels: {severity: warning}
+        annotations: {summary: "Agent rule fallback rate is above 20% with at least 20 executions"}
+      - alert: FitPilotAgentConfirmationConversionLow
+        expr: fitpilot_agent_product_suggestion_generated >= 20 and fitpilot_agent_product_suggestion_confirmation_conversion_rate < 0.25
+        for: 30m
+        labels: {severity: warning}
+        annotations: {summary: "Agent suggestion confirmation conversion is below 25%"}
+      - alert: FitPilotAgentCostPerSuccessHigh
+        expr: fitpilot_agent_product_execution_count >= 20 and fitpilot_agent_product_cost_per_success_usd > 0.10
+        for: 30m
+        labels: {severity: warning}
+        annotations: {summary: "Agent cost per successful execution is above USD 0.10"}
+      - alert: FitPilotTrainingAdjustmentPainRegression
+        expr: fitpilot_agent_product_outcome_eligible >= 10 and fitpilot_agent_product_outcome_pain_delta > 1
+        for: 30m
+        labels: {severity: critical}
+        annotations: {summary: "Pain feedback increased by more than one point after accepted adjustments"}
+      - alert: FitPilotTrainingAdjustmentCompletionRegression
+        expr: fitpilot_agent_product_outcome_eligible >= 10 and fitpilot_agent_product_outcome_completion_delta < -0.10
+        for: 30m
+        labels: {severity: warning}
+        annotations: {summary: "Workout completion rate dropped by more than 10 percentage points after adjustments"}
       - alert: FitPilotOutboxBacklogOld
         expr: fitpilot_outbox_oldest_pending_seconds > 60
         for: 2m

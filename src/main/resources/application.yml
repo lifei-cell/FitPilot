@@ -125,6 +125,11 @@ fitpilot:
     max-messages: ${AGENT_MAX_MESSAGES:30}
     retention-days: ${AGENT_RETENTION_DAYS:180}
     retention-batch-size: ${AGENT_RETENTION_BATCH_SIZE:100}
+    product-metrics:
+      window-days: ${AGENT_PRODUCT_METRICS_WINDOW_DAYS:28}
+      outcome-window-days: ${AGENT_PRODUCT_METRICS_OUTCOME_WINDOW_DAYS:28}
+      initial-delay-ms: ${AGENT_PRODUCT_METRICS_INITIAL_DELAY_MS:15000}
+      refresh-delay-ms: ${AGENT_PRODUCT_METRICS_REFRESH_DELAY_MS:300000}
   rag:
     enabled: ${RAG_ENABLED:true}
     elasticsearch:

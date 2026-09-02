@@ -1,0 +1,15 @@
+{
+  "uid":"fitpilot-ai-product-value","title":"FitPilot AI Product Value","schemaVersion":39,"version":1,"refresh":"5m",
+  "time":{"from":"now-30d","to":"now"},"tags":["fitpilot","agent","product"],
+  "panels":[
+    {"id":1,"type":"stat","title":"D7 Session Retention","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_session_retention_rate","legendFormat":"retention"}],"fieldConfig":{"defaults":{"unit":"percentunit","min":0,"max":1}},"gridPos":{"x":0,"y":0,"w":5,"h":6}},
+    {"id":2,"type":"stat","title":"Suggestion Acceptance","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_suggestion_acceptance_rate","legendFormat":"acceptance"}],"fieldConfig":{"defaults":{"unit":"percentunit","min":0,"max":1}},"gridPos":{"x":5,"y":0,"w":5,"h":6}},
+    {"id":3,"type":"stat","title":"Confirmation Conversion","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_suggestion_confirmation_conversion_rate","legendFormat":"conversion"}],"fieldConfig":{"defaults":{"unit":"percentunit","min":0,"max":1}},"gridPos":{"x":10,"y":0,"w":5,"h":6}},
+    {"id":4,"type":"stat","title":"Rule Fallback","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_rule_fallback_rate","legendFormat":"fallback"}],"fieldConfig":{"defaults":{"unit":"percentunit","min":0,"max":1}},"gridPos":{"x":15,"y":0,"w":4,"h":6}},
+    {"id":5,"type":"stat","title":"Cost per Successful Execution","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_cost_per_success_usd","legendFormat":"USD"}],"fieldConfig":{"defaults":{"unit":"currencyUSD"}},"gridPos":{"x":19,"y":0,"w":5,"h":6}},
+    {"id":6,"type":"timeseries","title":"Completion Rate Delta","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_outcome_completion_delta","legendFormat":"after - before"}],"fieldConfig":{"defaults":{"unit":"percentunit"}},"gridPos":{"x":0,"y":6,"w":6,"h":8}},
+    {"id":7,"type":"timeseries","title":"Pain Delta","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_outcome_pain_delta","legendFormat":"after - before"}],"gridPos":{"x":6,"y":6,"w":6,"h":8}},
+    {"id":8,"type":"timeseries","title":"Training Volume Change","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_outcome_volume_rate","legendFormat":"relative change"}],"fieldConfig":{"defaults":{"unit":"percentunit"}},"gridPos":{"x":12,"y":6,"w":6,"h":8}},
+    {"id":9,"type":"timeseries","title":"PR Delta","datasource":{"uid":"prometheus"},"targets":[{"expr":"fitpilot_agent_product_outcome_personal_records_delta","legendFormat":"after - before"}],"gridPos":{"x":18,"y":6,"w":6,"h":8}}
+  ]
+}

@@ -16,6 +16,23 @@ Workout 完成后可提交疲劳 1-10、疼痛 0-10 和备注。`TrainingAdjustm
 
 调整证据、规则、原因、模型、Prompt、待确认动作和最终草稿均写入 `plan_adjustment`，支持用户拒绝和审计。
 
+## AI 产品价值指标
+
+`AgentProductMetricsService` 直接从会话、执行审计、调整决策和训练事实聚合，不依赖前端埋点。Operations API 支持 14-365 天观察窗口与 7-90 天结果窗口；默认每 5 分钟发布低基数 Prometheus Gauge，并由 `FitPilot AI Product Value` Dashboard 展示。
+
+| 指标 | 稳定定义 |
+|---|---|
+| D7 会话留存率 | 首次发送 Agent 消息后的第 1-7 个自然日再次发送消息；未满 7 天不进入分母 |
+| 建议接受/拒绝率 | 分别为 `ACCEPTED`、`REJECTED` 除以两者之和；未决建议不污染决策偏好 |
+| 确认转化率 | `ACCEPTED / proposal 非空的建议数` |
+| 规则降级率 | `model=RULE_WORKFLOW` 的执行数 / 全部 Agent 执行数 |
+| 单次成功成本 | 窗口内执行总成本 / `SUCCEEDED + AWAITING_CONFIRMATION` 执行数 |
+| 训练调整收益 | 以已接受草案的激活日为锚点，对比等长前后窗口的完成率、疼痛反馈、训练容量和 PR；只纳入后窗口已完整结束的调整 |
+
+返回值包含 Prompt、模型、业务意图分组，以及最多 100 个纳入结果窗口的 `plan_adjustment` ID，能够回查原始证据。疼痛均值同时返回反馈样本数，空样本不会被解释为零疼痛。训练结果是前后窗口的观察性证据，不等价于因果结论；模型切换仍需离线评测与小流量随机对照。
+
+Dashboard 告警设置了最小样本边界：Agent 执行或建议至少 20 条后评估降级、转化和成本，训练调整至少 10 条后评估疼痛与完成率回归。
+
 ## RAG 治理与反馈评测
 
 `knowledge_document` 保存当前版本及 `ACTIVE/EXPIRED/REVOKED/DELETE_PENDING/DELETED` 生命周期；
@@ -29,7 +46,7 @@ Workout 完成后可提交疲劳 1-10、疼痛 0-10 和备注。`TrainingAdjustm
 - 用户可对回答或单个 Citation Upsert `HELPFUL/NOT_HELPFUL`。反馈不会直接改变在线排序，只有 Operations 审核并填写正确来源后才进入动态评测集。
 - 每次评测冻结静态数据集版本和已审核动态样本版本，输出总体及分类 Recall@5、MRR 和 Citation Validity；引用有效率不是 100%，或任一分类相对最近成功基线下降超过 5 个百分点时，评测失败。
 
-V12、V13、V14 均为向前迁移。部署必须按“Flyway 迁移 → 后端 → Web”执行；旧消息接口在新 Web 上线前继续保留。
+V12、V13、V14、V15 均为向前迁移。V15 仅增加产品指标查询索引。部署必须按“Flyway 迁移 → 后端 → Web”执行；旧消息接口在新 Web 上线前继续保留。
 
 ## API 示例
 
@@ -43,4 +60,7 @@ PUT /api/v1/rag/retrievals/{retrievalId}/feedback
 PUT /api/v1/operations/rag/feedback/{feedbackId}/review
 X-Operations-Token: ***
 {"decision":"APPROVED","reviewer":"ops","correctSourceUrls":["https://publisher.example/guide"]}
+
+GET /api/v1/operations/agent/product-metrics?windowDays=90&outcomeWindowDays=28
+X-Operations-Token: ***
 ```

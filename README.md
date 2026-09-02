@@ -159,7 +159,8 @@ mvn spring-boot:run
 - 所有运维 API 统一使用 `OPERATIONS_TOKEN` 和 `X-Operations-Token`，采用常量时间比较且不记录 Token。
 - LLM 审计脱敏并默认保留 30 天；Prompt、模型、Token、费用、时延与降级状态可追踪。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
-- Flyway V1-V14 管理全部表、外键、查询索引和 50 个动作种子。
+- Flyway V1-V15 管理全部表、外键、查询索引和 50 个动作种子。
+- Agent 产品价值指标覆盖 D7 会话留存、建议决策漏斗、确认转化、规则降级、单次成功成本，以及训练调整前后的完成率、疼痛、容量和 PR；通过受保护 Operations API、Prometheus 与 Grafana 展示。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
 - API 和登录分别使用 Redis Lua Token Bucket；Lua compare-and-delete 安全释放分布式锁。
 
