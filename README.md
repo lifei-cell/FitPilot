@@ -2,7 +2,7 @@
 
 FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
 
-> 当前功能验收基线：`6a646299c81cbfc0fcd5f8f99e750226cb4642eb`（2026-09-01）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
+> 当前功能验收基线：`06bc3484ba3d9de61c044dc79b0e8ab80d078963`（2026-09-02）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
 
 ## 架构
 
@@ -174,7 +174,7 @@ mvn spring-boot:run
 
 `mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
 
-当前功能验收基线已执行 `mvn verify`：22 个 Surefire/Failsafe 报告、46 个测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V14 与 JaCoCo 门禁通过。Web 同一功能基线已通过 ESLint、TypeScript、14 个 Vitest/RTL 测试、生产构建和 3 个 Playwright Chromium 场景。原始结论见 [P1 AI 产品价值验收报告](docs/release/p1-ai-product-validation.md)。
+当前功能验收基线已执行统一门禁：25 个 Surefire/Failsafe 报告、50 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V15 与 JaCoCo 门禁通过，后端行覆盖率 81.57%。Web 同一基线已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [AI 产品价值指标验收报告](docs/release/ai-product-value-metrics-validation.md)。
 
 前端也可单独执行：
 
@@ -200,12 +200,12 @@ V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭�
 
 | 证据层 | revision | 状态 | 原始报告 |
 |---|---|---|---|
-| 当前 V6 本地功能验收 | `6a646299c81cbfc0fcd5f8f99e750226cb4642eb` | `PASS`：46 个后端测试零跳过，V1-V14 迁移、Web 14 个组件测试与 3 个浏览器场景通过 | [P1 AI 产品价值验收](docs/release/p1-ai-product-validation.md) |
+| 当前 V6 本地功能验收 | `06bc3484ba3d9de61c044dc79b0e8ab80d078963` | `PASS`：50 个后端测试零跳过，V1-V15 迁移、Web 36 个组件测试与 7 个浏览器场景通过 | [AI 产品价值指标验收](docs/release/ai-product-value-metrics-validation.md) |
 | 远端 CI / Release / GHCR | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：CI、安全扫描、多架构镜像、Digest、SBOM、provenance 已归档 | [P1 远端发布验收](docs/release/p1-delivery-validation.md) |
 | 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [P1 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练pass) |
 | 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [P1 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
-因此，当前 `6a64629` 具备本地全量功能验收证据，但尚未重新形成对应的远端 CI/Release 镜像证据；已有远端制品只证明 `1d98621`，项目也不得表述为已在真实生产集群上线。
+因此，当前 `06bc348` 具备本地全量功能验收证据，但尚未重新形成对应的远端 CI/Release 镜像证据；已有远端制品只证明 `1d98621`，项目也不得表述为已在真实生产集群上线。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 

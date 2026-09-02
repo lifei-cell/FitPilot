@@ -1,6 +1,6 @@
 # FitPilot 项目亮点与后续开发计划
 
-> 梳理基线：2026-09-01，FitPilot V6，功能验收 revision `6a646299c81cbfc0fcd5f8f99e750226cb4642eb`，数据库迁移 Flyway V1-V14。远端 CI/Release 证据仅绑定 `1d98621891ff92d98ad57c77ff212015b641681f`，真实 Production Delivery Gate 为 `SKIPPED`。
+> 梳理基线：2026-09-02，FitPilot V6，功能验收 revision `06bc3484ba3d9de61c044dc79b0e8ab80d078963`，数据库迁移 Flyway V1-V15。远端 CI/Release 证据仅绑定 `1d98621891ff92d98ad57c77ff212015b641681f`，真实 Production Delivery Gate 为 `SKIPPED`。
 
 ## 1. 项目定位
 
@@ -27,9 +27,9 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 
 ### 3.1 已验证
 
-- 当前功能验收 revision `6a646299c81cbfc0fcd5f8f99e750226cb4642eb` 已执行 `mvn verify`：22 个 Surefire/Failsafe 报告、46 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V14 全部应用成功。
+- 当前功能验收 revision `06bc3484ba3d9de61c044dc79b0e8ab80d078963` 已执行统一门禁：25 个 Surefire/Failsafe 报告、50 个后端测试，失败 0、错误 0、跳过 0；Flyway V1-V15 和 JaCoCo 通过，后端行覆盖率 81.57%。
 - 后端 JaCoCo 总体行覆盖率门槛为 60%，关键包为 70%；Testcontainers 覆盖 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch 和 Mock OpenAI-compatible 链路。
-- Web 同一功能基线已通过 ESLint、TypeScript、14 个 Vitest/RTL 测试、生产构建和 3 个 Playwright Chromium 场景；跨浏览器恢复会话、Citation 反馈、Workout 反馈和计划编辑已进入浏览器验收。
+- Web 同一功能基线已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%；Token 刷新、Workout 闭环、Agent 确认异常和计划并发冲突均进入浏览器验收。
 - 本地 Docker Compose 已验证六个核心容器健康，以及注册/登录、Agent 会话、消息分页、RAG 检索、PostgreSQL V14、Redis 热缓存和 Kafka 业务主题。
 - 已归档 P0 报告完成 30 分钟混合流量与 5 分钟突发流量验证。混合场景 118,980 次 HTTP 请求、业务成功率 99.99%、普通 API P95 10.03 ms、Agent P95 30.70 ms；该数据只代表本机 Compose 环境。
 - Prometheus、Grafana、Loki、Tempo、Alertmanager 在线联调，以及应用下线告警、恢复和告警解除已有本机演练记录。
@@ -37,8 +37,7 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 
 ### 3.2 仍需补齐
 
-- 当前功能验收 revision `6a64629` 晚于已发布 revision `1d98621`；最新 V6/V14 能力尚无对应的远端 CI、GHCR Digest、SBOM 和 provenance 证据。
-- 14 个前端组件测试和 3 个 Playwright 场景仍未覆盖 Auth 刷新/登出、完整 Workout 加组/完成、Agent 确认令牌异常和并发计划冲突等全部关键失败路径。
+- 当前功能验收 revision `06bc348` 晚于已发布 revision `1d98621`；最新 V6/V15 能力尚无对应的远端 CI、GHCR Digest、SBOM 和 provenance 证据。
 - 真实 Kubernetes Production Delivery Gate 按用户决定跳过；Kind 演练不能表述为生产上线，也没有真实集群 SLO、容量、恢复时间和成本证据。
 - 系统实现的是 `At-least-once + 幂等消费 + 最终一致性`，不应表述为 Exactly Once；本机压测结果也不能直接外推为生产容量。
 
@@ -46,7 +45,7 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 
 | 证据 | revision / Run | 原始报告 |
 |---|---|---|
-| V6、Flyway V1-V14、46 个后端测试、14 个 Web 组件测试、3 个浏览器场景、Compose 冒烟 | `6a646299c81cbfc0fcd5f8f99e750226cb4642eb` | [P1 AI 产品价值验收](../release/p1-ai-product-validation.md) |
+| V6、Flyway V1-V15、50 个后端测试、36 个 Web 组件测试、7 个浏览器场景 | `06bc3484ba3d9de61c044dc79b0e8ab80d078963` | [AI 产品价值指标验收](../release/ai-product-value-metrics-validation.md) |
 | 30 分钟混合流量、5 分钟突发流量、可观测告警恢复 | Run ID `20260830-091822`，历史 V5/V9 基线 | [V5 性能验证](../performance/v5-production-validation.md)、[P0 生产验收](../release/p0-production-validation.md) |
 | CI、安全扫描、Release、GHCR Digest、SBOM、provenance、Kind 演练 | `1d98621891ff92d98ad57c77ff212015b641681f`；CI `33352127749`；Release `33352537058` | [P1 远端发布验收](../release/p1-delivery-validation.md) |
 | 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [P1 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
