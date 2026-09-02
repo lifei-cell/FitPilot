@@ -1,6 +1,6 @@
 # FitPilot 项目亮点与后续开发计划
 
-> 梳理基线：2026-09-02，FitPilot V6，功能验收 revision `06bc3484ba3d9de61c044dc79b0e8ab80d078963`，数据库迁移 Flyway V1-V15。远端 CI/Release 证据仅绑定 `1d98621891ff92d98ad57c77ff212015b641681f`，真实 Production Delivery Gate 为 `SKIPPED`。
+> 梳理基线：2026-09-02，FitPilot V6，功能验收 revision `06bc3484ba3d9de61c044dc79b0e8ab80d078963`，数据库迁移 Flyway V1-V15。远端 CI/Release 证据绑定后继 revision `8a8e6eacf47508de4ea7caabded0179fff97ca9f`，真实 Production Delivery Gate 为 `SKIPPED`。
 
 ## 1. 项目定位
 
@@ -33,11 +33,10 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 - 本地 Docker Compose 已验证六个核心容器健康，以及注册/登录、Agent 会话、消息分页、RAG 检索、PostgreSQL V14、Redis 热缓存和 Kafka 业务主题。
 - 已归档 P0 报告完成 30 分钟混合流量与 5 分钟突发流量验证。混合场景 118,980 次 HTTP 请求、业务成功率 99.99%、普通 API P95 10.03 ms、Agent P95 30.70 ms；该数据只代表本机 Compose 环境。
 - Prometheus、Grafana、Loki、Tempo、Alertmanager 在线联调，以及应用下线告警、恢复和告警解除已有本机演练记录。
-- revision `1d98621891ff92d98ad57c77ff212015b641681f` 的远端 CI、安全扫描、GHCR 多架构发布、不可变 Digest、SBOM 和 provenance 已通过；同一 revision 的一次性 Kind 集群完成 Migration、Rollout、Rollback、备份恢复和双密钥轮换演练。
+- revision `8a8e6eacf47508de4ea7caabded0179fff97ca9f` 的远端 CI、安全扫描、GHCR 多架构发布、不可变 Digest、SBOM 和 provenance 已通过，并覆盖 V6/Flyway V15 功能基线；历史 revision `1d98621` 的一次性 Kind 集群完成 Migration、Rollout、Rollback、备份恢复和双密钥轮换演练。
 
 ### 3.2 仍需补齐
 
-- 当前功能验收 revision `06bc348` 晚于已发布 revision `1d98621`；最新 V6/V15 能力尚无对应的远端 CI、GHCR Digest、SBOM 和 provenance 证据。
 - 真实 Kubernetes Production Delivery Gate 按用户决定跳过；Kind 演练不能表述为生产上线，也没有真实集群 SLO、容量、恢复时间和成本证据。
 - 系统实现的是 `At-least-once + 幂等消费 + 最终一致性`，不应表述为 Exactly Once；本机压测结果也不能直接外推为生产容量。
 
@@ -47,24 +46,25 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 |---|---|---|
 | V6、Flyway V1-V15、50 个后端测试、36 个 Web 组件测试、7 个浏览器场景 | `06bc3484ba3d9de61c044dc79b0e8ab80d078963` | [AI 产品价值指标验收](../release/ai-product-value-metrics-validation.md) |
 | 30 分钟混合流量、5 分钟突发流量、可观测告警恢复 | Run ID `20260830-091822`，历史 V5/V9 基线 | [V5 性能验证](../performance/v5-production-validation.md)、[P0 生产验收](../release/p0-production-validation.md) |
-| CI、安全扫描、Release、GHCR Digest、SBOM、provenance、Kind 演练 | `1d98621891ff92d98ad57c77ff212015b641681f`；CI `33352127749`；Release `33352537058` | [P1 远端发布验收](../release/p1-delivery-validation.md) |
-| 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [P1 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
+| CI、安全扫描、Release、GHCR Digest、SBOM、provenance | `8a8e6eacf47508de4ea7caabded0179fff97ca9f`；CI `33613240218`；Release `33613998840` | [V6 远端发布验收](../release/p1-delivery-validation.md) |
+| 本机 Kind 交付演练 | 历史 revision `1d98621891ff92d98ad57c77ff212015b641681f` | [V6 远端发布验收](../release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
+| 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [V6 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
 ## 4. 后续开发计划
 
 ### P0：交付闭环与质量补强（1-2 周）
 
-#### 4.1 为当前 V6 revision 完成远端发布证据闭环
+#### 4.1 当前 V6 revision 远端发布证据闭环（已完成）
 
 交付内容：
 
-- 确认包含当前 V6/V14 能力的最新 `main` CI 全量成功，归档 Gitleaks、SBOM/Trivy 依赖扫描、镜像扫描和测试报告。
+- 确认包含当前 V6/V15 能力的最新 `main` CI 全量成功，归档 Gitleaks、SBOM/Trivy 依赖扫描、镜像扫描和测试报告。
 - 由通过验证的 revision 触发 Release，发布 GHCR 多架构镜像并归档不可变 Digest 清单。
 - 将新 revision、镜像 Digest、SBOM、provenance 与本地 P1 功能验收建立一对一索引。
 
 验收标准：当前 V6 revision 的 CI 与 Release 均有成功链接；镜像 revision、Digest、SBOM、provenance 与功能验收可双向追溯。
 
-#### 4.2 提升前端关键链路测试
+#### 4.2 提升前端关键链路测试（已完成）
 
 交付内容：
 
@@ -129,7 +129,6 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 
 ## 5. 推荐执行顺序
 
-1. 先为当前 V6 revision 补齐远端 CI/Release/Digest 证据，结束本地与远端 revision 不一致。
-2. 再补前端关键链路测试，守住已经可用的完整 Web 产品。
-3. 随后量化 Agent、训练调整和 RAG 反馈带来的真实产品收益。
-4. 有生产凭据时执行真实 Production Delivery Gate；最后基于 SLO、容量和成本数据决定架构扩展，避免提前微服务化或 Multi-Agent 化。
+1. 在具备生产凭据时执行真实 Production Delivery Gate，补齐最新 revision 的集群级发布、回滚、恢复和密钥轮换证据。
+2. 持续积累线上窗口并量化 Agent、训练调整和 RAG 反馈带来的真实产品收益。
+3. 基于真实 SLO、容量和成本数据决定架构扩展，避免提前微服务化或 Multi-Agent 化。

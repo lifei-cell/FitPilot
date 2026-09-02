@@ -201,11 +201,11 @@ V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭�
 | 证据层 | revision | 状态 | 原始报告 |
 |---|---|---|---|
 | 当前 V6 本地功能验收 | `06bc3484ba3d9de61c044dc79b0e8ab80d078963` | `PASS`：50 个后端测试零跳过，V1-V15 迁移、Web 36 个组件测试与 7 个浏览器场景通过 | [AI 产品价值指标验收](docs/release/ai-product-value-metrics-validation.md) |
-| 远端 CI / Release / GHCR | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：CI、安全扫描、多架构镜像、Digest、SBOM、provenance 已归档 | [P1 远端发布验收](docs/release/p1-delivery-validation.md) |
-| 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [P1 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练pass) |
-| 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [P1 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
+| 远端 CI / Release / GHCR | `8a8e6eacf47508de4ea7caabded0179fff97ca9f` | `PASS`：CI `33613240218`、Release `33613998840`，多架构镜像、Digest、SBOM、provenance 已归档并验证 | [V6 远端发布验收](docs/release/p1-delivery-validation.md) |
+| 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
+| 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
-因此，当前 `06bc348` 具备本地全量功能验收证据，但尚未重新形成对应的远端 CI/Release 镜像证据；已有远端制品只证明 `1d98621`，项目也不得表述为已在真实生产集群上线。
+当前远端发布 revision `8a8e6ea` 后继并包含功能验收 revision `06bc348`，V6/Flyway V15 已具备对应的 CI、GHCR Digest、SBOM 和 provenance 证据。Kind 演练仍只绑定历史 revision `1d98621`，项目不得表述为已在真实生产集群上线。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 
