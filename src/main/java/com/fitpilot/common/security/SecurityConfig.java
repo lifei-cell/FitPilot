@@ -3,6 +3,7 @@ package com.fitpilot.common.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
+import com.fitpilot.infrastructure.performance.IdempotencyFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -20,7 +21,7 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter,
-                                            ObjectMapper objectMapper) throws Exception {
+                                            IdempotencyFilter idempotencyFilter, ObjectMapper objectMapper) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -38,6 +39,7 @@ public class SecurityConfig {
                             ApiResponse.error(ErrorCode.AUTHENTICATION_REQUIRED.code(), "authentication required"));
                 }))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(idempotencyFilter, JwtAuthenticationFilter.class)
                 .build();
     }
 }

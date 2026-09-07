@@ -9,6 +9,7 @@ public record PerformanceProperties(Cache cache, RateLimit rateLimit, Idempotenc
                         long l2TtlJitterSeconds, long rebuildLockSeconds) {}
     public record RateLimit(boolean enabled, long apiCapacity, long apiRefillPerSecond,
                             long loginCapacity, long loginRefillPerSecond) {}
-    public record Idempotency(boolean enabled, long resultTtlSeconds, long processingTtlSeconds) {}
+    public record Idempotency(boolean enabled, long resultTtlSeconds, long processingTtlSeconds,
+                              int maxCachedResponseBytes) {}
     public record Leaderboard(long ttlSeconds) {}
 }

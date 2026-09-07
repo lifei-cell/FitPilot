@@ -185,5 +185,6 @@ fitpilot:
       enabled: ${IDEMPOTENCY_ENABLED:true}
       result-ttl-seconds: ${IDEMPOTENCY_RESULT_TTL_SECONDS:86400}
       processing-ttl-seconds: ${IDEMPOTENCY_PROCESSING_TTL_SECONDS:30}
+      max-cached-response-bytes: ${IDEMPOTENCY_MAX_CACHED_RESPONSE_BYTES:262144}
     leaderboard:
       ttl-seconds: ${LEADERBOARD_TTL_SECONDS:600}

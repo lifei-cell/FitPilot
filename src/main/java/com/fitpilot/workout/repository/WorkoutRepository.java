@@ -9,6 +9,7 @@ import com.fitpilot.workout.infrastructure.WorkoutExerciseMapper;
 import com.fitpilot.workout.infrastructure.WorkoutMapper;
 import com.fitpilot.workout.infrastructure.WorkoutSetMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -20,13 +21,20 @@ public class WorkoutRepository {
     private final WorkoutMapper workouts;
     private final WorkoutExerciseMapper exercises;
     private final WorkoutSetMapper sets;
+    private final JdbcTemplate jdbc;
 
-    public WorkoutRepository(WorkoutMapper workouts, WorkoutExerciseMapper exercises, WorkoutSetMapper sets) {
+    public WorkoutRepository(WorkoutMapper workouts, WorkoutExerciseMapper exercises, WorkoutSetMapper sets,
+                             JdbcTemplate jdbc) {
         this.workouts = workouts;
         this.exercises = exercises;
         this.sets = sets;
+        this.jdbc = jdbc;
     }
 
+    /** Serializes the rare start-workout command per user when Redis is unavailable. */
+    public void lockCreationForUser(long userId) {
+        jdbc.queryForList("SELECT id FROM users WHERE id=? FOR UPDATE", Long.class, userId);
+    }
     public void insert(Workout workout) { workouts.insert(workout); }
     public void insert(WorkoutExercise exercise) { exercises.insert(exercise); }
     public void insert(WorkoutSet set) { sets.insert(set); }
@@ -37,6 +45,10 @@ public class WorkoutRepository {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>().eq("id", id).eq("user_id", userId)));
     }
     public Optional<Workout> findById(long id) { return Optional.ofNullable(workouts.selectById(id)); }
+    public Optional<Workout> findByIdempotencyKey(long userId, String idempotencyKey) {
+        return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>()
+                .eq("user_id", userId).eq("idempotency_key", idempotencyKey).last("LIMIT 1")));
+    }
     public Optional<Workout> findInProgress(long userId) {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>()
                 .eq("user_id", userId).eq("status", "IN_PROGRESS").last("LIMIT 1")));

@@ -3,6 +3,7 @@ package com.fitpilot.workout.application;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
+import com.fitpilot.common.idempotency.IdempotencyRequest;
 import com.fitpilot.common.response.PageResult;
 import com.fitpilot.exercise.domain.Exercise;
 import com.fitpilot.exercise.repository.ExerciseRepository;
@@ -52,6 +53,22 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.WorkoutView create(long userId, WorkoutDtos.CreateRequest request) {
+        return create(userId, request, null);
+    }
+
+    @Transactional
+    public WorkoutDtos.WorkoutView create(long userId, WorkoutDtos.CreateRequest request,
+                                           IdempotencyRequest idempotency) {
+        repository.lockCreationForUser(userId);
+        if (idempotency != null) {
+            Optional<Workout> existing = repository.findByIdempotencyKey(userId, idempotency.key());
+            if (existing.isPresent()) {
+                if (!idempotency.fingerprint().equals(existing.get().requestFingerprint)) {
+                    throw idempotencyKeyReused();
+                }
+                return get(userId, existing.get().id);
+            }
+        }
         if (repository.findInProgress(userId).isPresent()) {
             throw alreadyInProgress();
         }
@@ -81,6 +98,10 @@ public class WorkoutService {
         workout.status = "IN_PROGRESS";
         workout.startedAt = now;
         workout.notes = request.notes();
+        if (idempotency != null) {
+            workout.idempotencyKey = idempotency.key();
+            workout.requestFingerprint = idempotency.fingerprint();
+        }
         workout.createdAt = now;
         workout.updatedAt = now;
         try {
@@ -277,5 +298,10 @@ public class WorkoutService {
     private BusinessException alreadyInProgress() {
         return new BusinessException(ErrorCode.WORKOUT_ALREADY_IN_PROGRESS,
                 "finish or cancel the current workout before starting another", HttpStatus.CONFLICT);
+    }
+
+    private BusinessException idempotencyKeyReused() {
+        return new BusinessException(ErrorCode.IDEMPOTENCY_KEY_REUSED,
+                "Idempotency-Key was already used with different request parameters or body", HttpStatus.CONFLICT);
     }
 }

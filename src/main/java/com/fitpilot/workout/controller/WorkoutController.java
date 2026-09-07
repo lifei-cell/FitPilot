@@ -2,6 +2,7 @@ package com.fitpilot.workout.controller;
 
 import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.common.response.PageResult;
+import com.fitpilot.common.idempotency.IdempotencyRequest;
 import com.fitpilot.common.security.CurrentUser;
 import com.fitpilot.workout.application.WorkoutService;
 import com.fitpilot.workout.application.WorkoutFeedbackService;
@@ -9,6 +10,7 @@ import com.fitpilot.workout.dto.WorkoutDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -27,8 +29,10 @@ public class WorkoutController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    ApiResponse<WorkoutDtos.WorkoutView> create(@Valid @RequestBody WorkoutDtos.CreateRequest request, Authentication auth) {
-        return ApiResponse.success(service.create(CurrentUser.id(auth), request));
+    ApiResponse<WorkoutDtos.WorkoutView> create(@Valid @RequestBody WorkoutDtos.CreateRequest request,
+                                                Authentication auth, HttpServletRequest servletRequest) {
+        return ApiResponse.success(service.create(CurrentUser.id(auth), request,
+                IdempotencyRequest.from(servletRequest)));
     }
 
     @GetMapping("/{id}")

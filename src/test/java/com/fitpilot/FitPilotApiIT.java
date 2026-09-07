@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.annotation.DirtiesContext;
@@ -73,6 +74,7 @@ class FitPilotApiIT {
     @Autowired TwoLevelCache cache;
     @Autowired RedisTokenBucketRateLimiter rateLimiter;
     @Autowired DistributedLockService locks;
+    @Autowired StringRedisTemplate redis;
 
     @Test
     void exposesPrometheusMetricsWithoutSensitiveRequestContent() throws Exception {
@@ -124,6 +126,20 @@ class FitPilotApiIT {
                 .andExpect(status().isCreated()).andExpect(header().string("Idempotency-Replayed", "true")).andReturn();
         assertThat(replayedWorkout.getResponse().getContentAsByteArray())
                 .isEqualTo(firstWorkout.getResponse().getContentAsByteArray());
+
+        redis.getConnectionFactory().getConnection().serverCommands().flushDb();
+        var databaseReplayedWorkout = mvc.perform(post("/api/v1/workouts").header("Authorization", bearer(token))
+                        .header("Idempotency-Key", idempotencyKey).contentType("application/json").content(workoutBody))
+                .andExpect(status().isCreated()).andReturn();
+        assertThat(databaseReplayedWorkout.getResponse().getContentAsByteArray())
+                .isEqualTo(firstWorkout.getResponse().getContentAsByteArray());
+
+        redis.getConnectionFactory().getConnection().serverCommands().flushDb();
+        mvc.perform(post("/api/v1/workouts").header("Authorization", bearer(token))
+                        .header("Idempotency-Key", idempotencyKey).contentType("application/json")
+                        .content(json.writeValueAsBytes(Map.of("trainingPlanId", planId,
+                                "trainingPlanDayId", dayId, "name", "different request"))))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value(50004));
         JsonNode workout = json.readTree(firstWorkout.getResponse().getContentAsByteArray());
         long workoutId = workout.path("data").path("id").asLong();
         long workoutExerciseId = workout.path("data").path("exercises").get(0).path("id").asLong();

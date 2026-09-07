@@ -18,6 +18,8 @@ public class Workout {
     public LocalDateTime completedAt;
     public Integer durationSeconds;
     public String notes;
+    public String idempotencyKey;
+    public String requestFingerprint;
     public LocalDateTime createdAt;
     public LocalDateTime updatedAt;
 }
