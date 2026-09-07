@@ -66,7 +66,7 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
                          Token / Cost / Latency Audit
 ```
 
-模型只输出结构化决策和文本。服务端继续控制身份、owner、Tool 白名单、Guardrail、确认与持久化；网络/限流/网关错误有限重试，Schema、安全和权限错误不重试。
+模型只输出结构化决策和文本。服务端继续控制身份、owner、Tool 白名单、Guardrail、确认与持久化；网络/限流/网关错误有限重试，Schema、安全和权限错误不重试。主备与重试共享 20 秒 Deadline，Semaphore Bulkhead 限制并发，熔断恢复只放行单个半开探测。
 
 ## 技术栈
 
@@ -174,7 +174,7 @@ mvn spring-boot:run
 
 `mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
 
-当前功能验收基线已执行统一门禁：25 个 Surefire/Failsafe 报告、50 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V15 与 JaCoCo 门禁通过，后端行覆盖率 81.57%。Web 同一基线已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [AI 产品价值指标验收报告](docs/release/ai-product-value-metrics-validation.md)。
+当前本地后端验收基线已执行统一门禁：30 个 Surefire/Failsafe 报告、65 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V17 与 JaCoCo 门禁通过，后端行覆盖率 83.19%。Web 最近一次基线已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [AI 产品价值指标验收报告](docs/release/ai-product-value-metrics-validation.md)。
 
 前端也可单独执行：
 

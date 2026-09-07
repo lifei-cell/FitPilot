@@ -10,7 +10,11 @@ public class LlmProperties {
     private boolean enabled;
     private int connectTimeoutMs = 3000;
     private int requestTimeoutSeconds = 15;
+    private int totalTimeoutSeconds = 20;
     private int maxRetries = 2;
+    private int maxConcurrentRequests = 16;
+    private int bulkheadAcquireTimeoutMs = 50;
+    private int maxRetryAfterMs = 2000;
     private int circuitFailureThreshold = 5;
     private int circuitOpenSeconds = 30;
     private String promptVersion = "v5.1";
@@ -20,9 +24,11 @@ public class LlmProperties {
 
     @PostConstruct
     void validate() {
-        if (connectTimeoutMs < 100 || requestTimeoutSeconds < 1 || maxRetries < 0 || maxRetries > 5)
+        if (connectTimeoutMs < 100 || requestTimeoutSeconds < 1 || totalTimeoutSeconds < 1
+                || maxRetries < 0 || maxRetries > 5)
             throw new IllegalStateException("invalid LLM timeout or retry configuration");
-        if (circuitFailureThreshold < 1 || circuitOpenSeconds < 1 || maxContextChars < 1000)
+        if (circuitFailureThreshold < 1 || circuitOpenSeconds < 1 || maxContextChars < 1000
+                || maxConcurrentRequests < 1 || bulkheadAcquireTimeoutMs < 0 || maxRetryAfterMs < 0)
             throw new IllegalStateException("invalid LLM circuit or context configuration");
     }
     public boolean isEnabled() { return enabled; }
@@ -31,8 +37,16 @@ public class LlmProperties {
     public void setConnectTimeoutMs(int value) { connectTimeoutMs = value; }
     public int getRequestTimeoutSeconds() { return requestTimeoutSeconds; }
     public void setRequestTimeoutSeconds(int value) { requestTimeoutSeconds = value; }
+    public int getTotalTimeoutSeconds() { return totalTimeoutSeconds; }
+    public void setTotalTimeoutSeconds(int value) { totalTimeoutSeconds = value; }
     public int getMaxRetries() { return maxRetries; }
     public void setMaxRetries(int value) { maxRetries = value; }
+    public int getMaxConcurrentRequests() { return maxConcurrentRequests; }
+    public void setMaxConcurrentRequests(int value) { maxConcurrentRequests = value; }
+    public int getBulkheadAcquireTimeoutMs() { return bulkheadAcquireTimeoutMs; }
+    public void setBulkheadAcquireTimeoutMs(int value) { bulkheadAcquireTimeoutMs = value; }
+    public int getMaxRetryAfterMs() { return maxRetryAfterMs; }
+    public void setMaxRetryAfterMs(int value) { maxRetryAfterMs = value; }
     public int getCircuitFailureThreshold() { return circuitFailureThreshold; }
     public void setCircuitFailureThreshold(int value) { circuitFailureThreshold = value; }
     public int getCircuitOpenSeconds() { return circuitOpenSeconds; }

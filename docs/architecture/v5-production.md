@@ -15,7 +15,8 @@ Agent Workflow
 ```
 
 - 小模型处理意图、Query Rewrite、Memory Extraction；中模型处理训练分析；强模型生成训练计划。
-- 连接超时 3 秒、请求超时 15 秒。网络错误、429、502/503/504 最多重试两次并抖动退避；Schema、安全和权限错误不重试。
+- 连接超时 3 秒、单次请求超时 15 秒，但主备端点、重试与退避共享默认 20 秒全链路 Deadline。网络错误、429、502/503/504 最多重试两次并抖动退避，`Retry-After` 最多等待 2 秒；Schema、安全和权限错误不重试。
+- LLM Bulkhead 默认最多允许 16 个并发调用，额外请求快速拒绝；熔断器在打开窗口结束后只放行一个半开探测，线程中断和 Deadline 会向 HTTP 调用与退避等待传播取消信号。
 - 规划只接受 `AgentDecision(intent, toolCalls, responseMode)`。Tool 必须在服务端白名单，参数出现 `userId` 立即拒绝并降级。
 - 训练计划反序列化为 `TrainingPlanDtos.CreateRequest`，通过现有校验链后生成 pending action；确认令牌只存摘要、绑定用户、单次消费。
 - RAG 上下文以不可信数据包裹，不得触发 Tool 或覆盖系统指令；引用由真实 `RetrievedContext` 生成。
@@ -24,7 +25,7 @@ Agent Workflow
 
 ## 3. 评测
 
-版本化数据集位于 `src/main/resources/eval/`：150 条中文 Agent 用例和 50 条 RAG 真值。运维 API 异步创建评测任务，结果写入 `agent_eval_run/result` 与 `rag_eval_run/result`。
+版本化数据集位于 `src/main/resources/eval/`：150 条中文 Agent 用例和 50 条 RAG 真值。运维 API 异步创建评测任务，结果写入 `agent_eval_run/result` 与 `rag_eval_run/result`。任务状态为 `QUEUED/RUNNING/SUCCEEDED/FAILED/REJECTED/TIMED_OUT`；队列与执行阶段均持有可续期租约，进程重启后会重新领取僵尸任务，Deadline 到期会持久化超时并取消本机 Future。
 
 门禁：Tool Selection ≥95%、Task Success ≥95%、违规率为 0；RAG Recall@5 ≥85%、MRR ≥0.75，并校验引用属于本次检索上下文。CI 使用 Mock OpenAI-compatible Server；真实模型评测保留为夜间/手动任务。
 

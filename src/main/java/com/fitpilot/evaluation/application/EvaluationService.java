@@ -3,6 +3,7 @@ package com.fitpilot.evaluation.application;
 import com.fitpilot.agent.application.AgentPlanner;
 import com.fitpilot.evaluation.domain.EvaluationCases;
 import com.fitpilot.evaluation.dto.EvaluationDtos;
+import com.fitpilot.evaluation.config.EvaluationProperties;
 import com.fitpilot.evaluation.infrastructure.EvaluationRepository;
 import com.fitpilot.llm.application.LlmGateway;
 import com.fitpilot.llm.application.PromptRegistry;
@@ -13,12 +14,22 @@ import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskRejectedException;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ScheduledFuture;
 
 @Service
 public class EvaluationService {
@@ -29,14 +40,20 @@ public class EvaluationService {
     private final PromptRegistry prompts;
     private final ObjectProvider<HybridRetrievalService> retrieval;
     private final ObjectProvider<KnowledgeIngestionService> ingestion;
-    private final TaskExecutor executor;
+    private final ThreadPoolTaskExecutor executor;
+    private final TaskScheduler heartbeatScheduler;
+    private final EvaluationProperties properties;
     private final RagGovernanceRepository governance;
+    private final Map<UUID, ActiveRun> activeRuns = new ConcurrentHashMap<>();
+    private final String workerId = UUID.randomUUID().toString();
 
     public EvaluationService(EvaluationDatasetLoader datasets, EvaluationRepository repository, AgentPlanner planner,
                              LlmGateway llm, PromptRegistry prompts,
                              ObjectProvider<HybridRetrievalService> retrieval,
                              ObjectProvider<KnowledgeIngestionService> ingestion,
-                             @Qualifier("evaluationExecutor") TaskExecutor executor,
+                             @Qualifier("evaluationExecutor") ThreadPoolTaskExecutor executor,
+                             @Qualifier("evaluationHeartbeatScheduler") TaskScheduler heartbeatScheduler,
+                             EvaluationProperties properties,
                              RagGovernanceRepository governance) {
         this.datasets = datasets;
         this.repository = repository;
@@ -46,9 +63,18 @@ public class EvaluationService {
         this.retrieval = retrieval;
         this.ingestion = ingestion;
         this.executor = executor;
+        this.heartbeatScheduler = heartbeatScheduler;
+        this.properties = properties;
         this.governance = governance;
     }
-    public UUID startAgent(String requestedMode){String mode=requestedMode==null||requestedMode.isBlank()?"RULE_WORKFLOW":requestedMode;UUID id=UUID.randomUUID();repository.createAgent(id,EvaluationDatasetLoader.AGENT_VERSION,mode,mode,prompts.version());executor.execute(()->runAgent(id,mode));return id;}
+    public UUID startAgent(String requestedMode) {
+        String mode = requestedMode == null || requestedMode.isBlank() ? "RULE_WORKFLOW" : requestedMode;
+        UUID id = UUID.randomUUID();
+        repository.createAgent(id, EvaluationDatasetLoader.AGENT_VERSION, mode, mode, prompts.version(),
+                properties.getRunTimeoutSeconds());
+        dispatch(new EvaluationRepository.PendingRun(id, EvaluationRepository.RunType.AGENT, mode, List.of()));
+        return id;
+    }
     public UUID startRag(){
         UUID id=UUID.randomUUID();
         List<RagGovernanceRepository.DynamicEvalCase> dynamic=List.copyOf(governance.dynamicCases());
@@ -56,16 +82,110 @@ public class EvaluationService {
         dynamic.forEach(item->frozen.add(new EvaluationCases.RagCase("dynamic-"+item.id(),item.query(),List.of(),item.expectedSources(),item.category())));
         long version=dynamic.stream().mapToLong(RagGovernanceRepository.DynamicEvalCase::version).max().orElse(0);
         String dataset=EvaluationDatasetLoader.RAG_VERSION+"+dynamic-"+version;
+        List<EvaluationCases.RagCase> cases = List.copyOf(frozen);
         repository.createRag(id,dataset,Map.of("staticVersion",EvaluationDatasetLoader.RAG_VERSION,
-                "dynamicVersion",version,"staticCases",datasets.rag().size(),"dynamicCases",dynamic.size()));
-        executor.execute(()->runRag(id,List.copyOf(frozen)));return id;
+                "dynamicVersion",version,"staticCases",datasets.rag().size(),"dynamicCases",dynamic.size()),
+                cases, properties.getRunTimeoutSeconds());
+        dispatch(new EvaluationRepository.PendingRun(id, EvaluationRepository.RunType.RAG, "", cases));
+        return id;
     }
     public Optional<EvaluationDtos.RunView> find(UUID id){return repository.find(id);}
-    void runAgent(UUID runId,String mode){try{List<EvaluationCases.AgentCase> cases=datasets.agent();int passed=0,selectionCorrect=0,success=0,violations=0,hallucinations=0;String model=mode;
-        for(var item:cases){long started=System.nanoTime();AgentPlanner.Decision fallback=planner.decide(item.query());LlmModels.Result<AgentPlanner.Decision> result="ACTIVE_MODEL".equals(mode)?llm.decide(null,item.query(),fallback):LlmModels.Result.rule(fallback,prompts.version());List<String> actual=result.value().tools();boolean selected=actual.equals(item.expectedTools());boolean violation=actual.stream().anyMatch(item.forbiddenTools()::contains);boolean hallucination=actual.stream().anyMatch(tool->!LlmGateway.READ_TOOLS.contains(tool)&&!"create_training_plan".equals(tool));boolean task=selected&&!violation&&!hallucination;if(selected)selectionCorrect++;if(task){success++;passed++;}if(violation)violations++;if(hallucination)hallucinations++;model=result.model();repository.agentResult(runId,item.id(),hash(item.query()),item.expectedTools(),actual,selected,task,violation,hallucination,elapsed(started));}
-        int total=cases.size();repository.finishAgent(runId,total,passed,Map.of("toolSelectionAccuracy",ratio(selectionCorrect,total),"taskSuccessRate",ratio(success,total),"constraintViolationRate",ratio(violations,total),"hallucinationRate",ratio(hallucinations,total)),model);
-    }catch(Exception e){repository.failAgent(runId,e.getMessage());}}
-    void runRag(UUID runId, List<EvaluationCases.RagCase> cases) {
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void recoverOnStartup() { recover(); }
+
+    @Scheduled(fixedDelayString = "${fitpilot.evaluation.recovery-delay-ms:5000}",
+            scheduler = "evaluationHeartbeatScheduler")
+    public void recover() {
+        repository.timeoutExpired().forEach(id -> {
+            ActiveRun active = activeRuns.remove(id);
+            if (active != null) active.cancel();
+        });
+        repository.requeueExpiredLeases();
+        repository.queued(properties.getRecoveryBatchSize()).forEach(this::dispatch);
+    }
+
+    private void dispatch(EvaluationRepository.PendingRun requested) {
+        repository.reserve(requested.id(), requested.type(), workerId, properties.getLeaseSeconds())
+                .ifPresent(reserved -> {
+                    ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(
+                            () -> repository.renewLease(reserved.id(), reserved.type(), workerId,
+                                    properties.getLeaseSeconds()),
+                            Duration.ofSeconds(properties.getHeartbeatSeconds()));
+                    try {
+                        FutureTask<Void> task = new FutureTask<>(() -> {
+                            execute(reserved, heartbeat);
+                            return null;
+                        });
+                        activeRuns.put(reserved.id(), new ActiveRun(task, heartbeat));
+                        executor.execute(task);
+                    } catch (TaskRejectedException rejected) {
+                        activeRuns.remove(reserved.id());
+                        heartbeat.cancel(false);
+                        repository.reject(reserved.id(), reserved.type(), workerId,
+                                "evaluation executor queue is full");
+                    }
+                });
+    }
+
+    private void execute(EvaluationRepository.PendingRun run, ScheduledFuture<?> heartbeat) {
+        try {
+            if (!repository.start(run.id(), run.type(), workerId)) return;
+            ensureLease(run);
+            if (run.type() == EvaluationRepository.RunType.AGENT) runAgent(run.id(), run.mode());
+            else runRag(run.id(), run.ragCases());
+        } catch (Exception failure) {
+            if (!Thread.currentThread().isInterrupted()) {
+                repository.fail(run.id(), run.type(), workerId, failure.getMessage());
+            }
+        } finally {
+            heartbeat.cancel(false);
+            activeRuns.remove(run.id());
+        }
+    }
+
+    private void ensureLease(EvaluationRepository.PendingRun run) {
+        if (Thread.currentThread().isInterrupted()
+                || !repository.renewLease(run.id(), run.type(), workerId, properties.getLeaseSeconds())) {
+            throw new IllegalStateException("evaluation lease lost or deadline exceeded");
+        }
+    }
+    void runAgent(UUID runId, String mode) {
+        List<EvaluationCases.AgentCase> cases = datasets.agent();
+        int passed = 0, selectionCorrect = 0, success = 0, violations = 0, hallucinations = 0;
+        String model = mode;
+        EvaluationRepository.PendingRun run = new EvaluationRepository.PendingRun(
+                runId, EvaluationRepository.RunType.AGENT, mode, List.of());
+        for (var item : cases) {
+            ensureLease(run);
+            long started = System.nanoTime();
+            AgentPlanner.Decision fallback = planner.decide(item.query());
+            LlmModels.Result<AgentPlanner.Decision> result = "ACTIVE_MODEL".equals(mode)
+                    ? llm.decide(null, item.query(), fallback)
+                    : LlmModels.Result.rule(fallback, prompts.version());
+            List<String> actual = result.value().tools();
+            boolean selected = actual.equals(item.expectedTools());
+            boolean violation = actual.stream().anyMatch(item.forbiddenTools()::contains);
+            boolean hallucination = actual.stream().anyMatch(tool -> !LlmGateway.READ_TOOLS.contains(tool)
+                    && !"create_training_plan".equals(tool));
+            boolean task = selected && !violation && !hallucination;
+            if (selected) selectionCorrect++;
+            if (task) { success++; passed++; }
+            if (violation) violations++;
+            if (hallucination) hallucinations++;
+            model = result.model();
+            repository.agentResult(runId, item.id(), hash(item.query()), item.expectedTools(), actual,
+                    selected, task, violation, hallucination, elapsed(started));
+        }
+        int total = cases.size();
+        repository.finishAgent(runId, workerId, total, passed, Map.of(
+                "toolSelectionAccuracy", ratio(selectionCorrect, total),
+                "taskSuccessRate", ratio(success, total),
+                "constraintViolationRate", ratio(violations, total),
+                "hallucinationRate", ratio(hallucinations, total)), model);
+    }
+
+    void runRag(UUID runId, List<EvaluationCases.RagCase> cases) throws Exception {
         KnowledgeIngestionService loader = ingestion.getIfAvailable();
         List<UUID> evaluationDocuments = new ArrayList<>();
         boolean cleaned = false;
@@ -78,7 +198,10 @@ public class EvaluationService {
             int passed = 0;
             double recall = 0, rr = 0, ndcg = 0, precision = 0, contextRecall = 0, citationValidity = 0;
             Map<String, CategoryStats> categories = new LinkedHashMap<>();
+            EvaluationRepository.PendingRun run = new EvaluationRepository.PendingRun(
+                    runId, EvaluationRepository.RunType.RAG, "", cases);
             for (var item : cases) {
+                ensureLease(run);
                 long started = System.nanoTime();
                 RagDtos.SearchResponse response = service.search(item.query(), 5, item.category());
                 List<RagDtos.RetrievedContext> contexts = response.contexts();
@@ -123,10 +246,10 @@ public class EvaluationService {
             if(resultMetrics.get("citationValidity")<1)failures.add("Citation Validity must be 100%");
             resultMetrics.forEach((key,value)->{if(key.startsWith("category.")&&(key.endsWith(".recallAt5")||key.endsWith(".mrr"))
                     &&baseline.containsKey(key)&&baseline.get(key)-value>.05)failures.add(key+" regressed more than 5pp");});
-            if(failures.isEmpty())repository.finishRag(runId,total,passed,resultMetrics);
-            else repository.failRagGate(runId,total,passed,resultMetrics,String.join("; ",failures));
+            if(failures.isEmpty())repository.finishRag(runId,workerId,total,passed,resultMetrics);
+            else repository.failRagGate(runId,workerId,total,passed,resultMetrics,String.join("; ",failures));
         } catch (Exception failure) {
-            repository.failRag(runId, failure.getMessage());
+            throw failure;
         } finally {
             if (!cleaned && loader != null) cleanupDocuments(loader, evaluationDocuments);
         }
@@ -157,4 +280,10 @@ public class EvaluationService {
     private String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}}
     private String metricCategory(String value){return(value==null||value.isBlank()?"uncategorized":value).replaceAll("[^a-zA-Z0-9_-]","_");}
     private static final class CategoryStats{double recall;double rr;int total;void add(double recall,double rr){this.recall+=recall;this.rr+=rr;total++;}}
+    private record ActiveRun(Future<?> future, ScheduledFuture<?> heartbeat) {
+        void cancel() {
+            heartbeat.cancel(false);
+            future.cancel(true);
+        }
+    }
 }

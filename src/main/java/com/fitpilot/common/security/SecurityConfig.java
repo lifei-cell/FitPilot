@@ -2,6 +2,7 @@ package com.fitpilot.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.common.exception.ErrorCode;
+import com.fitpilot.common.operations.OperationsAuthenticationFilter;
 import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.infrastructure.performance.IdempotencyFilter;
 import org.springframework.context.annotation.Bean;
@@ -21,16 +22,15 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter,
+                                            OperationsAuthenticationFilter operationsFilter,
                                             IdempotencyFilter idempotencyFilter, ObjectMapper objectMapper) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/operations/**").hasRole("OPERATIONS")
                         .requestMatchers("/api/v1/auth/**", "/api/v1/exercises/**", "/swagger-ui/**",
                                 "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**",
-                                "/actuator/prometheus",
-                                "/api/v1/operations/events/**", "/api/v1/operations/rag/**",
-                                "/api/v1/operations/agent/**", "/api/v1/operations/llm/**",
-                                "/api/v1/operations/evaluations/**").permitAll()
+                                "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);
@@ -39,7 +39,8 @@ public class SecurityConfig {
                             ApiResponse.error(ErrorCode.AUTHENTICATION_REQUIRED.code(), "authentication required"));
                 }))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(idempotencyFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(operationsFilter, JwtAuthenticationFilter.class)
+                .addFilterAfter(idempotencyFilter, OperationsAuthenticationFilter.class)
                 .build();
     }
 }

@@ -7,17 +7,22 @@ import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.infrastructure.performance.DistributedLockService;
 import com.fitpilot.infrastructure.performance.RedisTokenBucketRateLimiter;
 import com.fitpilot.infrastructure.performance.TwoLevelCache;
+import com.fitpilot.evaluation.application.EvaluationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.http.HttpMethod;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -75,6 +80,26 @@ class FitPilotApiIT {
     @Autowired RedisTokenBucketRateLimiter rateLimiter;
     @Autowired DistributedLockService locks;
     @Autowired StringRedisTemplate redis;
+    @Autowired EvaluationService evaluationService;
+    @Autowired @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMappings;
+
+    @Test
+    void everyOperationsRouteIsDeniedBeforeControllerInvocationWithoutToken() throws Exception {
+        for (var mapping : handlerMappings.getHandlerMethods().keySet()) {
+            for (String pattern : mapping.getPatternValues()) {
+                if (!pattern.startsWith("/api/v1/operations/")) continue;
+                var methods = mapping.getMethodsCondition().getMethods();
+                if (methods.isEmpty()) methods = java.util.Set.of(RequestMethod.GET);
+                for (RequestMethod method : methods) {
+                    String path = pattern.replaceAll("\\{[^}]+}", "0");
+                    mvc.perform(request(HttpMethod.valueOf(method.name()), path)
+                                    .contentType("application/json").content("{}"))
+                            .andExpect(status().isForbidden())
+                            .andExpect(jsonPath("$.code").value(1002));
+                }
+            }
+        }
+    }
 
     @Test
     void exposesPrometheusMetricsWithoutSensitiveRequestContent() throws Exception {
@@ -466,6 +491,34 @@ class FitPilotApiIT {
             assertThat(run.path("metrics").path("toolSelectionAccuracy").asDouble()).isGreaterThanOrEqualTo(0.95);
             assertThat(run.path("metrics").path("taskSuccessRate").asDouble()).isGreaterThanOrEqualTo(0.95);
             assertThat(run.path("metrics").path("constraintViolationRate").asDouble()).isZero();
+        });
+    }
+
+    @Test
+    void timesOutExpiredQueuedEvaluationAndRecoversExpiredWorkerLease() throws Exception {
+        UUID timedOut = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO agent_eval_run(id,dataset_version,mode,model,prompt_version,status,queued_at,deadline_at,request_payload)
+                VALUES (?,'agent-fixture','RULE_WORKFLOW','RULE_WORKFLOW','test','QUEUED',now()-interval '2 minutes',
+                        now()-interval '1 minute','{"mode":"RULE_WORKFLOW"}'::jsonb)
+                """, timedOut);
+        evaluationService.recover();
+        assertThat(jdbc.queryForObject("SELECT status FROM agent_eval_run WHERE id=?", String.class, timedOut))
+                .isEqualTo("TIMED_OUT");
+
+        UUID recovered = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO agent_eval_run(id,dataset_version,mode,model,prompt_version,status,queued_at,started_at,
+                                           deadline_at,heartbeat_at,lease_expires_at,worker_id,request_payload)
+                VALUES (?,'agent-fixture','RULE_WORKFLOW','RULE_WORKFLOW','test','RUNNING',now()-interval '2 minutes',
+                        now()-interval '2 minutes',now()+interval '2 minutes',now()-interval '2 minutes',
+                        now()-interval '1 minute','dead-worker','{"mode":"RULE_WORKFLOW"}'::jsonb)
+                """, recovered);
+        evaluationService.recover();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            var run = evaluationService.find(recovered).orElseThrow();
+            assertThat(run.status()).isEqualTo("SUCCEEDED");
+            assertThat(run.attemptCount()).isEqualTo(1);
         });
     }
 

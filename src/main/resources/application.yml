@@ -54,7 +54,8 @@ management:
         liveness:
           include: livenessState,ping
         readiness:
-          include: readinessState,db,redis
+          # Redis is a soft dependency: cache and rate limiting degrade locally while PostgreSQL remains authoritative.
+          include: readinessState,db
   tracing:
     sampling:
       probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
@@ -91,11 +92,24 @@ security:
 fitpilot:
   operations:
     token: ${OPERATIONS_TOKEN:}
+  evaluation:
+    core-pool-size: ${EVALUATION_CORE_POOL_SIZE:1}
+    max-pool-size: ${EVALUATION_MAX_POOL_SIZE:2}
+    queue-capacity: ${EVALUATION_QUEUE_CAPACITY:10}
+    run-timeout-seconds: ${EVALUATION_RUN_TIMEOUT_SECONDS:600}
+    lease-seconds: ${EVALUATION_LEASE_SECONDS:60}
+    heartbeat-seconds: ${EVALUATION_HEARTBEAT_SECONDS:10}
+    recovery-delay-ms: ${EVALUATION_RECOVERY_DELAY_MS:5000}
+    recovery-batch-size: ${EVALUATION_RECOVERY_BATCH_SIZE:20}
   llm:
     enabled: ${LLM_ENABLED:false}
     connect-timeout-ms: ${LLM_CONNECT_TIMEOUT_MS:3000}
     request-timeout-seconds: ${LLM_REQUEST_TIMEOUT_SECONDS:15}
+    total-timeout-seconds: ${LLM_TOTAL_TIMEOUT_SECONDS:20}
     max-retries: ${LLM_MAX_RETRIES:2}
+    max-concurrent-requests: ${LLM_MAX_CONCURRENT_REQUESTS:16}
+    bulkhead-acquire-timeout-ms: ${LLM_BULKHEAD_ACQUIRE_TIMEOUT_MS:50}
+    max-retry-after-ms: ${LLM_MAX_RETRY_AFTER_MS:2000}
     circuit-failure-threshold: ${LLM_CIRCUIT_FAILURE_THRESHOLD:5}
     circuit-open-seconds: ${LLM_CIRCUIT_OPEN_SECONDS:30}
     prompt-version: ${LLM_PROMPT_VERSION:v5.1}

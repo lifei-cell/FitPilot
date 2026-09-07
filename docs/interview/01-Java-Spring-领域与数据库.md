@@ -98,7 +98,7 @@ Refresh Token 用于换取新 Access Token，生命周期更长，必须可撤�
 
 ### Operations API 的实现边界
 
-当前 Spring Security 将 Operations 路径设为 `permitAll`，由每个运维 Controller 调用 `OperationsAuthorizer` 校验 `X-Operations-Token`。优点是支持独立运维 Token，缺点是新增接口若漏掉调用就会暴露。更稳妥的演进是统一 Filter/AuthorizationManager、自定义注解 + AOP，或把管理面放到独立端口/网络并叠加 mTLS；面试时应主动说明这是需要自动化约束的安全边界。
+Operations 路径由 Spring Security 统一要求 `ROLE_OPERATIONS`，专用 Filter 使用常量时间比较校验 `X-Operations-Token` 并建立运维身份；Controller 不再承担鉴权。路径级回归测试会枚举全部 Operations 映射并验证无 Token 均在进入 Controller 前返回 403，因此新增接口默认拒绝。生产环境仍应把管理面放到独立网络并叠加 mTLS 或网关身份。
 
 ## 5. 领域建模：计划与训练快照
 

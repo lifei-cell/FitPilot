@@ -62,11 +62,21 @@ function New-DrillContext {
 }
 
 function Test-RedisFallback($context) {
-    Write-Host "[drill] Redis cache fallback"
+    Write-Host "[drill] Redis soft-dependency readiness and database fallback capacity"
     Stop-Service "redis"
     try {
-        $response = Invoke-Json GET "/api/v1/exercises/1" $null $context.Headers
-        if ($response.code -ne 0) { throw "Redis fallback returned a business error" }
+        $readiness = Invoke-Json GET "/actuator/health/readiness"
+        if ($readiness.status -ne "UP") { throw "Redis outage removed the application from readiness" }
+        $started = [Diagnostics.Stopwatch]::StartNew()
+        1..50 | ForEach-Object {
+            $exerciseId = (($_ - 1) % 50) + 1
+            $response = Invoke-Json GET "/api/v1/exercises/$exerciseId" $null $context.Headers
+            if ($response.code -ne 0) { throw "Redis database fallback returned a business error" }
+        }
+        $started.Stop()
+        if ($started.Elapsed.TotalSeconds -gt 15) {
+            throw "50 database fallback reads exceeded the 15 second drill budget"
+        }
     } finally { Start-Service "redis" }
 }
 
