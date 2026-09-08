@@ -41,7 +41,7 @@
 
 - **安全 Agent 与训练调节闭环：** 针对 LLM 直接执行写操作存在越权、幻觉参数和不可审计风险（S/T），将模型限制为结构化提议组件，由后端统一执行 JWT 身份继承、Tool 白名单、领域校验、Guardrail、一次性确认和持久化；会话以 PostgreSQL 为真源、Redis 为热缓存，并基于 28 天训练事实生成可解释调整（A）；实现跨设备会话与待确认动作恢复，数据不足或疼痛风险自动阻断，确认后只创建新 DRAFT，主备模型失败回退规则 Workflow 时仍不放宽安全链（R）。
 
-- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；V6 功能基线通过 50 个后端零跳过测试，后端行覆盖率 81.57%，Web 通过 36 个组件测试和 7 个 Chromium E2E、行覆盖率 71.69%；远端 CI、安全扫描和 GHCR `amd64/arm64` 镜像发布形成 revision、Digest、SBOM 与 Provenance 的可追溯闭环（R）。
+- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；V6/Flyway V17 功能基线通过 65 个后端零跳过测试，后端行覆盖率 83.12%，Web 通过 36 个组件测试和 7 个 Chromium E2E、行覆盖率 71.69%；远端 CI、安全扫描和 GHCR `amd64/arm64` 镜像发布形成 revision、Digest、SBOM 与 Provenance 的可追溯闭环（R）。
 
 **补充验证数据：** 历史 V5 本机 Docker Compose 30 分钟混合流量完成 118,980 次 HTTP 请求，业务成功率 99.99%，普通 API P95 10.03ms、Agent P95 30.70ms；该数据用于证明测试环境下的实现与稳定性，不表述为真实生产容量。
 
@@ -62,7 +62,7 @@
 
 ## 面试自我介绍参考（不放入正式简历）
 
-我主要面向 Java 后端和 AI Agent 应用岗位。FitPilot 是我基于 Java 21 和 Spring Boot 3.5 构建的 AI Native 健身训练平台：核心业务通过 Workout 快照、事务状态机和 Owner 校验保证历史数据正确；事件侧使用 Transactional Outbox、Kafka 和 Inbox 实现 At-least-once 下的幂等与最终一致；AI 侧实现了带内容治理和评测门禁的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow。项目当前通过 50 个后端零跳过测试和 43 个前端组件及浏览器场景，远端 CI、镜像安全扫描、SBOM 和 Provenance 也形成了可追溯闭环。
+我主要面向 Java 后端和 AI Agent 应用岗位。FitPilot 是我基于 Java 21 和 Spring Boot 3.5 构建的 AI Native 健身训练平台：核心业务通过 Workout 快照、事务状态机和 Owner 校验保证历史数据正确；事件侧使用 Transactional Outbox、Kafka 和 Inbox 实现 At-least-once 下的幂等与最终一致；AI 侧实现了带内容治理和评测门禁的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow。项目当前通过 65 个后端零跳过测试和 43 个前端组件及浏览器场景，远端 CI、镜像安全扫描、SBOM 和 Provenance 也形成了可追溯闭环。
 
 ## 投递前检查（不放入正式简历）
 
@@ -75,8 +75,8 @@
 
 | 结论 | revision / Run | 原始报告 |
 |---|---|---|
-| V6、Flyway V1-V15、50 个后端测试、36 个组件测试、7 个浏览器场景 | `06bc3484ba3d9de61c044dc79b0e8ab80d078963` | [AI 产品价值指标验收](../release/ai-product-value-metrics-validation.md) |
-| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | `8a8e6eacf47508de4ea7caabded0179fff97ca9f` | [V6 远端发布验收](../release/p1-delivery-validation.md) |
+| V6、Flyway V1-V17、65 个后端测试、36 个组件测试、7 个浏览器场景 | `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c` | [V17 当前功能验收](../release/v17-functional-validation.md) |
+| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | 包含 `c1c9ede` 的最终 `main` revision；精确证据见 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
 | 30 分钟混合流量与告警恢复 | Run ID `20260830-091822`，历史 V5/V9 本机基线 | [V5 性能验证](../performance/v5-production-validation.md) |
 | Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f`，仅历史本机演练 | [V6 远端发布验收](../release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
 | 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [V6 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |

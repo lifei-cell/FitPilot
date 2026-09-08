@@ -182,7 +182,7 @@ FitPilot 的 Owner 查询把 `userId + resourceId` 放入 SQL，而不是先按 
 
 Flyway 按版本顺序执行不可变迁移，并在历史表记录版本和校验和。已在共享环境执行的迁移不应直接修改，否则校验失败且无法解释环境差异。
 
-FitPilot 使用 V1-V15 向前迁移；Kubernetes 中迁移由独立 Job 执行，应用 Pod 关闭 Flyway，发布顺序为“迁移 → 后端 → Web”。
+FitPilot 使用 V1-V17 向前迁移；Kubernetes 中迁移由独立 Job 执行，应用 Pod 关闭 Flyway，发布顺序为“迁移 → 后端 → Web”。
 
 ### Expand / Contract
 
