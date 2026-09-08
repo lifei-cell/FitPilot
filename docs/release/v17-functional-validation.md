@@ -30,6 +30,7 @@
 - 首次远端 CI `34230400711` 的统一质量门禁和 Gitleaks 已通过，但 Trivy 0.70.0 阻断了 Spring Boot 3.5.16 默认管理的 `tomcat-embed-core:10.1.55`，对应 `CVE-2026-65182`、`CVE-2026-65905`、`CVE-2026-68525`。
 - 使用 Spring Boot 依赖管理属性将嵌入式 Tomcat 整组升级到 Maven Central 已发布的 `10.1.59`，高于 Trivy 给出的 `10.1.58` 修复线；不通过 `.trivyignore` 绕过 CRITICAL 漏洞。
 - 升级后重新执行统一质量门禁和同版本 Trivy SBOM 扫描：后端 65 项、前端 36 项、E2E 7 项均通过且零跳过，HIGH/CRITICAL 结果为 0。
+- 首次安全升级 Release `34232980670` 已通过候选验收及后端、Web 镜像 Trivy，但多架构构建在 arm64 QEMU 中重复执行单测时触发墙钟计时抖动；Docker 构建改为仅打包，测试继续由 Release 的 `Verify release candidate` 前置门禁负责，避免同一流水线重复执行且不降低质量门。
 
 ## 证据边界
 
