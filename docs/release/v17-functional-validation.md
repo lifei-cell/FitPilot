@@ -25,6 +25,12 @@
 - Redis 故障时 readiness 保持可用，缓存、限流与分布式锁按明确策略降级。
 - 异步评测增加有界线程池、持久化队列、租约续期、过期任务恢复、Deadline 和拒绝状态，避免任务因进程重启永久停留在 `RUNNING`。
 
+## 依赖安全补强
+
+- 首次远端 CI `34230400711` 的统一质量门禁和 Gitleaks 已通过，但 Trivy 0.70.0 阻断了 Spring Boot 3.5.16 默认管理的 `tomcat-embed-core:10.1.55`，对应 `CVE-2026-65182`、`CVE-2026-65905`、`CVE-2026-68525`。
+- 使用 Spring Boot 依赖管理属性将嵌入式 Tomcat 整组升级到 Maven Central 已发布的 `10.1.59`，高于 Trivy 给出的 `10.1.58` 修复线；不通过 `.trivyignore` 绕过 CRITICAL 漏洞。
+- 升级后重新执行统一质量门禁和同版本 Trivy SBOM 扫描：后端 65 项、前端 36 项、E2E 7 项均通过且零跳过，HIGH/CRITICAL 结果为 0。
+
 ## 证据边界
 
 - 该结果是 Windows + Docker Desktop 本地验收，不是生产容量或真实 Kubernetes 运行证据。
