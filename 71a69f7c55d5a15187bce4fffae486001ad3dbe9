@@ -1,0 +1,63 @@
+Evidence-Version: 2
+
+Revision: 71a69f7c55d5a15187bce4fffae486001ad3dbe9
+
+CI-Run: 34235024491
+
+CI-Conclusion: success
+
+Release-Run: 34235706001
+
+Release-Conclusion: success
+
+Release-Artifact: ghcr-digests-34235706001
+
+Release-Artifact-ID: 10060373900
+
+Release-Artifact-Digest: sha256:3b9c792607974d7fb0957b125dd1db43e78f2d5a8126cd138ec9c5fcdc06feab
+
+Release-Manifest-SHA256: ed3b6f4c7c7fd47be00a5a78646d87156c7670e7364a2710cc5cc496313765b4
+
+Application-Image: ghcr.io/lifei-cell/fitpilot@sha256:0c4458f297967e40d5a2c2f01642557e463ca78bbbabf029206685ea9d416a35
+
+Application-Platforms: linux/amd64,linux/arm64
+
+Application-amd64-Manifest: sha256:d0eee72ef32a7a0a1a5e0867bdc7f001d997b0559acc32e73571a4b1bad5fe0a
+
+Application-amd64-SBOM-SPDX: sha256:63c16246d2d3cfbc1bdf6015fa44c49a408bf25d051af8d766f32fd6b6793e51
+
+Application-amd64-Build-Provenance-SLSA-v1: sha256:7fa2ebbf3fd79280d5ddb073b14c961d363d3582c8ff3c0e5e24241a151ac571
+
+Application-arm64-Manifest: sha256:5fee7e9f4bf4d77f648d6f17e5a734e8fb082e92b4f816fc09ae4613faa3dcdc
+
+Application-arm64-SBOM-SPDX: sha256:58b87e5685b385146355a0310f7d21479e7d1311927ddd4cebd4c59eeb14466b
+
+Application-arm64-Build-Provenance-SLSA-v1: sha256:3a58508edec47d9674da7c18ff19e5b5938ed4814594b136c07470242492a5ef
+
+Application-GitHub-Provenance: VERIFIED
+
+Web-Image: ghcr.io/lifei-cell/fitpilot-web@sha256:c6bde57ef08d9b2cec55232b9b074de2011fd3dca5ce3cc931260734987d2022
+
+Web-Platforms: linux/amd64,linux/arm64
+
+Web-amd64-Manifest: sha256:554c46162375cd46289aa72fb21c06ef4930616c806bf95fa935ba38ec6a056b
+
+Web-amd64-SBOM-SPDX: sha256:fd4f6b44bfbf36daee406f3377a083e25dfd334a4a9f0307f2cf427a473ab73e
+
+Web-amd64-Build-Provenance-SLSA-v1: sha256:98376b607f25555a34f85e88ae17f0e0dfb1d3d08b140089ecf1ddcb59b67338
+
+Web-arm64-Manifest: sha256:65eb94191ebbf7ee7586e02bf1297c5db1f465b87cf0c4c3642c36bef7afe581
+
+Web-arm64-SBOM-SPDX: sha256:700393efed49360c10b975802ae204c3ba95204980c980224070b15b3d1d8bf6
+
+Web-arm64-Build-Provenance-SLSA-v1: sha256:fbf504e8629c62bd2b96bc694a0dcdb1773551380b5273ca52fe087dd1c923d6
+
+Web-GitHub-Provenance: VERIFIED
+
+Source-Ref: refs/heads/main
+
+Signer-Workflow: lifei-cell/FitPilot/.github/workflows/release.yml
+
+Signer-Run: https://github.com/lifei-cell/FitPilot/actions/runs/34235706001/attempts/1
+
+Production-Delivery-Gate: SKIPPED
