@@ -5,13 +5,10 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.idempotency.IdempotencyRequest;
 import com.fitpilot.common.response.PageResult;
-import com.fitpilot.exercise.domain.Exercise;
-import com.fitpilot.exercise.repository.ExerciseRepository;
-import com.fitpilot.plan.domain.TrainingPlan;
-import com.fitpilot.plan.domain.TrainingPlanDay;
-import com.fitpilot.plan.domain.TrainingPlanExercise;
-import com.fitpilot.plan.repository.TrainingPlanRepository;
-import com.fitpilot.pr.repository.PersonalRecordRepository;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.exercise.dto.ExerciseView;
+import com.fitpilot.plan.application.TrainingPlanService;
+import com.fitpilot.pr.application.PersonalRecordService;
 import com.fitpilot.infrastructure.events.EventOutboxService;
 import com.fitpilot.infrastructure.events.EventPayloads;
 import com.fitpilot.infrastructure.events.EventTypes;
@@ -30,24 +27,23 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class WorkoutService {
     private static final Logger log = LoggerFactory.getLogger(WorkoutService.class);
     private final WorkoutRepository repository;
-    private final TrainingPlanRepository plans;
-    private final ExerciseRepository exercises;
-    private final PersonalRecordRepository personalRecordRepository;
+    private final TrainingPlanService plans;
+    private final ExerciseService exercises;
+    private final PersonalRecordService personalRecords;
     private final EventOutboxService events;
 
-    public WorkoutService(WorkoutRepository repository, TrainingPlanRepository plans, ExerciseRepository exercises,
-                          PersonalRecordRepository personalRecordRepository, EventOutboxService events) {
+    public WorkoutService(WorkoutRepository repository, TrainingPlanService plans, ExerciseService exercises,
+                          PersonalRecordService personalRecords, EventOutboxService events) {
         this.repository = repository;
         this.plans = plans;
         this.exercises = exercises;
-        this.personalRecordRepository = personalRecordRepository;
+        this.personalRecords = personalRecords;
         this.events = events;
     }
 
@@ -72,29 +68,30 @@ public class WorkoutService {
         if (repository.findInProgress(userId).isPresent()) {
             throw alreadyInProgress();
         }
-        TrainingPlan plan = plans.findOwned(userId, request.trainingPlanId()).orElseThrow(this::planNotFound);
-        if (!"ACTIVE".equals(plan.status)) {
+        TrainingPlanService.WorkoutTemplate template = plans.workoutTemplate(
+                userId, request.trainingPlanId(), request.trainingPlanDayId());
+        if (!"ACTIVE".equals(template.status())) {
             throw new BusinessException(ErrorCode.INVALID_TRAINING_PLAN, "only an active plan can start a workout");
         }
-        TrainingPlanDay day = plans.findOwnedDay(userId, plan.id, request.trainingPlanDayId())
-                .orElseThrow(this::planNotFound);
-        List<TrainingPlanExercise> plannedExercises = plans.findDayExercises(day.id);
+        List<TrainingPlanService.PlannedExercise> plannedExercises = template.exercises();
         if (plannedExercises.isEmpty()) {
             throw new BusinessException(ErrorCode.INVALID_TRAINING_PLAN, "training day has no exercises");
         }
-        Map<Long, Exercise> exerciseById = exercises.findActiveByIds(
-                plannedExercises.stream().map(e -> e.exerciseId).toList()).stream()
-                .collect(Collectors.toMap(e -> e.id, Function.identity()));
-        if (exerciseById.size() != plannedExercises.stream().map(e -> e.exerciseId).distinct().count()) {
+        Map<Long, ExerciseView> exerciseById = exercises.findActiveByIds(
+                plannedExercises.stream().map(TrainingPlanService.PlannedExercise::exerciseId).toList()).stream()
+                .collect(Collectors.toMap(ExerciseView::id, exercise -> exercise));
+        if (exerciseById.size() != plannedExercises.stream()
+                .map(TrainingPlanService.PlannedExercise::exerciseId).distinct().count()) {
             throw new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "planned exercise is unavailable", HttpStatus.NOT_FOUND);
         }
 
         LocalDateTime now = LocalDateTime.now();
         Workout workout = new Workout();
         workout.userId = userId;
-        workout.trainingPlanId = plan.id;
-        workout.trainingPlanDayId = day.id;
-        workout.name = request.name() == null || request.name().isBlank() ? day.name : request.name().trim();
+        workout.trainingPlanId = template.planId();
+        workout.trainingPlanDayId = template.dayId();
+        workout.name = request.name() == null || request.name().isBlank()
+                ? template.dayName() : request.name().trim();
         workout.status = "IN_PROGRESS";
         workout.startedAt = now;
         workout.notes = request.notes();
@@ -110,18 +107,18 @@ public class WorkoutService {
             throw alreadyInProgress();
         }
 
-        for (TrainingPlanExercise source : plannedExercises) {
+        for (TrainingPlanService.PlannedExercise source : plannedExercises) {
             WorkoutExercise snapshot = new WorkoutExercise();
             snapshot.workoutId = workout.id;
-            snapshot.exerciseId = source.exerciseId;
-            snapshot.sequence = source.sequence;
-            snapshot.exerciseName = exerciseById.get(source.exerciseId).name;
-            snapshot.targetSets = source.targetSets;
-            snapshot.targetRepsMin = source.targetRepsMin;
-            snapshot.targetRepsMax = source.targetRepsMax;
-            snapshot.targetRpe = source.targetRpe;
-            snapshot.restSeconds = source.restSeconds;
-            snapshot.notes = source.notes;
+            snapshot.exerciseId = source.exerciseId();
+            snapshot.sequence = source.sequence();
+            snapshot.exerciseName = exerciseById.get(source.exerciseId()).name();
+            snapshot.targetSets = source.targetSets();
+            snapshot.targetRepsMin = source.targetRepsMin();
+            snapshot.targetRepsMax = source.targetRepsMax();
+            snapshot.targetRpe = source.targetRpe();
+            snapshot.restSeconds = source.restSeconds();
+            snapshot.notes = source.notes();
             snapshot.createdAt = now;
             repository.insert(snapshot);
         }
@@ -156,12 +153,12 @@ public class WorkoutService {
     @Transactional
     public WorkoutDtos.ExerciseView addExercise(long userId, long workoutId, WorkoutDtos.AddExerciseRequest request) {
         ensureInProgress(owned(userId, workoutId));
-        Exercise source = exercises.findActive(request.exerciseId())
+        ExerciseView source = exercises.findActive(request.exerciseId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "exercise not found", HttpStatus.NOT_FOUND));
         WorkoutExercise snapshot = new WorkoutExercise();
         snapshot.workoutId = workoutId;
-        snapshot.exerciseId = source.id;
-        snapshot.exerciseName = source.name;
+        snapshot.exerciseId = source.id();
+        snapshot.exerciseName = source.name();
         snapshot.sequence = repository.nextExerciseSequence(workoutId);
         snapshot.notes = request.notes();
         snapshot.createdAt = LocalDateTime.now();
@@ -221,7 +218,7 @@ public class WorkoutService {
         Workout workout = owned(userId, workoutId);
         if ("COMPLETED".equals(workout.status)) {
             return new WorkoutDtos.CompleteView(get(userId, workoutId),
-                    personalRecordRepository.countByWorkout(userId, workoutId));
+                    personalRecords.countByWorkout(userId, workoutId));
         }
         ensureInProgress(workout);
         List<WorkoutExercise> exerciseList = repository.findExercises(workoutId);

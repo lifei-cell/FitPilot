@@ -11,6 +11,10 @@ import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class ExerciseService {
     private final ExerciseRepository repository;
@@ -30,6 +34,14 @@ public class ExerciseService {
         return cache.get("exercise", String.valueOf(id), ExerciseView.class,
                         () -> repository.findActive(id).map(ExerciseView::from))
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "exercise not found", HttpStatus.NOT_FOUND));
+    }
+
+    public Optional<ExerciseView> findActive(long id) {
+        return repository.findActive(id).map(ExerciseView::from);
+    }
+
+    public List<ExerciseView> findActiveByIds(Collection<Long> ids) {
+        return repository.findActiveByIds(ids).stream().map(ExerciseView::from).toList();
     }
 
     private String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }

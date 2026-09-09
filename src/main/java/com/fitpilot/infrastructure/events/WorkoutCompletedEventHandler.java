@@ -34,8 +34,12 @@ public class WorkoutCompletedEventHandler {
         if (!processedEvents.claim(event.envelope().eventId(), PR_CONSUMER)) return;
         Workout workout = completedWorkout(event.payload());
         var exerciseList = workouts.findExercises(workout.id);
-        personalRecords.calculateAndPersist(workout, exerciseList,
-                workouts.findSets(exerciseList.stream().map(exercise -> exercise.id).toList()));
+        var setList = workouts.findSets(exerciseList.stream().map(exercise -> exercise.id).toList());
+        personalRecords.calculateAndPersist(new PersonalRecordService.CompletedWorkout(workout.id, workout.userId,
+                exerciseList.stream().map(exercise -> new PersonalRecordService.CompletedExercise(
+                        exercise.id, exercise.exerciseId, exercise.exerciseName)).toList(),
+                setList.stream().map(set -> new PersonalRecordService.CompletedSet(set.id, set.workoutExerciseId,
+                        set.weightKg, set.reps, Boolean.TRUE.equals(set.isWarmup), set.completedAt)).toList()));
     }
 
     @Transactional

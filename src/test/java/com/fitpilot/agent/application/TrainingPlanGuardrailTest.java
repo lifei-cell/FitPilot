@@ -9,7 +9,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TrainingPlanGuardrailTest {
-    private final TrainingPlanGuardrail guardrail=new TrainingPlanGuardrail();
+    private final TrainingPlanGuardrail guardrail=new TrainingPlanGuardrail(
+            new com.fitpilot.plan.application.TrainingPlanValidationService());
     @Test void acceptsBoundedStructuredPlan(){assertThat(guardrail.validate(plan(3,8,7,90,3))).isEmpty();}
     @Test void rejectsExcessiveVolumeRpeRestAndDuration(){
         assertThat(guardrail.validate(plan(9,20,4,900,9))).contains("计划周期必须为 1-16 周","每周训练频率不得超过 6 天","单动作组数必须为 1-8 组","目标 RPE 不得低于 5","组间休息必须为 30-600 秒");

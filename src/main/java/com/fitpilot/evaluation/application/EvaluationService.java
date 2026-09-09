@@ -10,8 +10,8 @@ import com.fitpilot.llm.application.PromptRegistry;
 import com.fitpilot.llm.domain.LlmModels;
 import com.fitpilot.rag.application.HybridRetrievalService;
 import com.fitpilot.rag.application.KnowledgeIngestionService;
+import com.fitpilot.rag.application.RagFeedbackService;
 import com.fitpilot.rag.dto.RagDtos;
-import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -43,7 +43,7 @@ public class EvaluationService {
     private final ThreadPoolTaskExecutor executor;
     private final TaskScheduler heartbeatScheduler;
     private final EvaluationProperties properties;
-    private final RagGovernanceRepository governance;
+    private final RagFeedbackService ragFeedback;
     private final Map<UUID, ActiveRun> activeRuns = new ConcurrentHashMap<>();
     private final String workerId = UUID.randomUUID().toString();
 
@@ -54,7 +54,7 @@ public class EvaluationService {
                              @Qualifier("evaluationExecutor") ThreadPoolTaskExecutor executor,
                              @Qualifier("evaluationHeartbeatScheduler") TaskScheduler heartbeatScheduler,
                              EvaluationProperties properties,
-                             RagGovernanceRepository governance) {
+                             RagFeedbackService ragFeedback) {
         this.datasets = datasets;
         this.repository = repository;
         this.planner = planner;
@@ -65,7 +65,7 @@ public class EvaluationService {
         this.executor = executor;
         this.heartbeatScheduler = heartbeatScheduler;
         this.properties = properties;
-        this.governance = governance;
+        this.ragFeedback = ragFeedback;
     }
     public UUID startAgent(String requestedMode) {
         String mode = requestedMode == null || requestedMode.isBlank() ? "RULE_WORKFLOW" : requestedMode;
@@ -77,10 +77,10 @@ public class EvaluationService {
     }
     public UUID startRag(){
         UUID id=UUID.randomUUID();
-        List<RagGovernanceRepository.DynamicEvalCase> dynamic=List.copyOf(governance.dynamicCases());
+        List<RagFeedbackService.DynamicEvaluationCase> dynamic=List.copyOf(ragFeedback.dynamicEvaluationCases());
         List<EvaluationCases.RagCase> frozen=new ArrayList<>(datasets.rag());
         dynamic.forEach(item->frozen.add(new EvaluationCases.RagCase("dynamic-"+item.id(),item.query(),List.of(),item.expectedSources(),item.category())));
-        long version=dynamic.stream().mapToLong(RagGovernanceRepository.DynamicEvalCase::version).max().orElse(0);
+        long version=dynamic.stream().mapToLong(RagFeedbackService.DynamicEvaluationCase::version).max().orElse(0);
         String dataset=EvaluationDatasetLoader.RAG_VERSION+"+dynamic-"+version;
         List<EvaluationCases.RagCase> cases = List.copyOf(frozen);
         repository.createRag(id,dataset,Map.of("staticVersion",EvaluationDatasetLoader.RAG_VERSION,
@@ -159,8 +159,8 @@ public class EvaluationService {
         for (var item : cases) {
             ensureLease(run);
             long started = System.nanoTime();
-            AgentPlanner.Decision fallback = planner.decide(item.query());
-            LlmModels.Result<AgentPlanner.Decision> result = "ACTIVE_MODEL".equals(mode)
+            LlmModels.WorkflowDecision fallback = planner.decide(item.query());
+            LlmModels.Result<LlmModels.WorkflowDecision> result = "ACTIVE_MODEL".equals(mode)
                     ? llm.decide(null, item.query(), fallback)
                     : LlmModels.Result.rule(fallback, prompts.version());
             List<String> actual = result.value().tools();

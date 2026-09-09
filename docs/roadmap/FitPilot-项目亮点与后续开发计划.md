@@ -121,7 +121,7 @@ FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训�
 
 #### 4.8 保持模块化单体，按证据演进架构
 
-- 继续强化模块边界、领域事件契约和架构测试，避免 Controller/Service 跨模块直接访问 Mapper。
+- 以 ArchUnit 持续强化模块边界和领域事件契约，自动禁止 Controller 直连 Mapper、跨模块访问内部适配器及业务模块循环依赖。
 - 只有当独立扩缩容、故障隔离或团队发布节奏出现明确瓶颈时，再评估拆分事件、RAG/LLM 或通知模块。
 - 不把 Multi-Agent 或微服务化作为版本目标；只有单 Workflow 无法满足可衡量的业务场景时才引入额外复杂度。
 

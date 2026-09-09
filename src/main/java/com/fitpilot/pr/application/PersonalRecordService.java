@@ -2,10 +2,8 @@ package com.fitpilot.pr.application;
 
 import com.fitpilot.pr.domain.PersonalRecord;
 import com.fitpilot.pr.domain.PersonalRecordCalculator;
+import com.fitpilot.pr.dto.PersonalRecordView;
 import com.fitpilot.pr.repository.PersonalRecordRepository;
-import com.fitpilot.workout.domain.Workout;
-import com.fitpilot.workout.domain.WorkoutExercise;
-import com.fitpilot.workout.domain.WorkoutSet;
 import com.fitpilot.infrastructure.events.EventOutboxService;
 import com.fitpilot.infrastructure.events.EventPayloads;
 import com.fitpilot.infrastructure.events.EventTypes;
@@ -33,39 +31,42 @@ public class PersonalRecordService {
         this.events = events;
     }
 
-    public int calculateAndPersist(Workout workout, List<WorkoutExercise> workoutExercises, List<WorkoutSet> sets) {
-        Map<Long, WorkoutExercise> exerciseBySnapshot = workoutExercises.stream()
-                .collect(Collectors.toMap(e -> e.id, Function.identity()));
-        Set<Long> exerciseIds = workoutExercises.stream().map(e -> e.exerciseId).collect(Collectors.toSet());
+    public int calculateAndPersist(CompletedWorkout workout) {
+        Map<Long, CompletedExercise> exerciseBySnapshot = workout.exercises().stream()
+                .collect(Collectors.toMap(CompletedExercise::snapshotId, Function.identity()));
+        Set<Long> exerciseIds = workout.exercises().stream()
+                .map(CompletedExercise::exerciseId).collect(Collectors.toSet());
         Map<String, BigDecimal> best = new HashMap<>();
-        for (PersonalRecord record : repository.findCurrent(workout.userId, exerciseIds)) {
+        for (PersonalRecord record : repository.findCurrent(workout.userId(), exerciseIds)) {
             best.put(key(record.exerciseId, record.recordType), score(record));
         }
 
         int created = 0;
         List<PersonalRecord> newRecords = new ArrayList<>();
-        for (WorkoutSet set : sets) {
-            WorkoutExercise snapshot = exerciseBySnapshot.get(set.workoutExerciseId);
+        for (CompletedSet set : workout.sets()) {
+            CompletedExercise snapshot = exerciseBySnapshot.get(set.workoutExerciseId());
             if (snapshot == null) continue;
-            for (var candidate : calculator.candidates(set)) {
-                String key = key(snapshot.exerciseId, candidate.type());
+            var performance = new PersonalRecordCalculator.SetPerformance(
+                    set.weightKg(), set.reps(), set.warmup(), set.completedAt());
+            for (var candidate : calculator.candidates(performance)) {
+                String key = key(snapshot.exerciseId(), candidate.type());
                 BigDecimal previous = best.get(key);
                 if (previous != null && candidate.score().compareTo(previous) <= 0) continue;
                 PersonalRecord record = new PersonalRecord();
-                record.userId = workout.userId;
-                record.exerciseId = snapshot.exerciseId;
+                record.userId = workout.userId();
+                record.exerciseId = snapshot.exerciseId();
                 record.recordType = candidate.type();
-                record.weightKg = set.weightKg;
-                record.reps = set.reps;
+                record.weightKg = set.weightKg();
+                record.reps = set.reps();
                 record.estimated1rm = candidate.estimated1rm();
-                record.workoutId = workout.id;
-                record.workoutSetId = set.id;
-                record.achievedAt = set.completedAt;
+                record.workoutId = workout.id();
+                record.workoutSetId = set.id();
+                record.achievedAt = set.completedAt();
                 record.createdAt = LocalDateTime.now();
                 if (!repository.insertIfAbsent(record)) continue;
                 events.append("PersonalRecord", record.id, EventTypes.PERSONAL_RECORD_CREATED,
-                        new EventPayloads.PersonalRecordCreated(record.id, workout.userId, snapshot.exerciseId,
-                                snapshot.exerciseName, record.recordType, candidate.score(), workout.id, record.achievedAt));
+                        new EventPayloads.PersonalRecordCreated(record.id, workout.userId(), snapshot.exerciseId(),
+                                snapshot.exerciseName(), record.recordType, candidate.score(), workout.id(), record.achievedAt));
                 newRecords.add(record);
                 best.put(key, candidate.score());
                 created++;
@@ -73,6 +74,26 @@ public class PersonalRecordService {
         }
         updateLeaderboardAfterCommit(newRecords);
         return created;
+    }
+
+    public List<PersonalRecordView> current(long userId) {
+        return repository.findCurrent(userId).stream().map(PersonalRecordView::from).toList();
+    }
+
+    public List<PersonalRecordView> currentForExercise(long userId, long exerciseId) {
+        return repository.findCurrentForExercise(userId, exerciseId).stream().map(PersonalRecordView::from).toList();
+    }
+
+    public List<PersonalRecordView> history(long userId, long exerciseId) {
+        return repository.findHistory(userId, exerciseId).stream().map(PersonalRecordView::from).toList();
+    }
+
+    public int countByWorkout(long userId, long workoutId) {
+        return repository.countByWorkout(userId, workoutId);
+    }
+
+    public long countAchievedBetween(long userId, LocalDateTime start, LocalDateTime end) {
+        return repository.countAchievedBetween(userId, start, end);
     }
 
     private void updateLeaderboardAfterCommit(List<PersonalRecord> records) {
@@ -93,4 +114,10 @@ public class PersonalRecordService {
     }
 
     private String key(long exerciseId, String type) { return exerciseId + ":" + type; }
+
+    public record CompletedWorkout(long id, long userId, List<CompletedExercise> exercises,
+                                   List<CompletedSet> sets) {}
+    public record CompletedExercise(long snapshotId, long exerciseId, String exerciseName) {}
+    public record CompletedSet(long id, long workoutExerciseId, BigDecimal weightKg, Integer reps,
+                               boolean warmup, LocalDateTime completedAt) {}
 }

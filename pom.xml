@@ -19,6 +19,7 @@
         <springdoc.version>2.9.0</springdoc.version>
         <jjwt.version>0.13.0</jjwt.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <archunit.version>1.5.0</archunit.version>
         <netty.version>4.1.136.Final</netty.version>
         <tomcat.version>10.1.59</tomcat.version>
         <postgresql.version>42.7.12</postgresql.version>
@@ -58,6 +59,7 @@
         <dependency><groupId>org.testcontainers</groupId><artifactId>kafka</artifactId><version>${testcontainers.version}</version><scope>test</scope></dependency>
         <dependency><groupId>org.testcontainers</groupId><artifactId>elasticsearch</artifactId><version>${testcontainers.version}</version><scope>test</scope></dependency>
         <dependency><groupId>org.awaitility</groupId><artifactId>awaitility</artifactId><scope>test</scope></dependency>
+        <dependency><groupId>com.tngtech.archunit</groupId><artifactId>archunit-junit5</artifactId><version>${archunit.version}</version><scope>test</scope></dependency>
     </dependencies>
     <build>
         <plugins>

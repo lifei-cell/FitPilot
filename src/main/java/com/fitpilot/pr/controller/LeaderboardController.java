@@ -3,7 +3,7 @@ package com.fitpilot.pr.controller;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.ApiResponse;
-import com.fitpilot.exercise.repository.ExerciseRepository;
+import com.fitpilot.exercise.application.ExerciseService;
 import com.fitpilot.pr.application.LeaderboardService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -19,9 +19,9 @@ import java.util.List;
 @RequestMapping("/api/v1/leaderboards")
 public class LeaderboardController {
     private final LeaderboardService service;
-    private final ExerciseRepository exercises;
+    private final ExerciseService exercises;
 
-    public LeaderboardController(LeaderboardService service, ExerciseRepository exercises) {
+    public LeaderboardController(LeaderboardService service, ExerciseService exercises) {
         this.service = service;
         this.exercises = exercises;
     }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -81,6 +82,10 @@ public class UserService {
     public UserDtos.BodyMetricView latestMetric(long userId) {
         return metrics.latest(userId).map(this::metricView)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "body metric not found", HttpStatus.NOT_FOUND));
+    }
+
+    public List<UserDtos.BodyMetricView> metricsBetween(long userId, LocalDateTime start, LocalDateTime end) {
+        return metrics.findRange(userId, start, end).stream().map(this::metricView).toList();
     }
 
     private UserDtos.UserProfileView view(User user, UserProfile p) {

@@ -46,7 +46,17 @@ public class RagFeedbackService {
 
     public RagDtos.FeedbackSummary summary() { return repository.summary(); }
 
+    public List<DynamicEvaluationCase> dynamicEvaluationCases() {
+        return repository.dynamicCases().stream()
+                .map(item -> new DynamicEvaluationCase(item.id(), item.query(), item.expectedSources(),
+                        item.category(), item.version()))
+                .toList();
+    }
+
     private BusinessException notFound() {
         return new BusinessException(ErrorCode.RAG_FEEDBACK_NOT_FOUND, "retrieval or feedback not found", HttpStatus.NOT_FOUND);
     }
+
+    public record DynamicEvaluationCase(UUID id, String query, List<String> expectedSources,
+                                        String category, long version) {}
 }

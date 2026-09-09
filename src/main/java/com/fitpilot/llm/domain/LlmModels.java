@@ -7,6 +7,7 @@ import java.util.Map;
 public final class LlmModels {
     private LlmModels() {}
     public enum Task { INTENT_CLASSIFICATION, QUERY_REWRITE, MEMORY_EXTRACTION, TRAINING_ANALYSIS, PLAN_GENERATION }
+    public record WorkflowDecision(String intent, List<String> tools) {}
     public record ToolCall(String name, Map<String, Object> arguments) {}
     public record AgentDecision(String intent, List<ToolCall> toolCalls, String responseMode) {}
     public record Completion(String content, String provider, String model, int inputTokens, int outputTokens,

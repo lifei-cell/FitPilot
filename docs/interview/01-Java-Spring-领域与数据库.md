@@ -29,7 +29,7 @@ Workout 完成后需要的 PR、Analytics、Notification 不直接塞进同步�
 
 ### 高频追问
 
-**问：模块化单体如何防止变成大泥球？** 通过包级依赖规则、只经 Service/Repository 访问数据、领域事件解耦派生动作、架构测试和代码所有权。当前项目尚未引入 ArchUnit，这是可补强项。
+**问：模块化单体如何防止变成大泥球？** 通过包级依赖规则、只经 Application Service 访问其他模块、领域事件解耦派生动作、架构测试和代码所有权。当前项目已由 `ModuleBoundaryArchitectureTest` 自动约束 Controller、领域层、跨模块调用和循环依赖。
 
 **问：为什么不直接上 Spring Modulith？** 当前包结构和事件边界已经能够满足规模；Modulith 可用于自动验证模块依赖和生成文档，但引入前要确认收益，不为框架而框架。
 

@@ -2,7 +2,6 @@ package com.fitpilot.llm.application;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fitpilot.agent.application.AgentPlanner;
 import com.fitpilot.llm.config.LlmProperties;
 import com.fitpilot.llm.domain.LlmModels;
 import com.fitpilot.llm.infrastructure.OpenAiCompatibleClient;
@@ -25,12 +24,13 @@ public class LlmGateway {
         this.properties=properties;this.prompts=prompts;this.client=client;this.json=json;
     }
 
-    public LlmModels.Result<AgentPlanner.Decision> decide(UUID executionId, String message, AgentPlanner.Decision fallback) {
+    public LlmModels.Result<LlmModels.WorkflowDecision> decide(UUID executionId, String message,
+                                                                LlmModels.WorkflowDecision fallback) {
         if (!properties.isEnabled()) return LlmModels.Result.rule(fallback,prompts.version());
         try {
             LlmModels.Completion completion=client.complete(executionId,LlmModels.Task.INTENT_CLASSIFICATION,message,true);
             LlmModels.AgentDecision raw=json.readValue(cleanJson(completion.content()),LlmModels.AgentDecision.class);
-            AgentPlanner.Decision decision=validate(raw);
+            LlmModels.WorkflowDecision decision=validate(raw);
             return result(decision,completion);
         } catch (Exception failure) { return LlmModels.Result.rule(fallback,prompts.version()); }
     }
@@ -54,7 +54,7 @@ public class LlmGateway {
     }
     public Map<String,Object> status(){return client.status();}
 
-    private AgentPlanner.Decision validate(LlmModels.AgentDecision raw) {
+    private LlmModels.WorkflowDecision validate(LlmModels.AgentDecision raw) {
         if (raw==null||raw.intent()==null||raw.intent().isBlank()||raw.toolCalls()==null||raw.toolCalls().isEmpty())
             throw new IllegalArgumentException("invalid agent decision");
         List<String> names=new ArrayList<>();
@@ -66,7 +66,7 @@ public class LlmGateway {
         }
         if(names.contains("create_training_plan")&&!names.equals(PLAN_TOOLS)) throw new IllegalArgumentException("write workflow is incomplete");
         if(names.contains("adjust_training_plan")&&!names.equals(ADJUSTMENT_TOOLS)) throw new IllegalArgumentException("adjustment workflow is incomplete");
-        return new AgentPlanner.Decision(raw.intent().trim().toUpperCase(Locale.ROOT),List.copyOf(names));
+        return new LlmModels.WorkflowDecision(raw.intent().trim().toUpperCase(Locale.ROOT),List.copyOf(names));
     }
     private boolean containsUserId(Object value) {
         if(value instanceof Map<?,?> map) return map.entrySet().stream().anyMatch(entry -> "userid".equalsIgnoreCase(String.valueOf(entry.getKey()))||containsUserId(entry.getValue()));

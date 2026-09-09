@@ -172,7 +172,7 @@ mvn spring-boot:run
 
 统一门禁依次执行 Maven、真实 ESLint、TypeScript 类型检查、Vitest + React Testing Library + MSW 覆盖率测试、生产构建和 Playwright Chromium E2E。首次运行会安装锁定依赖和 Chromium；已准备环境可使用 `-SkipInstall -SkipBrowserInstall`，但不会跳过任何测试。
 
-`mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
+`mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。ArchUnit 自动阻断 Controller 直连 Mapper、领域层反向依赖基础设施、跨模块绕过 Application Service/领域事件以及业务模块循环依赖。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
 
 当前本地统一门禁已通过：30 个 Surefire/Failsafe 报告、65 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V17 与 JaCoCo 门禁通过，后端行覆盖率 83.12%。Web 通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [V17 当前功能验收](docs/release/v17-functional-validation.md)。
 

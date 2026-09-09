@@ -3,8 +3,8 @@ package com.fitpilot.agent.adjustment;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
-import com.fitpilot.exercise.repository.ExerciseRepository;
-import com.fitpilot.exercise.domain.Exercise;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.exercise.dto.ExerciseView;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class TrainingAdjustmentServiceTest {
     private final TrainingAdjustmentRepository repository = mock(TrainingAdjustmentRepository.class);
     private final TrainingPlanService plans = mock(TrainingPlanService.class);
-    private final ExerciseRepository exercises = mock(ExerciseRepository.class);
+    private final ExerciseService exercises = mock(ExerciseService.class);
     private final TrainingAdjustmentService service = new TrainingAdjustmentService(repository, plans, exercises);
 
     @Test
@@ -64,8 +64,8 @@ class TrainingAdjustmentServiceTest {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
                 12, 80, 81, 7.2, 6, 5, 1, 10000, 10000, 0));
-        Exercise source = exercise(1, "CHEST");
-        Exercise replacement = exercise(99, "CHEST");
+        ExerciseView source = exercise(1, "CHEST");
+        ExerciseView replacement = exercise(99, "CHEST");
         when(exercises.findActive(1)).thenReturn(java.util.Optional.of(source));
         when(exercises.findActive(99)).thenReturn(java.util.Optional.of(replacement));
         var proposal = service.deterministicPlan(service.analyze(7));
@@ -108,11 +108,8 @@ class TrainingAdjustmentServiceTest {
                         new TrainingPlanDtos.ExerciseRequest(1L, 1, 3, 8, 12, BigDecimal.valueOf(7), 90, null)))));
     }
 
-    private Exercise exercise(long id, String muscle) {
-        Exercise exercise = new Exercise();
-        exercise.id = id;
-        exercise.primaryMuscle = muscle;
-        exercise.status = 1;
-        return exercise;
+    private ExerciseView exercise(long id, String muscle) {
+        return new ExerciseView(id, "exercise", null, "STRENGTH", null,
+                null, muscle, null, null, null);
     }
 }

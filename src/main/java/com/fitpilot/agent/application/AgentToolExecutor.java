@@ -3,8 +3,7 @@ package com.fitpilot.agent.application;
 import com.fitpilot.analytics.application.AnalyticsService;
 import com.fitpilot.agent.adjustment.TrainingAdjustmentService;
 import com.fitpilot.plan.application.TrainingPlanService;
-import com.fitpilot.pr.dto.PersonalRecordView;
-import com.fitpilot.pr.repository.PersonalRecordRepository;
+import com.fitpilot.pr.application.PersonalRecordService;
 import com.fitpilot.rag.application.HybridRetrievalService;
 import com.fitpilot.user.application.UserService;
 import com.fitpilot.workout.application.WorkoutService;
@@ -16,11 +15,11 @@ import java.util.Map;
 
 @Component
 public class AgentToolExecutor {
-    private final UserService users; private final WorkoutService workouts; private final PersonalRecordRepository records;
+    private final UserService users; private final WorkoutService workouts; private final PersonalRecordService records;
     private final TrainingPlanService plans; private final AnalyticsService analytics;
     private final TrainingAdjustmentService adjustments;
     private final ObjectProvider<HybridRetrievalService> retrieval;
-    public AgentToolExecutor(UserService users, WorkoutService workouts, PersonalRecordRepository records,
+    public AgentToolExecutor(UserService users, WorkoutService workouts, PersonalRecordService records,
                              TrainingPlanService plans, AnalyticsService analytics, TrainingAdjustmentService adjustments,
                              ObjectProvider<HybridRetrievalService> retrieval) {
         this.users=users; this.workouts=workouts; this.records=records; this.plans=plans; this.analytics=analytics;
@@ -31,7 +30,7 @@ public class AgentToolExecutor {
         return switch (tool) {
             case "get_user_profile" -> Map.of("profile", users.getProfile(currentUserId), "latestBodyMetric", safeMetric(currentUserId));
             case "get_workout_history" -> workouts.list(currentUserId, null, null, "COMPLETED", 1, 20);
-            case "get_personal_records" -> records.findCurrent(currentUserId).stream().map(PersonalRecordView::from).toList();
+            case "get_personal_records" -> records.current(currentUserId);
             case "get_training_plan" -> safePlan(currentUserId);
             case "get_training_volume" -> analytics.overview(currentUserId);
             case "get_training_adjustment_context" -> adjustments.context(currentUserId);

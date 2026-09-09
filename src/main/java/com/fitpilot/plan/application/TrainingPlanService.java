@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.PageResult;
-import com.fitpilot.exercise.repository.ExerciseRepository;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.exercise.dto.ExerciseView;
 import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import com.fitpilot.infrastructure.events.EventOutboxService;
 import com.fitpilot.infrastructure.events.EventPayloads;
@@ -12,7 +13,6 @@ import com.fitpilot.infrastructure.events.EventTypes;
 import com.fitpilot.plan.domain.TrainingPlan;
 import com.fitpilot.plan.domain.TrainingPlanDay;
 import com.fitpilot.plan.domain.TrainingPlanExercise;
-import com.fitpilot.plan.domain.TrainingPlanValidator;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.plan.repository.TrainingPlanRepository;
 import org.springframework.http.HttpStatus;
@@ -26,21 +26,23 @@ import java.util.stream.Collectors;
 @Service
 public class TrainingPlanService {
     private final TrainingPlanRepository repository;
-    private final ExerciseRepository exercises;
+    private final ExerciseService exercises;
     private final TwoLevelCache cache;
     private final EventOutboxService events;
+    private final TrainingPlanValidationService validation;
 
-    public TrainingPlanService(TrainingPlanRepository repository, ExerciseRepository exercises, TwoLevelCache cache,
-                               EventOutboxService events) {
+    public TrainingPlanService(TrainingPlanRepository repository, ExerciseService exercises, TwoLevelCache cache,
+                               EventOutboxService events, TrainingPlanValidationService validation) {
         this.repository = repository;
         this.exercises = exercises;
         this.cache = cache;
         this.events = events;
+        this.validation = validation;
     }
 
     @Transactional
     public TrainingPlanDtos.PlanView create(long userId, TrainingPlanDtos.CreateRequest request) {
-        TrainingPlanValidator.validate(request);
+        validation.validate(request);
         Set<Long> requestedIds = request.days().stream().flatMap(day -> day.exercises().stream())
                 .map(TrainingPlanDtos.ExerciseRequest::exerciseId).collect(Collectors.toSet());
         if (exercises.findActiveByIds(requestedIds).size() != requestedIds.size()) {
@@ -94,7 +96,7 @@ public class TrainingPlanService {
         List<TrainingPlanDay> days = repository.findDays(planId);
         List<TrainingPlanExercise> planExercises = repository.findExercisesByDays(days.stream().map(d -> d.id).toList());
         Map<Long, String> exerciseNames = exercises.findActiveByIds(planExercises.stream().map(e -> e.exerciseId).collect(Collectors.toSet()))
-                .stream().collect(Collectors.toMap(e -> e.id, e -> e.name));
+                .stream().collect(Collectors.toMap(ExerciseView::id, ExerciseView::name));
         Map<Long, List<TrainingPlanExercise>> byDay = planExercises
                 .stream().collect(Collectors.groupingBy(e -> e.trainingPlanDayId, LinkedHashMap::new, Collectors.toList()));
         List<TrainingPlanDtos.DayView> dayViews = days.stream().map(day -> new TrainingPlanDtos.DayView(
@@ -105,7 +107,7 @@ public class TrainingPlanService {
 
     @Transactional
     public TrainingPlanDtos.PlanView update(long userId, long planId, TrainingPlanDtos.UpdateRequest request) {
-        TrainingPlanValidator.validate(request);
+        validation.validate(request);
         Set<Long> requestedIds = request.days().stream().flatMap(day -> day.exercises().stream())
                 .map(TrainingPlanDtos.ExerciseRequest::exerciseId).collect(Collectors.toSet());
         if (exercises.findActiveByIds(requestedIds).size() != requestedIds.size()) {
@@ -170,6 +172,17 @@ public class TrainingPlanService {
         return get(userId, planId);
     }
 
+    public WorkoutTemplate workoutTemplate(long userId, long planId, long dayId) {
+        TrainingPlan plan = repository.findOwned(userId, planId).orElseThrow(this::notFound);
+        TrainingPlanDay day = repository.findOwnedDay(userId, planId, dayId).orElseThrow(this::notFound);
+        List<PlannedExercise> plannedExercises = repository.findDayExercises(day.id).stream()
+                .map(exercise -> new PlannedExercise(exercise.exerciseId, exercise.sequence, exercise.targetSets,
+                        exercise.targetRepsMin, exercise.targetRepsMax, exercise.targetRpe,
+                        exercise.restSeconds, exercise.notes))
+                .toList();
+        return new WorkoutTemplate(plan.id, plan.status, day.id, day.name, plannedExercises);
+    }
+
     private TrainingPlanDtos.ExerciseView exerciseView(TrainingPlanExercise e, String exerciseName) {
         return new TrainingPlanDtos.ExerciseView(e.id, e.exerciseId, exerciseName, e.sequence, e.targetSets,
                 e.targetRepsMin, e.targetRepsMax, e.targetRpe, e.restSeconds, e.notes);
@@ -209,4 +222,10 @@ public class TrainingPlanService {
     private BusinessException notFound() {
         return new BusinessException(ErrorCode.TRAINING_PLAN_NOT_FOUND, "training plan not found", HttpStatus.NOT_FOUND);
     }
+
+    public record WorkoutTemplate(long planId, String status, long dayId, String dayName,
+                                  List<PlannedExercise> exercises) {}
+    public record PlannedExercise(long exerciseId, int sequence, Integer targetSets, Integer targetRepsMin,
+                                  Integer targetRepsMax, java.math.BigDecimal targetRpe,
+                                  Integer restSeconds, String notes) {}
 }

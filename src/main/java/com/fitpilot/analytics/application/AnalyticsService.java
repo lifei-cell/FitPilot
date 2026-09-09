@@ -4,9 +4,9 @@ import com.fitpilot.analytics.dto.AnalyticsDtos;
 import com.fitpilot.analytics.infrastructure.AnalyticsMapper;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
-import com.fitpilot.exercise.repository.ExerciseRepository;
-import com.fitpilot.pr.repository.PersonalRecordRepository;
-import com.fitpilot.user.repository.BodyMetricRepository;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.pr.application.PersonalRecordService;
+import com.fitpilot.user.application.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +17,16 @@ import java.util.List;
 @Service
 public class AnalyticsService {
     private final AnalyticsMapper mapper;
-    private final PersonalRecordRepository personalRecords;
-    private final ExerciseRepository exercises;
-    private final BodyMetricRepository metrics;
+    private final PersonalRecordService personalRecords;
+    private final ExerciseService exercises;
+    private final UserService users;
 
-    public AnalyticsService(AnalyticsMapper mapper, PersonalRecordRepository personalRecords,
-                            ExerciseRepository exercises, BodyMetricRepository metrics) {
+    public AnalyticsService(AnalyticsMapper mapper, PersonalRecordService personalRecords,
+                            ExerciseService exercises, UserService users) {
         this.mapper = mapper;
         this.personalRecords = personalRecords;
         this.exercises = exercises;
-        this.metrics = metrics;
+        this.users = users;
     }
 
     public AnalyticsDtos.Overview overview(long userId) {
@@ -50,7 +50,8 @@ public class AnalyticsService {
         LocalDate end = endDate == null ? LocalDate.now() : endDate;
         LocalDate start = startDate == null ? end.minusMonths(3) : startDate;
         if (start.isAfter(end)) throw new BusinessException(ErrorCode.VALIDATION_ERROR, "startDate must not be after endDate");
-        return metrics.findRange(userId, start.atStartOfDay(), end.plusDays(1).atStartOfDay().minusNanos(1)).stream()
-                .map(m -> new AnalyticsDtos.BodyWeightPoint(m.recordedAt, m.weightKg, m.bodyFatPercentage, m.muscleMassKg)).toList();
+        return users.metricsBetween(userId, start.atStartOfDay(), end.plusDays(1).atStartOfDay().minusNanos(1)).stream()
+                .map(m -> new AnalyticsDtos.BodyWeightPoint(
+                        m.recordedAt(), m.weightKg(), m.bodyFatPercentage(), m.muscleMassKg())).toList();
     }
 }

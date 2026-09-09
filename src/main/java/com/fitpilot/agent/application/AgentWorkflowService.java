@@ -84,10 +84,10 @@ public class AgentWorkflowService {
     public AgentDtos.MessageView message(long userId, UUID sessionId, AgentDtos.MessageRequest request) {
         owned(userId, sessionId); long started=System.nanoTime();
         if(observations.getCurrentObservation()!=null)observations.getCurrentObservation().highCardinalityKeyValue("enduser.id",sha256("user:"+userId).substring(0,16));
-        AgentPlanner.Decision fallbackDecision=planner.decide(request.message()); UUID executionId=UUID.randomUUID();
+        LlmModels.WorkflowDecision fallbackDecision=planner.decide(request.message()); UUID executionId=UUID.randomUUID();
         repository.startExecution(executionId,userId,sessionId,fallbackDecision.intent(),fallbackDecision.tools(),LocalDateTime.now());
         sessions.append(sessionId,"user",request.message(),"COMPLETED",executionId,Map.of());
-        LlmModels.Result<AgentPlanner.Decision> decisionResult;
+        LlmModels.Result<LlmModels.WorkflowDecision> decisionResult;
         try {
             decisionResult=llm.decide(executionId,request.message(),fallbackDecision);
         } catch (RuntimeException failure) {
@@ -96,7 +96,7 @@ public class AgentWorkflowService {
             metrics.agent("FAILED",true,elapsed(started),0);
             throw failure;
         }
-        AgentPlanner.Decision decision=decisionResult.value(); repository.updateDecision(executionId,decision.intent(),decision.tools());
+        LlmModels.WorkflowDecision decision=decisionResult.value(); repository.updateDecision(executionId,decision.intent(),decision.tools());
         apply(executionId,decisionResult);
         Map<String,Object> results=new LinkedHashMap<>();
         try {

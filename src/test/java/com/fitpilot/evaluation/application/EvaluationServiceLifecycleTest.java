@@ -7,7 +7,7 @@ import com.fitpilot.llm.application.LlmGateway;
 import com.fitpilot.llm.application.PromptRegistry;
 import com.fitpilot.rag.application.HybridRetrievalService;
 import com.fitpilot.rag.application.KnowledgeIngestionService;
-import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
+import com.fitpilot.rag.application.RagFeedbackService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.task.TaskRejectedException;
@@ -43,7 +43,7 @@ class EvaluationServiceLifecycleTest {
         @SuppressWarnings("unchecked") ObjectProvider<KnowledgeIngestionService> ingestion = mock(ObjectProvider.class);
         EvaluationService service = new EvaluationService(mock(EvaluationDatasetLoader.class), repository,
                 mock(AgentPlanner.class), mock(LlmGateway.class), prompts, retrieval, ingestion, executor,
-                heartbeatScheduler(), properties, mock(RagGovernanceRepository.class));
+                heartbeatScheduler(), properties, mock(RagFeedbackService.class));
 
         var id = service.startAgent("RULE_WORKFLOW");
 

@@ -1,6 +1,5 @@
 package com.fitpilot.pr.domain;
 
-import com.fitpilot.workout.domain.WorkoutSet;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -19,11 +18,8 @@ class PersonalRecordCalculatorTest {
 
     @Test
     void candidateDoesNotBeatHigherPreviousRecord() {
-        WorkoutSet set = new WorkoutSet();
-        set.weightKg = new BigDecimal("80");
-        set.reps = 5;
-        set.isWarmup = false;
-        set.completedAt = LocalDateTime.now();
+        var set = new PersonalRecordCalculator.SetPerformance(
+                new BigDecimal("80"), 5, false, LocalDateTime.now());
 
         BigDecimal newOneRm = calculator.candidates(set).stream()
                 .filter(candidate -> candidate.type().equals("ESTIMATED_1RM"))
@@ -33,11 +29,8 @@ class PersonalRecordCalculatorTest {
 
     @Test
     void warmupSetProducesNoRecords() {
-        WorkoutSet set = new WorkoutSet();
-        set.weightKg = new BigDecimal("100");
-        set.reps = 5;
-        set.isWarmup = true;
-        set.completedAt = LocalDateTime.now();
+        var set = new PersonalRecordCalculator.SetPerformance(
+                new BigDecimal("100"), 5, true, LocalDateTime.now());
         assertThat(calculator.candidates(set)).isEmpty();
     }
 }

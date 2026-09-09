@@ -3,8 +3,8 @@ package com.fitpilot.agent.adjustment;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.common.response.PageResult;
-import com.fitpilot.exercise.domain.Exercise;
-import com.fitpilot.exercise.repository.ExerciseRepository;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.exercise.dto.ExerciseView;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import org.springframework.http.HttpStatus;
@@ -19,10 +19,10 @@ import java.util.UUID;
 public class TrainingAdjustmentService {
     private final TrainingAdjustmentRepository repository;
     private final TrainingPlanService plans;
-    private final ExerciseRepository exercises;
+    private final ExerciseService exercises;
 
     public TrainingAdjustmentService(TrainingAdjustmentRepository repository, TrainingPlanService plans,
-                                     ExerciseRepository exercises) {
+                                     ExerciseService exercises) {
         this.repository = repository;
         this.plans = plans;
         this.exercises = exercises;
@@ -133,10 +133,10 @@ public class TrainingAdjustmentService {
                     issues.add("调整草案不能新增未经验证的动作位置");
                 } else if (!sourceExerciseId.equals(exercise.exerciseId())) {
                     if (!hasCitation) issues.add("动作替换必须引用有效知识来源");
-                    Exercise previous = exercises.findActive(sourceExerciseId).orElse(null);
-                    Exercise replacement = exercises.findActive(exercise.exerciseId()).orElse(null);
-                    if (previous == null || replacement == null || previous.primaryMuscle == null
-                            || !previous.primaryMuscle.equalsIgnoreCase(replacement.primaryMuscle)) {
+                    ExerciseView previous = exercises.findActive(sourceExerciseId).orElse(null);
+                    ExerciseView replacement = exercises.findActive(exercise.exerciseId()).orElse(null);
+                    if (previous == null || replacement == null || previous.primaryMuscle() == null
+                            || !previous.primaryMuscle().equalsIgnoreCase(replacement.primaryMuscle())) {
                         issues.add("动作替换必须匹配原动作的主要肌群");
                     }
                 }

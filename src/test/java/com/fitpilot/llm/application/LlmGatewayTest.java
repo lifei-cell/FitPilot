@@ -1,7 +1,6 @@
 package com.fitpilot.llm.application;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fitpilot.agent.application.AgentPlanner;
 import com.fitpilot.llm.config.LlmProperties;
 import com.fitpilot.llm.domain.LlmModels;
 import com.fitpilot.llm.infrastructure.OpenAiCompatibleClient;
@@ -24,7 +23,7 @@ class LlmGatewayTest {
     @Test void acceptsOnlyAllowedStructuredDecision() {
         when(client.complete(any(),eq(LlmModels.Task.INTENT_CLASSIFICATION),anyString(),eq(true)))
                 .thenReturn(completion("{\"intent\":\"TRAINING_VOLUME\",\"toolCalls\":[{\"name\":\"get_training_volume\",\"arguments\":{}}],\"responseMode\":\"analysis\"}"));
-        var fallback=new AgentPlanner.Decision("PROFILE",List.of("get_user_profile"));
+        var fallback=new LlmModels.WorkflowDecision("PROFILE",List.of("get_user_profile"));
         var result=gateway.decide(java.util.UUID.randomUUID(),"训练量",fallback);
         assertThat(result.value().tools()).containsExactly("get_training_volume");
         assertThat(result.degraded()).isFalse();
@@ -32,7 +31,7 @@ class LlmGatewayTest {
     @Test void rejectsIdentityArgumentsAndFallsBackToRules() {
         when(client.complete(any(),eq(LlmModels.Task.INTENT_CLASSIFICATION),anyString(),eq(true)))
                 .thenReturn(completion("{\"intent\":\"PROFILE\",\"toolCalls\":[{\"name\":\"get_user_profile\",\"arguments\":{\"userId\":99}}],\"responseMode\":\"analysis\"}"));
-        var fallback=new AgentPlanner.Decision("PROFILE",List.of("get_user_profile"));
+        var fallback=new LlmModels.WorkflowDecision("PROFILE",List.of("get_user_profile"));
         var result=gateway.decide(java.util.UUID.randomUUID(),"越权",fallback);
         assertThat(result.value()).isEqualTo(fallback);
         assertThat(result.model()).isEqualTo("RULE_WORKFLOW");

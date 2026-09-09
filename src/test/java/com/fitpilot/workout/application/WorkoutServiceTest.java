@@ -1,8 +1,8 @@
 package com.fitpilot.workout.application;
 
-import com.fitpilot.exercise.repository.ExerciseRepository;
-import com.fitpilot.plan.repository.TrainingPlanRepository;
-import com.fitpilot.pr.repository.PersonalRecordRepository;
+import com.fitpilot.exercise.application.ExerciseService;
+import com.fitpilot.plan.application.TrainingPlanService;
+import com.fitpilot.pr.application.PersonalRecordService;
 import com.fitpilot.infrastructure.events.EventOutboxService;
 import com.fitpilot.workout.domain.Workout;
 import com.fitpilot.workout.repository.WorkoutRepository;
@@ -19,9 +19,9 @@ class WorkoutServiceTest {
     @Test
     void repeatingCompleteIsIdempotentAndDoesNotRecalculateRecords() {
         WorkoutRepository workouts = mock(WorkoutRepository.class);
-        PersonalRecordRepository records = mock(PersonalRecordRepository.class);
-        WorkoutService service = new WorkoutService(workouts, mock(TrainingPlanRepository.class),
-                mock(ExerciseRepository.class), records, mock(EventOutboxService.class));
+        PersonalRecordService records = mock(PersonalRecordService.class);
+        WorkoutService service = new WorkoutService(workouts, mock(TrainingPlanService.class),
+                mock(ExerciseService.class), records, mock(EventOutboxService.class));
         Workout workout = new Workout();
         workout.id = 7L;
         workout.userId = 3L;

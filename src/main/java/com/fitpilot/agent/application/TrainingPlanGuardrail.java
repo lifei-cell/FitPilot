@@ -1,6 +1,6 @@
 package com.fitpilot.agent.application;
 
-import com.fitpilot.plan.domain.TrainingPlanValidator;
+import com.fitpilot.plan.application.TrainingPlanValidationService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +10,15 @@ import java.util.List;
 
 @Component
 public class TrainingPlanGuardrail {
+    private final TrainingPlanValidationService validation;
+
+    public TrainingPlanGuardrail(TrainingPlanValidationService validation) {
+        this.validation = validation;
+    }
+
     public List<String> validate(TrainingPlanDtos.CreateRequest plan) {
         List<String> violations = new ArrayList<>();
-        try { TrainingPlanValidator.validate(plan); }
+        try { validation.validate(plan); }
         catch (RuntimeException e) { violations.add(e.getMessage()); }
         if (plan.durationWeeks() == null || plan.durationWeeks() > 16) violations.add("计划周期必须为 1-16 周");
         if (plan.days() == null || plan.days().size() > 6) violations.add("每周训练频率不得超过 6 天");
