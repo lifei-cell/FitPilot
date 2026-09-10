@@ -1,0 +1,19 @@
+V18 release evidence (2026-09-10)
+
+Release revision: c55e26d52fa74010f9d9467911aa2de3e7de3b9d
+Feature acceptance revision: b3d708ac4249331bf74e1541481caca115dc55ff
+
+CI run: 34465034299 (head_sha exact; verify=success; secret-scan=success)
+CI evidence artifacts: verification-evidence=10147412207; gitleaks-results.sarif=10147133391; both not expired.
+CI SBOM: 149 components; io.netty:netty-handler=4.1.137.Final; dependency/app-image/web-image Trivy SARIF results=0.
+
+Release run: 34465790273 (select-revision=success; image=success; head_sha exact)
+Release evidence artifact: ghcr-digests-34465790273, artifact_id=10147980959
+release-manifest.json sha256: 3c95cbe54875431a1e0ca488e16fd50bcbe5c7ba594198448d1bdc60e5bfa5d9
+App image: ghcr.io/lifei-cell/fitpilot@sha256:72985f3d1e47855b82d7cdbb7db118d1eca5b45c84e0d1733618d4493fd1f9cd
+Web image: ghcr.io/lifei-cell/fitpilot-web@sha256:22bd44742e769627312456cae058756ebb16848c6fd638f823b0504bbfc7f254
+Both OCI indexes independently verified with linux/amd64 and linux/arm64 manifests, SPDX SBOM layers, and SLSA provenance layers.
+
+Provenance: gh attestation verify --bundle-from-oci passed for both image digests with predicate=https://slsa.dev/provenance/v1, source-digest=c55e26d52fa74010f9d9467911aa2de3e7de3b9d, source-ref=refs/heads/main, signer-workflow=lifei-cell/FitPilot/.github/workflows/release.yml, deny-self-hosted-runners. Rekor tlog indexes: app=2781771377; web=2781772808.
+
+Production Delivery Gate: SKIPPED.
