@@ -2,7 +2,7 @@
 
 FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
 
-> 当前功能验收基线：`c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c`（2026-09-08，Flyway V17）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
+> 当前功能验收基线：`b3d708ac4249331bf74e1541481caca115dc55ff`（2026-09-10，Flyway V18）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
 
 ## 架构
 
@@ -159,7 +159,7 @@ mvn spring-boot:run
 - 所有运维 API 统一使用 `OPERATIONS_TOKEN` 和 `X-Operations-Token`，采用常量时间比较且不记录 Token。
 - LLM 审计脱敏并默认保留 30 天；Prompt、模型、Token、费用、时延与降级状态可追踪。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
-- Flyway V1-V17 管理全部表、外键、查询索引、业务幂等与评测任务生命周期，并保留 50 个动作种子。
+- Flyway V1-V18 管理全部表、外键、查询索引、业务幂等与评测任务生命周期，并保留 50 个动作种子；V18 持久化 RAG 反馈离线实验配置、结果和结构化报告。
 - Agent 产品价值指标覆盖 D7 会话留存、建议决策漏斗、确认转化、规则降级、单次成功成本，以及训练调整前后的完成率、疼痛、容量和 PR；通过受保护 Operations API、Prometheus 与 Grafana 展示。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
 - API 和登录分别使用 Redis Lua Token Bucket；Lua compare-and-delete 安全释放分布式锁。
@@ -174,7 +174,7 @@ mvn spring-boot:run
 
 `mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。ArchUnit 自动阻断 Controller 直连 Mapper、领域层反向依赖基础设施、跨模块绕过 Application Service/领域事件以及业务模块循环依赖。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
 
-当前本地统一门禁已通过：30 个 Surefire/Failsafe 报告、65 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V17 与 JaCoCo 门禁通过，后端行覆盖率 83.12%。Web 通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [V17 当前功能验收](docs/release/v17-functional-validation.md)。
+当前本地统一门禁已通过：35 个 Surefire/Failsafe XML 报告、79 个后端测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V18 与 JaCoCo 门禁通过，后端行覆盖率 84.40%。Web 通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%。原始结论见 [V18 当前功能验收](docs/release/v18-functional-validation.md)。
 
 前端也可单独执行：
 
@@ -201,12 +201,12 @@ V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭�
 
 | 证据层 | revision | 状态 | 原始报告 |
 |---|---|---|---|
-| 当前 V17 本地功能验收 | `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c` | `PASS`：65 个后端测试零跳过、V1-V17 迁移、Web 36 个组件测试与 7 个浏览器场景通过 | [V17 当前功能验收](docs/release/v17-functional-validation.md) |
-| 当前 `main` 远端 CI / Release / GHCR | 包含 `c1c9ede` 的最终文档 revision | `PASS`：精确 revision、Run、Digest、SBOM 和 provenance 记录在 `refs/notes/release-evidence` | [远端发布验收](docs/release/p1-delivery-validation.md) |
+| 当前 V18 本地功能验收 | `b3d708ac4249331bf74e1541481caca115dc55ff` | `PASS`：79 个后端测试零跳过、V1-V18 迁移、Web 36 个组件测试与 7 个浏览器场景通过 | [V18 当前功能验收](docs/release/v18-functional-validation.md) |
+| V18 精确 SHA 远端 CI / Release / GHCR | `b3d708ac4249331bf74e1541481caca115dc55ff` | `FAIL`：CI Run `34463093054` 的 Trivy 依赖扫描检出 `CVE-2026-75595`，未触发 Release；Netty 已升级到 `4.1.137.Final`，修复 revision 待重新核验 | [远端发布验收](docs/release/p1-delivery-validation.md) |
 | 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
 | 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
-当前远端发布 revision 后继并包含功能验收 revision `c1c9ede`，V6/Flyway V17 的 CI、GHCR Digest、SBOM 和 provenance 按 revision 写入 `refs/notes/release-evidence`。Kind 演练仍只绑定历史 revision `1d98621`，项目不得表述为已在真实生产集群上线。
+当前本地功能验收 revision 为 `b3d708a`；该 revision 的 CI 因 Netty 依赖安全扫描失败，修复 revision 的远端 CI、Release、GHCR、SBOM 和 provenance 仍待按精确 SHA 完成，历史 V17 远端证据不能直接复用于 V18。Kind 演练仍只绑定历史 revision `1d98621`，项目不得表述为已在真实生产集群上线。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 

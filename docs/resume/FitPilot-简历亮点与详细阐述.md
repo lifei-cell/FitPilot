@@ -1,6 +1,6 @@
 # FitPilot 简历亮点与详细阐述
 
-> 文档口径：FitPilot V6；当前功能验收基线为 `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c`（2026-09-08），数据库迁移为 Flyway V1-V17。远端发布和真实生产状态按各自 revision 单独说明，不与当前本地验收混用。
+> 文档口径：FitPilot V6；当前功能验收基线为 `b3d708ac4249331bf74e1541481caca115dc55ff`（2026-09-10），数据库迁移为 Flyway V1-V18。远端发布和真实生产状态按各自 revision 单独说明，不与当前本地验收混用。
 
 ## 一、简历可直接使用版本
 
@@ -16,9 +16,9 @@
 - **核心写链路一致性与安全：** 以事务和状态机编排 Workout 完成流程，通过行锁分配 Set 序号、唯一约束兜底、重复完成幂等返回及 `userId + resourceId` 所有权查询，解决并发重复写、越权访问和半完成状态问题。
 - **事件驱动与可靠消费：** 采用 Transactional Outbox 将 Workout 状态与领域事件原子提交，经 Kafka 异步更新 PR、Analytics 和通知；结合 Inbox、业务唯一约束、重试、DLT、数据库死信与人工回放，实现 At-least-once 语义下的幂等消费和故障恢复。
 - **缓存与流量治理：** 基于 Caffeine + Redis 构建二级缓存，使用空值缓存、TTL 抖动和分布式重建锁治理穿透、雪崩与击穿；Redis 故障时自动回源数据库，并将 Lua Token Bucket 降级为进程内限流，保障核心业务可用。
-- **Hybrid RAG 与内容治理：** 实现 Parent-Child Chunk、pgvector HNSW 与 Elasticsearch BM25 双路召回，通过 RRF 和确定性 Rerank 返回父级上下文与 Citation；V14 增加来源可信等级、不可变版本、删除传播、用户反馈审核和动态评测集，ES 异常时可降级并重建。
+- **Hybrid RAG 与内容治理：** 实现 Parent-Child Chunk、pgvector HNSW 与 Elasticsearch BM25 双路召回，通过 RRF 和确定性 Rerank 返回父级上下文与 Citation；V14 增加来源可信等级、不可变版本、删除传播、用户反馈审核和动态评测集，V18 增加反馈驱动的隔离离线实验与结构化报告，ES 异常时可降级并重建。
 - **安全可控的单 Agent Workflow：** 将 LLM 限定为结构化提议组件，后端控制 JWT 身份、Tool 白名单、Owner 校验、领域规则、Guardrail、一次性确认和最终持久化；V12 以 PostgreSQL 持久化会话并支持跨设备恢复，V13 基于最近 28 天训练事实生成可解释调整，确认后只创建新 DRAFT。
-- **可观测与工程验证：** 建立 Metrics、Logs、Traces、告警与 LLM Token/费用审计；当前 V6/Flyway V17 基线完成 65 个后端零跳过测试、前端 36 个组件测试和 7 个浏览器场景；历史 V5 本机 Compose 压测完成 118,980 次混合流量请求，业务成功率 99.99%、普通 API P95 10.03ms、Agent P95 30.70ms。
+- **可观测与工程验证：** 建立 Metrics、Logs、Traces、告警与 LLM Token/费用审计；当前 V6/Flyway V18 基线完成 79 个后端零跳过测试、后端行覆盖率 84.40%，前端 36 个组件测试和 7 个浏览器场景；历史 V5 本机 Compose 压测完成 118,980 次混合流量请求，业务成功率 99.99%、普通 API P95 10.03ms、Agent P95 30.70ms。
 
 > 若版面只能保留 5 条：Java 后端岗位保留第 1、2、3、4、7 条；AI/Agent 岗位保留第 1、3、5、6、7 条。
 
@@ -114,7 +114,7 @@
 
 **工程建设：**
 
-- 使用 Flyway V1-V17 管理数据库演进，以 Testcontainers 覆盖 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch 和 Mock OpenAI-compatible 端到端链路。
+- 使用 Flyway V1-V18 管理数据库演进，以 Testcontainers 覆盖 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch 和 Mock OpenAI-compatible 端到端链路。
 - Maven 门禁包含单元测试、集成测试跳过检查、JaCoCo、CycloneDX SBOM；生产镜像使用非 root 用户运行。
 - 通过 Micrometer + OpenTelemetry 打通 Prometheus、Grafana、Loki、Tempo、Alertmanager，预置 API、Agent、Kafka、RAG、LLM Cost 等 Dashboard 与告警。
 - 完成 Redis、Kafka、Elasticsearch、主备 LLM 故障演练，以及 App 下线触发告警、服务恢复和告警解除验证。
@@ -130,10 +130,10 @@
 
 ## 三、证据边界与面试表述注意事项
 
-- 当前功能验收基线 `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c` 已执行统一门禁：30 个 Surefire/Failsafe 报告、65 个测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch，Flyway V1-V17 和 JaCoCo 门禁通过，后端行覆盖率 83.12%。
+- 当前功能验收基线 `b3d708ac4249331bf74e1541481caca115dc55ff` 已执行统一门禁：35 个 Surefire/Failsafe XML 报告、79 个测试，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch，Flyway V1-V18 和 JaCoCo 门禁通过，后端行覆盖率 84.40%。
 - Web 已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%；这些数量代表已执行用例，不等同于前端所有业务页面已获得充分覆盖。
 - 30 分钟混合与 5 分钟突发结果来自本机 Docker Compose 环境，不能外推为真实生产容量或多节点扩展结论。
-- 包含当前功能基线的最终 `main` revision 已通过 GitHub CI、安全扫描、GHCR 多架构镜像、Digest、SBOM 和 provenance 验证；精确 Run 与 Digest 记录在 `refs/notes/release-evidence`。
+- 当前功能基线 `b3d708a` 的精确 SHA CI Run `34463093054` 因 Trivy 依赖扫描检出 `CVE-2026-75595` 失败；Netty 已升级到 `4.1.137.Final`，修复 revision 的 GHCR 多架构镜像、Digest、SBOM 和 provenance 尚待按精确 SHA 核验，未完成前不宣称发布闭环。
 - 历史 revision `1d98621891ff92d98ad57c77ff212015b641681f` 的一次性 Kind 演练已通过，但真实 Kubernetes Production Delivery Gate 明确为 `SKIPPED`；不能写“已生产上线”“生产发布验证通过”。
 - 不使用“Exactly Once”“绝对一致”“零故障”“稳定支撑 1000 QPS”等超出证据范围的表述。
 
@@ -141,11 +141,11 @@
 
 | 结论 | revision / Run | 原始报告 |
 |---|---|---|
-| V6、Flyway V1-V17、65 个后端零跳过测试、Web 36 个组件测试与 7 个浏览器场景 | `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c` | [V17 当前功能验收](../release/v17-functional-validation.md) |
+| V6、Flyway V1-V18、79 个后端零跳过测试、Web 36 个组件测试与 7 个浏览器场景 | `b3d708ac4249331bf74e1541481caca115dc55ff` | [V18 当前功能验收](../release/v18-functional-validation.md) |
 | 30 分钟混合流量、5 分钟突发流量、告警恢复演练 | Run ID `20260830-091822`，历史 V5/V9 基线 | [V5 性能验证](../performance/v5-production-validation.md)、[P0 生产验收](../release/p0-production-validation.md) |
-| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、provenance | 包含 `c1c9ede` 的最终 `main` revision；精确证据见 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
+| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、provenance | `b3d708ac4249331bf74e1541481caca115dc55ff` 的 CI Run `34463093054` 因依赖安全扫描失败；修复 revision 待重新完成并写入 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
 | Kind 交付演练 `PASS`；真实 Production Delivery Gate `SKIPPED` | `1d98621891ff92d98ad57c77ff212015b641681f` | [P1 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
 ## 五、面试时的 30 秒项目总结
 
-FitPilot 是我基于 Java 21 和 Spring Boot 3.5 实现的 AI Native 健身训练平台。我先围绕训练计划、Workout 快照、Set、PR 和 Analytics 建立业务闭环，再用 Transactional Outbox + Kafka 保证派生数据最终一致，用 Caffeine + Redis 优化热点读。AI 部分实现了带内容治理与反馈评测的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow；会话以 PostgreSQL 为真源，并能根据训练反馈生成可解释的计划调整。当前 V6/Flyway V17 基线已通过 65 个后端零跳过测试和前端 36 个组件测试、7 个浏览器场景；远端 CI/GHCR 证据按 revision 可追溯，真实生产门禁仍为 `SKIPPED`。
+FitPilot 是我基于 Java 21 和 Spring Boot 3.5 实现的 AI Native 健身训练平台。我先围绕训练计划、Workout 快照、Set、PR 和 Analytics 建立业务闭环，再用 Transactional Outbox + Kafka 保证派生数据最终一致，用 Caffeine + Redis 优化热点读。AI 部分实现了带内容治理与反馈评测的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow；会话以 PostgreSQL 为真源，并能根据训练反馈生成可解释的计划调整。当前 V6/Flyway V18 基线已通过 79 个后端零跳过测试、后端行覆盖率 84.40% 和前端 36 个组件测试、7 个浏览器场景；依赖安全修复后的远端 CI/GHCR 证据待精确 SHA 核验，真实生产门禁仍为 `SKIPPED`。
