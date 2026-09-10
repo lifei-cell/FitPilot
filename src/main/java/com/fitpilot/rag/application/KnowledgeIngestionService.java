@@ -3,6 +3,7 @@ package com.fitpilot.rag.application;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.KnowledgeRepository;
@@ -47,11 +48,17 @@ public class KnowledgeIngestionService {
     }
 
     public RagDtos.DocumentView ingest(RagDtos.IngestDocumentRequest request) {
+        return ingest(request, null);
+    }
+
+    /** Offline evaluations may supply an immutable chunk profile; live ingestion keeps configured defaults. */
+    public RagDtos.DocumentView ingest(RagDtos.IngestDocumentRequest request, RagTuningProfile profile) {
         validateMetadata(request.metadata());
         validateGovernance(request);
         String format = request.format().toUpperCase(Locale.ROOT);
-        List<ParentChildChunker.ParentChunk> plan = chunker.chunk(
-                parser.parse(format, request.title(), request.content()));
+        List<DocumentParser.ParsedSection> sections = parser.parse(format, request.title(), request.content());
+        List<ParentChildChunker.ParentChunk> plan = profile == null
+                ? chunker.chunk(sections) : chunker.chunk(sections, profile);
         if (plan.isEmpty()) {
             throw new BusinessException(ErrorCode.VALIDATION_ERROR, "document contains no indexable text",
                     HttpStatus.BAD_REQUEST);

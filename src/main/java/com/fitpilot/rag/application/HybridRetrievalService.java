@@ -4,6 +4,7 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
@@ -60,14 +61,26 @@ public class HybridRetrievalService {
     }
 
     public RagDtos.SearchResponse search(Long userId, String query, int requestedTopK, String category) {
+        return search(userId, query, requestedTopK, category, liveProfile(), true);
+    }
+
+    /** Executes an isolated offline variant and deliberately does not create user feedback records. */
+    public RagDtos.SearchResponse searchOffline(String query, int requestedTopK, String category,
+                                                RagTuningProfile profile) {
+        return search(null, query, requestedTopK, category, profile, false);
+    }
+
+    private RagDtos.SearchResponse search(Long userId, String query, int requestedTopK, String category,
+                                          RagTuningProfile profile, boolean persistRetrieval) {
         long started = System.nanoTime();
         int topK = Math.max(1, Math.min(requestedTopK, properties.getRetrieval().getMaxTopK()));
         int candidateLimit = Math.max(topK, properties.getRetrieval().getCandidateLimit());
         String normalizedCategory = category == null || category.isBlank() ? null : category.trim();
         String lexicalQuery = analyzer.lexicalText(query);
         Map<UUID, Candidate> candidates = new LinkedHashMap<>();
-        boolean lexicalSucceeded = collectLexical(lexicalQuery, normalizedCategory, candidateLimit, candidates);
-        boolean vectorSucceeded = collectVector(query, normalizedCategory, candidateLimit, candidates);
+        boolean lexicalSucceeded = collectLexical(lexicalQuery, normalizedCategory, candidateLimit,
+                profile, candidates);
+        boolean vectorSucceeded = collectVector(query, normalizedCategory, candidateLimit, profile, candidates);
         if (!lexicalSucceeded && !vectorSucceeded) {
             metrics.rag("UNAVAILABLE", "FAILED", elapsedMillis(started));
             throw new BusinessException(ErrorCode.RAG_RETRIEVAL_UNAVAILABLE,
@@ -84,7 +97,7 @@ public class HybridRetrievalService {
             Candidate candidate = candidates.get(id);
             KnowledgeModels.ChunkContext context = contexts.get(id);
             if (context == null) continue;
-            double score = rerank(query, queryTerms, candidate.rrfScore(), context);
+            double score = rerank(query, queryTerms, candidate.rrfScore(), context, profile);
             RankedContext ranked = new RankedContext(candidate, context, score);
             parents.merge(context.parentChunkId(), ranked, this::better);
         }
@@ -93,7 +106,8 @@ public class HybridRetrievalService {
                 .limit(topK).map(this::toDto).toList();
         String mode = lexicalSucceeded && vectorSucceeded ? "HYBRID_RRF"
                 : lexicalSucceeded ? "BM25_ONLY" : "VECTOR_ONLY";
-        UUID retrievalId = governance.saveRetrieval(userId, hash(query), query, normalizedCategory, mode, results);
+        UUID retrievalId = persistRetrieval
+                ? governance.saveRetrieval(userId, hash(query), query, normalizedCategory, mode, results) : null;
         metrics.rag(mode, "SUCCEEDED", elapsedMillis(started));
         return new RagDtos.SearchResponse(retrievalId, query, mode, embeddings.name(), candidates.size(), results);
     }
@@ -102,12 +116,13 @@ public class HybridRetrievalService {
         return (System.nanoTime() - started) / 1_000_000;
     }
 
-    private boolean collectLexical(String query, String category, int limit, Map<UUID, Candidate> candidates) {
+    private boolean collectLexical(String query, String category, int limit, RagTuningProfile profile,
+                                   Map<UUID, Candidate> candidates) {
         try {
             List<KnowledgeModels.SearchHit> hits = lexicalIndex.search(query, category, limit);
             for (int i = 0; i < hits.size(); i++) {
                 Candidate candidate = candidates.computeIfAbsent(hits.get(i).chunkId(), Candidate::new);
-                candidate.add("BM25", reciprocalRank(i + 1));
+                candidate.add("BM25", profile.bm25Weight() * reciprocalRank(i + 1, profile.rrfK()));
             }
             return true;
         } catch (RuntimeException failure) {
@@ -116,12 +131,13 @@ public class HybridRetrievalService {
         }
     }
 
-    private boolean collectVector(String query, String category, int limit, Map<UUID, Candidate> candidates) {
+    private boolean collectVector(String query, String category, int limit, RagTuningProfile profile,
+                                  Map<UUID, Candidate> candidates) {
         try {
             List<KnowledgeModels.SearchHit> hits = repository.vectorSearch(embeddings.embed(query), category, limit);
             for (int i = 0; i < hits.size(); i++) {
                 Candidate candidate = candidates.computeIfAbsent(hits.get(i).chunkId(), Candidate::new);
-                candidate.add("VECTOR", reciprocalRank(i + 1));
+                candidate.add("VECTOR", profile.vectorWeight() * reciprocalRank(i + 1, profile.rrfK()));
             }
             return true;
         } catch (RuntimeException failure) {
@@ -130,12 +146,13 @@ public class HybridRetrievalService {
         }
     }
 
-    private double reciprocalRank(int rank) {
-        return 1.0 / (properties.getRetrieval().getRrfK() + rank);
+    private double reciprocalRank(int rank, int rrfK) {
+        return 1.0 / (rrfK + rank);
     }
 
     private double rerank(String query, Set<String> queryTerms, double rrf,
-                          KnowledgeModels.ChunkContext context) {
+                          KnowledgeModels.ChunkContext context, RagTuningProfile profile) {
+        if ("NONE".equals(profile.rerankStrategy())) return rrf;
         Set<String> candidateTerms = new LinkedHashSet<>(analyzer.tokens(
                 context.title() + " " + context.heading() + " " + context.childContent()));
         long matches = queryTerms.stream().filter(candidateTerms::contains).count();
@@ -144,7 +161,16 @@ public class HybridRetrievalService {
         String candidateText = (context.title() + " " + context.heading() + " " + context.childContent())
                 .toLowerCase(Locale.ROOT);
         double phraseBoost = normalizedQuery.length() >= 2 && candidateText.contains(normalizedQuery) ? 0.15 : 0;
-        return rrf * 10 + overlap * 0.35 + phraseBoost + trustWeight(context.trustLevel()) * 0.04;
+        double trustBoost = "TERM_OVERLAP_TRUST".equals(profile.rerankStrategy())
+                ? trustWeight(context.trustLevel()) * 0.04 : 0;
+        return rrf * 10 + overlap * 0.35 + phraseBoost + trustBoost;
+    }
+
+    private RagTuningProfile liveProfile() {
+        RagProperties.Chunking chunking = properties.getChunking();
+        RagProperties.Retrieval retrieval = properties.getRetrieval();
+        return new RagTuningProfile("live", chunking.getParentMaxChars(), chunking.getChildMaxChars(),
+                chunking.getChildOverlapChars(), retrieval.getRrfK(), 1, 1, "TERM_OVERLAP_TRUST");
     }
 
     private RankedContext better(RankedContext left, RankedContext right) {

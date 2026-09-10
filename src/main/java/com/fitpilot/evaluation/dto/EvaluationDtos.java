@@ -12,5 +12,6 @@ public final class EvaluationDtos {
     public record RunView(UUID id,String type,String datasetVersion,String mode,String model,String promptVersion,
                           String status,int totalCases,int passedCases,Map<String,Double> metrics,
                           String errorMessage,LocalDateTime queuedAt,LocalDateTime startedAt,
-                          LocalDateTime deadlineAt,LocalDateTime completedAt,int attemptCount) {}
+                          LocalDateTime deadlineAt,LocalDateTime completedAt,int attemptCount,
+                          Map<String,Object> experimentReport) {}
 }

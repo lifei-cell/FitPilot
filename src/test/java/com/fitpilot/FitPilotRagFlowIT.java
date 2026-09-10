@@ -130,6 +130,27 @@ class FitPilotRagFlowIT {
             assertThat(run.path("metrics").path("citationValidity").asDouble()).isEqualTo(1.0);
         });
 
+        JsonNode experimentStarted = call(post("/api/v1/operations/evaluations/rag/feedback-experiments")
+                .header("X-Operations-Token", OPERATIONS_TOKEN), 202);
+        String experimentRunId = experimentStarted.path("data").path("runId").asText();
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() -> {
+            JsonNode run = call(get("/api/v1/operations/evaluations/runs/" + experimentRunId)
+                    .header("X-Operations-Token", OPERATIONS_TOKEN), 200).path("data");
+            assertThat(run.path("status").asText()).isEqualTo("SUCCEEDED");
+            assertThat(run.path("totalCases").asInt()).isEqualTo(7);
+            JsonNode report = run.path("experimentReport");
+            assertThat(report.path("source").asText()).isEqualTo("APPROVED_NEGATIVE_FEEDBACK");
+            assertThat(report.path("recommendedProfile").asText()).isNotEqualTo("NONE");
+            assertThat(report.path("profiles").size()).isEqualTo(7);
+            JsonNode baseline = report.path("profiles").get(0);
+            assertThat(baseline.path("categories").path("training-theory")
+                    .path("recallAt5").asDouble()).isEqualTo(1);
+            assertThat(baseline.path("categories").path("training-theory")
+                    .path("mrr").asDouble()).isGreaterThan(0);
+            assertThat(baseline.path("categories").path("training-theory")
+                    .path("citationValidity").asDouble()).isEqualTo(1);
+        });
+
         mvc.perform(get("/api/v1/operations/rag/documents").header("X-Operations-Token", "wrong"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value(1002));
         call(post("/api/v1/operations/rag/documents/{id}/reindex", documentId)

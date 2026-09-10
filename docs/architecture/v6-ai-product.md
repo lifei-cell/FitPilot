@@ -45,8 +45,9 @@ Dashboard 告警设置了最小样本边界：Agent 执行或建议至少 20 条
 - Citation 返回文档 ID、发布方、可信等级、版本和有效期；每次检索生成 `retrievalId` 和结果快照。
 - 用户可对回答或单个 Citation Upsert `HELPFUL/NOT_HELPFUL`。反馈不会直接改变在线排序，只有 Operations 审核并填写正确来源后才进入动态评测集。
 - 每次评测冻结静态数据集版本和已审核动态样本版本，输出总体及分类 Recall@5、MRR 和 Citation Validity；引用有效率不是 100%，或任一分类相对最近成功基线下降超过 5 个百分点时，评测失败。
+- 反馈实验只选取审核通过的 `NOT_HELPFUL`，冻结用例、正确来源及文档版本；在隔离分类下依次重建 7 组 Chunk/RRF/Rerank 配置，不修改在线参数。报告给出每组总体与分类 Recall@5、MRR、Citation Validity、相对基线差值，并只在 Citation Validity 为 100% 的候选中推荐得分最高配置。
 
-V12-V17 均为向前迁移：V15 增加产品指标查询索引，V16 增加 Workout 业务幂等，V17 增加评测任务生命周期。部署必须按“Flyway 迁移 → 后端 → Web”执行；旧消息接口在新 Web 上线前继续保留。
+V12-V18 均为向前迁移：V15 增加产品指标查询索引，V16 增加 Workout 业务幂等，V17 增加评测任务生命周期，V18 增加 RAG 实验配置与结构化报告。部署必须按“Flyway 迁移 → 后端 → Web”执行；旧消息接口在新 Web 上线前继续保留。
 
 ## API 示例
 
@@ -60,6 +61,12 @@ PUT /api/v1/rag/retrievals/{retrievalId}/feedback
 PUT /api/v1/operations/rag/feedback/{feedbackId}/review
 X-Operations-Token: ***
 {"decision":"APPROVED","reviewer":"ops","correctSourceUrls":["https://publisher.example/guide"]}
+
+POST /api/v1/operations/evaluations/rag/feedback-experiments
+X-Operations-Token: ***
+
+GET /api/v1/operations/evaluations/runs/{runId}
+X-Operations-Token: ***
 
 GET /api/v1/operations/agent/product-metrics?windowDays=90&outcomeWindowDays=28
 X-Operations-Token: ***

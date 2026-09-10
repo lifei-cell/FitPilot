@@ -4,6 +4,7 @@ import com.fitpilot.evaluation.config.EvaluationProperties;
 import com.fitpilot.evaluation.infrastructure.EvaluationRepository;
 import com.fitpilot.llm.application.PromptRegistry;
 import com.fitpilot.rag.application.RagFeedbackService;
+import com.fitpilot.rag.application.RagExperimentCatalog;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.TaskScheduler;
@@ -38,7 +39,8 @@ class EvaluationServiceLifecycleTest {
                 mock(AgentEvaluationRunner.class), mock(RagEvaluationRunner.class), executor,
                 heartbeatScheduler(), properties);
         EvaluationService service = new EvaluationService(mock(EvaluationDatasetLoader.class), repository,
-                prompts, mock(RagFeedbackService.class), scheduler, properties);
+                prompts, mock(RagFeedbackService.class), scheduler, properties,
+                mock(RagExperimentCatalog.class));
 
         var id = service.startAgent("RULE_WORKFLOW");
 

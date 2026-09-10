@@ -34,7 +34,7 @@ public class EvaluationMetricCalculator {
         double precision = contexts.isEmpty() ? 0 : (double) relevant.size() / contexts.size();
         double contextRecall = expected.isEmpty() ? 0
                 : (double) actualSources.stream().filter(expected::contains).distinct().count() / expected.size();
-        boolean citationValid = contexts.stream().allMatch(this::validCitation);
+        boolean citationValid = !contexts.isEmpty() && contexts.stream().allMatch(this::validCitation);
         return new RagCaseMetrics(actualSources, recall, reciprocalRank, ndcg,
                 precision, contextRecall, citationValid);
     }
@@ -99,7 +99,7 @@ public class EvaluationMetricCalculator {
             contextRecall += metrics.contextRecall();
             if (metrics.citationValid()) citationValidity++;
             categories.computeIfAbsent(metricCategory(category), ignored -> new CategoryStats())
-                    .add(metrics.recall(), metrics.reciprocalRank());
+                    .add(metrics.recall(), metrics.reciprocalRank(), metrics.citationValid());
         }
 
         public int passed() { return passed; }
@@ -115,7 +115,23 @@ public class EvaluationMetricCalculator {
             categories.forEach((category, stats) -> {
                 result.put("category." + category + ".recallAt5", ratio(stats.recall, stats.total));
                 result.put("category." + category + ".mrr", ratio(stats.reciprocalRank, stats.total));
+                result.put("category." + category + ".citationValidity",
+                        ratio(stats.citationValidity, stats.total));
             });
+            return result;
+        }
+
+        public RagMetricSnapshot overall(int total) {
+            return new RagMetricSnapshot(ratio(recall, total), ratio(reciprocalRank, total),
+                    ratio(citationValidity, total));
+        }
+
+        public Map<String, RagMetricSnapshot> categoryMetrics() {
+            Map<String, RagMetricSnapshot> result = new LinkedHashMap<>();
+            categories.forEach((category, stats) -> result.put(category,
+                    new RagMetricSnapshot(ratio(stats.recall, stats.total),
+                            ratio(stats.reciprocalRank, stats.total),
+                            ratio(stats.citationValidity, stats.total))));
             return result;
         }
     }
@@ -123,6 +139,7 @@ public class EvaluationMetricCalculator {
     public record RagCaseMetrics(List<String> actualSources, double recall, double reciprocalRank,
                                  double ndcg, double precision, double contextRecall,
                                  boolean citationValid) {}
+    public record RagMetricSnapshot(double recallAt5, double mrr, double citationValidity) {}
 
     private boolean validCitation(RagDtos.RetrievedContext context) {
         RagDtos.Citation citation = context.citation();
@@ -148,11 +165,13 @@ public class EvaluationMetricCalculator {
     private static final class CategoryStats {
         private double recall;
         private double reciprocalRank;
+        private double citationValidity;
         private int total;
 
-        private void add(double caseRecall, double caseReciprocalRank) {
+        private void add(double caseRecall, double caseReciprocalRank, boolean caseCitationValid) {
             recall += caseRecall;
             reciprocalRank += caseReciprocalRank;
+            if (caseCitationValid) citationValidity++;
             total++;
         }
     }

@@ -29,7 +29,8 @@ class EvaluationMetricCalculatorTest {
         assertThat(score.citationValid()).isTrue();
         assertThat(accumulator.report(1))
                 .containsEntry("citationValidity", 1d)
-                .containsEntry("category.strength_training.mrr", .5d);
+                .containsEntry("category.strength_training.mrr", .5d)
+                .containsEntry("category.strength_training.citationValidity", 1d);
     }
 
     @Test
@@ -40,6 +41,14 @@ class EvaluationMetricCalculatorTest {
                 "publisher", "OFFICIAL", 1, null), List.of("vector"));
 
         assertThat(calculator.scoreRagCase(List.of("expected"), List.of(context)).citationValid()).isFalse();
+    }
+
+    @Test
+    void emptyRetrievalDoesNotCountAsValidCitationSet() {
+        var score = calculator.scoreRagCase(List.of("expected"), List.of());
+
+        assertThat(score.recall()).isZero();
+        assertThat(score.citationValid()).isFalse();
     }
 
     private RagDtos.RetrievedContext context(String sourceUrl) {

@@ -34,6 +34,12 @@ public class EvaluationOperationsController {
         return ApiResponse.success(Map.of("runId", service.startRag()));
     }
 
+    @PostMapping("/rag/feedback-experiments")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    ApiResponse<Map<String, UUID>> ragFeedbackExperiment() {
+        return ApiResponse.success(Map.of("runId", service.startRagFeedbackExperiment()));
+    }
+
     @GetMapping("/runs/{id}")
     ApiResponse<EvaluationDtos.RunView> get(@PathVariable UUID id) {
         var run = service.find(id).orElseThrow(() -> new BusinessException(

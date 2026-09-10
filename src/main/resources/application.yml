@@ -101,6 +101,7 @@ fitpilot:
     heartbeat-seconds: ${EVALUATION_HEARTBEAT_SECONDS:10}
     recovery-delay-ms: ${EVALUATION_RECOVERY_DELAY_MS:5000}
     recovery-batch-size: ${EVALUATION_RECOVERY_BATCH_SIZE:20}
+    rag-experiment-max-documents: ${RAG_EXPERIMENT_MAX_DOCUMENTS:200}
   llm:
     enabled: ${LLM_ENABLED:false}
     connect-timeout-ms: ${LLM_CONNECT_TIMEOUT_MS:3000}

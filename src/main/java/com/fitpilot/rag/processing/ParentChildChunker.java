@@ -1,6 +1,7 @@
 package com.fitpilot.rag.processing;
 
 import com.fitpilot.rag.config.RagProperties;
+import com.fitpilot.rag.domain.RagTuningProfile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -13,14 +14,24 @@ public class ParentChildChunker {
     public ParentChildChunker(RagProperties properties) { this.properties = properties; }
 
     public List<ParentChunk> chunk(List<DocumentParser.ParsedSection> sections) {
+        return chunk(sections, properties.getChunking().getParentMaxChars(),
+                properties.getChunking().getChildMaxChars(),
+                properties.getChunking().getChildOverlapChars());
+    }
+
+    public List<ParentChunk> chunk(List<DocumentParser.ParsedSection> sections, RagTuningProfile profile) {
+        return chunk(sections, profile.parentMaxChars(), profile.childMaxChars(), profile.childOverlapChars());
+    }
+
+    private List<ParentChunk> chunk(List<DocumentParser.ParsedSection> sections,
+                                    int parentMaxChars, int childMaxChars, int childOverlapChars) {
         List<ParentChunk> result = new ArrayList<>();
         int parentOrdinal = 0;
         int childOrdinal = 0;
         for (DocumentParser.ParsedSection section : sections) {
-            for (String parentText : split(section.content(), properties.getChunking().getParentMaxChars(), 0)) {
+            for (String parentText : split(section.content(), parentMaxChars, 0)) {
                 List<ChildChunk> children = new ArrayList<>();
-                for (String child : split(parentText, properties.getChunking().getChildMaxChars(),
-                        properties.getChunking().getChildOverlapChars())) {
+                for (String child : split(parentText, childMaxChars, childOverlapChars)) {
                     children.add(new ChildChunk(childOrdinal++, child));
                 }
                 result.add(new ParentChunk(parentOrdinal++, section.heading(), parentText, List.copyOf(children)));

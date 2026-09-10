@@ -15,6 +15,7 @@ public class EvaluationProperties {
     private int heartbeatSeconds = 10;
     private int recoveryDelayMs = 5000;
     private int recoveryBatchSize = 20;
+    private int ragExperimentMaxDocuments = 200;
 
     @PostConstruct
     void validate() {
@@ -22,7 +23,8 @@ public class EvaluationProperties {
             throw new IllegalStateException("invalid evaluation executor configuration");
         }
         if (runTimeoutSeconds < 1 || leaseSeconds < 2 || heartbeatSeconds < 1
-                || heartbeatSeconds >= leaseSeconds || recoveryDelayMs < 100 || recoveryBatchSize < 1) {
+                || heartbeatSeconds >= leaseSeconds || recoveryDelayMs < 100 || recoveryBatchSize < 1
+                || ragExperimentMaxDocuments < 1 || ragExperimentMaxDocuments > 1000) {
             throw new IllegalStateException("invalid evaluation lifecycle configuration");
         }
     }
@@ -43,4 +45,6 @@ public class EvaluationProperties {
     public void setRecoveryDelayMs(int value) { recoveryDelayMs = value; }
     public int getRecoveryBatchSize() { return recoveryBatchSize; }
     public void setRecoveryBatchSize(int value) { recoveryBatchSize = value; }
+    public int getRagExperimentMaxDocuments() { return ragExperimentMaxDocuments; }
+    public void setRagExperimentMaxDocuments(int value) { ragExperimentMaxDocuments = value; }
 }

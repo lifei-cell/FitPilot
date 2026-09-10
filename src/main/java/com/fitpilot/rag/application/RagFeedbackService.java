@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -53,10 +55,41 @@ public class RagFeedbackService {
                 .toList();
     }
 
+    public List<EvaluationDocumentRef> evaluationCorpus(List<DynamicEvaluationCase> cases, int limit) {
+        List<String> categories = cases.stream().map(DynamicEvaluationCase::category)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::toLowerCase).distinct().toList();
+        List<String> expectedSources = cases.stream().flatMap(item -> item.expectedSources().stream())
+                .filter(value -> value != null && !value.isBlank()).distinct().toList();
+        if (categories.isEmpty() || expectedSources.isEmpty()) return List.of();
+        return repository.evaluationCorpus(categories, expectedSources, Math.max(1, Math.min(limit, 1000)))
+                .stream().map(item -> new EvaluationDocumentRef(item.documentId(), item.version(),
+                        item.sourceUrl(), item.category())).toList();
+    }
+
+    public RagDtos.IngestDocumentRequest evaluationDocument(EvaluationDocumentRef reference) {
+        RagGovernanceRepository.RevisionData revision =
+                repository.revision(reference.documentId(), reference.version());
+        if (revision == null) throw new IllegalStateException("evaluation document revision is unavailable");
+        return new RagDtos.IngestDocumentRequest(revision.externalId(), revision.title(), revision.category(),
+                revision.sourceUrl(), revision.sourceLicense(), revision.format(), revision.content(),
+                revision.metadata(), revision.publisher(), revision.trustLevel(),
+                revision.effectiveFrom(), revision.expiresAt());
+    }
+
+    public Set<String> missingExpectedSources(List<DynamicEvaluationCase> cases,
+                                              List<EvaluationDocumentRef> corpus) {
+        Set<String> missing = new LinkedHashSet<>();
+        cases.forEach(item -> missing.addAll(item.expectedSources()));
+        corpus.forEach(item -> missing.remove(item.sourceUrl()));
+        return Set.copyOf(missing);
+    }
+
     private BusinessException notFound() {
         return new BusinessException(ErrorCode.RAG_FEEDBACK_NOT_FOUND, "retrieval or feedback not found", HttpStatus.NOT_FOUND);
     }
 
     public record DynamicEvaluationCase(UUID id, String query, List<String> expectedSources,
                                         String category, long version) {}
+    public record EvaluationDocumentRef(UUID documentId, int version, String sourceUrl, String category) {}
 }

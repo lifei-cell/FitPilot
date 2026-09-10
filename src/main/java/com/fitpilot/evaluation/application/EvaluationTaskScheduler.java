@@ -88,7 +88,7 @@ public class EvaluationTaskScheduler {
             if (run.type() == EvaluationRepository.RunType.AGENT) {
                 agentRunner.run(run.id(), run.mode(), workerId, leaseGuard);
             } else {
-                ragRunner.run(run.id(), run.ragCases(), workerId, leaseGuard);
+                ragRunner.run(run.id(), run.ragCases(), run.ragExperiment(), workerId, leaseGuard);
             }
         } catch (Exception failure) {
             if (!Thread.currentThread().isInterrupted()) {

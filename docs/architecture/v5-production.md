@@ -35,6 +35,8 @@ Agent Workflow
 
 门禁：Tool Selection ≥95%、Task Success ≥95%、违规率为 0；RAG Recall@5 ≥85%、MRR ≥0.75，并校验引用属于本次检索上下文。CI 使用 Mock OpenAI-compatible Server；真实模型评测保留为夜间/手动任务。
 
+审核负反馈可触发独立的离线实验任务。任务固定反馈与文档版本，分别改变 Chunk 大小、BM25/向量 RRF 权重及 Rerank 策略；每个实验使用隔离分类重建索引，避免污染线上配置与其他实验，完成后在 `experimentReport` 输出总体、分类指标和推荐配置。
+
 ## 4. 可观测
 
 ```text

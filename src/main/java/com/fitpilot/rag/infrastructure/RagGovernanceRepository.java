@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.rag.dto.RagDtos;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +18,12 @@ import java.util.UUID;
 @Repository
 public class RagGovernanceRepository {
     private final JdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final ObjectMapper json;
 
-    public RagGovernanceRepository(JdbcTemplate jdbc, ObjectMapper json) {
+    public RagGovernanceRepository(JdbcTemplate jdbc, NamedParameterJdbcTemplate namedJdbc, ObjectMapper json) {
         this.jdbc = jdbc;
+        this.namedJdbc = namedJdbc;
         this.json = json;
     }
 
@@ -92,7 +95,8 @@ public class RagGovernanceRepository {
                     INSERT INTO rag_dynamic_eval_case(id,feedback_id,query_text,expected_source_urls,category,dataset_version)
                     SELECT ?,f.id,r.query_text,?::jsonb,coalesce(r.category,'uncategorized'),
                       coalesce((SELECT max(dataset_version)+1 FROM rag_dynamic_eval_case),1)
-                    FROM rag_feedback f JOIN rag_retrieval r ON r.id=f.retrieval_id WHERE f.id=?
+                    FROM rag_feedback f JOIN rag_retrieval r ON r.id=f.retrieval_id
+                    WHERE f.id=? AND f.rating='NOT_HELPFUL'
                     ON CONFLICT(feedback_id) DO UPDATE SET query_text=EXCLUDED.query_text,
                       expected_source_urls=EXCLUDED.expected_source_urls,category=EXCLUDED.category,
                       dataset_version=EXCLUDED.dataset_version,active=TRUE,created_at=CURRENT_TIMESTAMP
@@ -105,17 +109,37 @@ public class RagGovernanceRepository {
         return jdbc.query("""
                 SELECT count(*),count(*) FILTER(WHERE rating='HELPFUL'),
                   count(*) FILTER(WHERE rating='NOT_HELPFUL'),count(*) FILTER(WHERE review_status='PENDING'),
-                  (SELECT count(*) FROM rag_dynamic_eval_case WHERE active=TRUE) FROM rag_feedback
+                  (SELECT count(*) FROM rag_dynamic_eval_case c JOIN rag_feedback f ON f.id=c.feedback_id
+                    WHERE c.active=TRUE AND f.rating='NOT_HELPFUL' AND f.review_status='APPROVED')
+                FROM rag_feedback
                 """, rs -> rs.next() ? new RagDtos.FeedbackSummary(rs.getLong(1), rs.getLong(2), rs.getLong(3),
                 rs.getLong(4), rs.getLong(5)) : new RagDtos.FeedbackSummary(0, 0, 0, 0, 0));
     }
 
     public List<DynamicEvalCase> dynamicCases() {
         return jdbc.query("""
-                SELECT id,query_text,expected_source_urls::text,category,dataset_version
-                FROM rag_dynamic_eval_case WHERE active=TRUE ORDER BY dataset_version,id
+                SELECT c.id,c.query_text,c.expected_source_urls::text,c.category,c.dataset_version
+                FROM rag_dynamic_eval_case c JOIN rag_feedback f ON f.id=c.feedback_id
+                WHERE c.active=TRUE AND f.rating='NOT_HELPFUL' AND f.review_status='APPROVED'
+                ORDER BY c.dataset_version,c.id
                 """, (rs, row) -> new DynamicEvalCase(rs.getObject(1, UUID.class), rs.getString(2),
                 readList(rs.getString(3)), rs.getString(4), rs.getLong(5)));
+    }
+
+    public List<EvaluationDocumentRef> evaluationCorpus(List<String> categories, List<String> expectedSources,
+                                                        int limit) {
+        return namedJdbc.query("""
+                SELECT id,version,source_url,category
+                FROM knowledge_document
+                WHERE lifecycle_status='ACTIVE'
+                  AND (effective_from IS NULL OR effective_from<=CURRENT_TIMESTAMP)
+                  AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
+                  AND (LOWER(category) IN (:categories) OR source_url IN (:sources))
+                ORDER BY CASE WHEN source_url IN (:sources) THEN 0 ELSE 1 END,updated_at DESC,id
+                LIMIT :limit
+                """, Map.of("categories", categories, "sources", expectedSources, "limit", limit),
+                (rs, row) -> new EvaluationDocumentRef(rs.getObject(1, UUID.class), rs.getInt(2),
+                        rs.getString(3), rs.getString(4)));
     }
 
     public List<RagDtos.RevisionView> revisions(UUID documentId) {
@@ -191,6 +215,7 @@ public class RagGovernanceRepository {
     private Map<String, String> readMap(String value) { try { return json.readValue(value, new TypeReference<>() {}); } catch (Exception e) { throw new IllegalStateException(e); } }
 
     public record DynamicEvalCase(UUID id, String query, List<String> expectedSources, String category, long version) {}
+    public record EvaluationDocumentRef(UUID documentId, int version, String sourceUrl, String category) {}
     public record RevisionData(String externalId, String title, String category, String sourceUrl, String sourceLicense,
                                String format, String content, Map<String, String> metadata, String publisher,
                                String trustLevel, LocalDateTime effectiveFrom, LocalDateTime expiresAt) {}
