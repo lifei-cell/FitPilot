@@ -62,7 +62,7 @@
 
 ## 面试自我介绍参考（不放入正式简历）
 
-我主要面向 Java 后端和 AI Agent 应用岗位。FitPilot 是我基于 Java 21 和 Spring Boot 3.5 构建的 AI Native 健身训练平台：核心业务通过 Workout 快照、事务状态机和 Owner 校验保证历史数据正确；事件侧使用 Transactional Outbox、Kafka 和 Inbox 实现 At-least-once 下的幂等与最终一致；AI 侧实现了带内容治理和评测门禁的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow。项目当前通过 79 个后端零跳过测试和前端 36 个组件测试、7 个浏览器场景；b3d708a 的远端 CI 曾因依赖安全扫描失败，修复 revision 的镜像安全扫描、SBOM 和 Provenance 待精确 SHA 核验。
+我主要面向 Java 后端和 AI Agent 应用岗位。FitPilot 是我基于 Java 21 和 Spring Boot 3.5 构建的 AI Native 健身训练平台：核心业务通过 Workout 快照、事务状态机和 Owner 校验保证历史数据正确；事件侧使用 Transactional Outbox、Kafka 和 Inbox 实现 At-least-once 下的幂等与最终一致；AI 侧实现了带内容治理和评测门禁的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow。项目当前通过 79 个后端零跳过测试和前端 36 个组件测试、7 个浏览器场景；b3d708a 的远端 CI 曾因依赖安全扫描失败，升级 Netty 后修复 revision `c55e26d` 的镜像安全扫描、SBOM 和 Provenance 已按精确 SHA 核验通过。
 
 ## 投递前检查（不放入正式简历）
 
