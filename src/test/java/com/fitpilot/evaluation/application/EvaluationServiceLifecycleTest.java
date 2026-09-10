@@ -1,15 +1,10 @@
 package com.fitpilot.evaluation.application;
 
-import com.fitpilot.agent.application.AgentPlanner;
 import com.fitpilot.evaluation.config.EvaluationProperties;
 import com.fitpilot.evaluation.infrastructure.EvaluationRepository;
-import com.fitpilot.llm.application.LlmGateway;
 import com.fitpilot.llm.application.PromptRegistry;
-import com.fitpilot.rag.application.HybridRetrievalService;
-import com.fitpilot.rag.application.KnowledgeIngestionService;
 import com.fitpilot.rag.application.RagFeedbackService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.task.TaskRejectedException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -39,11 +34,11 @@ class EvaluationServiceLifecycleTest {
                         invocation.getArgument(0), EvaluationRepository.RunType.AGENT,
                         "RULE_WORKFLOW", List.of())));
         doThrow(new TaskRejectedException("queue full")).when(executor).execute(any(Runnable.class));
-        @SuppressWarnings("unchecked") ObjectProvider<HybridRetrievalService> retrieval = mock(ObjectProvider.class);
-        @SuppressWarnings("unchecked") ObjectProvider<KnowledgeIngestionService> ingestion = mock(ObjectProvider.class);
+        EvaluationTaskScheduler scheduler = new EvaluationTaskScheduler(repository,
+                mock(AgentEvaluationRunner.class), mock(RagEvaluationRunner.class), executor,
+                heartbeatScheduler(), properties);
         EvaluationService service = new EvaluationService(mock(EvaluationDatasetLoader.class), repository,
-                mock(AgentPlanner.class), mock(LlmGateway.class), prompts, retrieval, ingestion, executor,
-                heartbeatScheduler(), properties, mock(RagFeedbackService.class));
+                prompts, mock(RagFeedbackService.class), scheduler, properties);
 
         var id = service.startAgent("RULE_WORKFLOW");
 

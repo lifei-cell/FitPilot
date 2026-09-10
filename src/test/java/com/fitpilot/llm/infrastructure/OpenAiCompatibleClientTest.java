@@ -36,8 +36,7 @@ class OpenAiCompatibleClientTest {
         LlmProperties properties=new LlmProperties();properties.setEnabled(true);properties.setMaxRetries(0);
         configure(properties.getPrimary(),"primary","http://localhost:"+server.getAddress().getPort()+"/primary");
         configure(properties.getFallback(),"fallback","http://localhost:"+server.getAddress().getPort()+"/fallback");
-        var client=new OpenAiCompatibleClient(properties,new ModelRouter(),new PromptRegistry(properties),
-                new SensitiveDataRedactor(),new ObjectMapper(),mock(LlmInvocationRepository.class),mock(FitPilotMetrics.class));
+        var client=client(properties);
         var result=client.complete(UUID.randomUUID(),LlmModels.Task.TRAINING_ANALYSIS,"email a@b.com",false);
         assertThat(result.content()).isEqualTo("ok");
         assertThat(result.provider()).isEqualTo("fallback");
@@ -56,8 +55,7 @@ class OpenAiCompatibleClientTest {
         LlmProperties properties=new LlmProperties();properties.setEnabled(true);properties.setMaxRetries(2);
         configure(properties.getPrimary(),"primary","http://localhost:"+server.getAddress().getPort()+"/primary");
         properties.getPrimary().setInputCostPerMillion(1);properties.getPrimary().setOutputCostPerMillion(2);
-        var client=new OpenAiCompatibleClient(properties,new ModelRouter(),new PromptRegistry(properties),
-                new SensitiveDataRedactor(),new ObjectMapper(),mock(LlmInvocationRepository.class),mock(FitPilotMetrics.class));
+        var client=client(properties);
         var result=client.complete(UUID.randomUUID(),LlmModels.Task.INTENT_CLASSIFICATION,"retry",true);
         assertThat(requests).hasValue(3);
         assertThat(result.inputTokens()).isEqualTo(11);
@@ -188,8 +186,12 @@ class OpenAiCompatibleClientTest {
     }
 
     private OpenAiCompatibleClient client(LlmProperties properties){
-        return new OpenAiCompatibleClient(properties,new ModelRouter(),new PromptRegistry(properties),
-                new SensitiveDataRedactor(),new ObjectMapper(),mock(LlmInvocationRepository.class),mock(FitPilotMetrics.class));
+        PromptRegistry prompts = new PromptRegistry(properties);
+        OpenAiProviderTransport transport = new OpenAiProviderTransport(
+                properties, prompts, new SensitiveDataRedactor(), new ObjectMapper());
+        return new OpenAiCompatibleClient(properties, new ModelRouter(), prompts, transport,
+                new LlmResiliencePolicy(properties), mock(LlmInvocationRepository.class),
+                mock(FitPilotMetrics.class));
     }
     private void configure(LlmProperties.Endpoint endpoint,String name,String url){endpoint.setName(name);endpoint.setUrl(url);endpoint.setSmallModel("small");endpoint.setMediumModel("medium");endpoint.setStrongModel("strong");}
 }

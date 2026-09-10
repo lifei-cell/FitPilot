@@ -4,6 +4,8 @@
 
 V4 采用一个 Agent、确定性意图路由和显式 Workflow，不做 Multi-Agent。默认 `RULE_WORKFLOW` 可离线运行，后续接入模型网关时也不得改变后端授权边界。
 
+源码按业务职责组织：`AgentWorkflowService` 是供 HTTP/MCP 使用的稳定门面，`AgentOrchestrator` 只编排一次消息工作流；`IntentRouter` 负责规则回退与模型意图路由，`ToolExecutionService` 负责只读工具执行和审计，`PlanProposalService` 负责生成并校验写操作草案，`PendingActionService` 管理待确认动作与令牌生命周期，`ConfirmationService` 在事务内完成重新校验和最终写入。
+
 ## Tools 与权限
 
 只读工具为 `get_user_profile`、`get_workout_history`、`get_personal_records`、`get_training_plan`、`get_training_volume`、`search_knowledge`。工具参数没有 `userId`，执行器只使用 JWT `CurrentUser.id`，并复用各领域 Service/Repository 的 owner 查询。

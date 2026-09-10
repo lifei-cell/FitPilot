@@ -9,6 +9,8 @@ V5 保持模块化单体。LLM 只提供结构化规划与文本生成，JWT 身
 ```text
 Agent Workflow
   → Prompt Registry + Model Router
+  → LLM Resilience Policy
+  → OpenAI Provider Transport
   → Primary OpenAI-compatible endpoint
   → Fallback OpenAI-compatible endpoint
   → RULE_WORKFLOW
@@ -21,11 +23,15 @@ Agent Workflow
 - 训练计划反序列化为 `TrainingPlanDtos.CreateRequest`，通过现有校验链后生成 pending action；确认令牌只存摘要、绑定用户、单次消费。
 - RAG 上下文以不可信数据包裹，不得触发 Tool 或覆盖系统指令；引用由真实 `RetrievedContext` 生成。
 
+`OpenAiCompatibleClient` 仅协调模型路由、端点切换、审计和指标；`LlmResiliencePolicy` 独立维护 Deadline、Bulkhead、熔断与退避状态，`OpenAiProviderTransport` 只负责请求构造、脱敏、HTTP 传输和响应解析。
+
 `llm_invocation` 逐次记录端点、模型、Prompt 版本、Token、费用、时延和错误码；`agent_execution` 汇总最终模型、总 Token/费用和降级状态。审计输入经过敏感信息脱敏，明细保留 30 天。
 
 ## 3. 评测
 
 版本化数据集位于 `src/main/resources/eval/`：150 条中文 Agent 用例和 50 条 RAG 真值。运维 API 异步创建评测任务，结果写入 `agent_eval_run/result` 与 `rag_eval_run/result`。任务状态为 `QUEUED/RUNNING/SUCCEEDED/FAILED/REJECTED/TIMED_OUT`；队列与执行阶段均持有可续期租约，进程重启后会重新领取僵尸任务，Deadline 到期会持久化超时并取消本机 Future。
+
+`EvaluationService` 作为运维 API 门面创建任务；`EvaluationTaskScheduler` 处理租约、心跳、恢复和取消；`AgentEvaluationRunner`、`RagEvaluationRunner` 分别执行数据集；`EvaluationMetricCalculator` 负责纯指标计算，`EvaluationReportService` 生成最终报告并执行回归门禁。
 
 门禁：Tool Selection ≥95%、Task Success ≥95%、违规率为 0；RAG Recall@5 ≥85%、MRR ≥0.75，并校验引用属于本次检索上下文。CI 使用 Mock OpenAI-compatible Server；真实模型评测保留为夜间/手动任务。
 
