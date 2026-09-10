@@ -1,19 +1,30 @@
 # 远端发布与生产交付验收
 
-最新闭环日期：2026-09-08。当前发布对象是包含 V6/Flyway V17 功能验收提交 `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c` 的最终 `main` revision。为避免回填 Run ID 再改变 `main` SHA，精确 CI、Release、Artifact、镜像 Digest、SBOM 与 provenance 校验结果写入该 revision 的 `refs/notes/release-evidence`。结论严格区分当前 CI/GHCR 发布、历史 Kind 演练和真实生产集群执行。
+最新闭环日期：2026-09-10。当前已验证发布对象为 `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`，它包含 V18 功能验收 revision `b3d708ac4249331bf74e1541481caca115dc55ff` 以及 Netty 安全修复 `4.1.137.Final`。为避免回填 Run ID 再改变发布 revision，精确 CI、Release、Artifact、镜像 Digest、SBOM 与 provenance 校验结果写入 `c55e26d` 的 `refs/notes/release-evidence`。结论严格区分当前 CI/GHCR 发布、历史 Kind 演练和真实生产集群执行。
 
-## 当前 V17 远端证据：PASS
+## 当前 V18 远端证据：PASS
 
 获取不可变证据：
 
 ```powershell
 git fetch origin refs/notes/release-evidence:refs/notes/release-evidence
-git notes --ref=release-evidence show origin/main
+git notes --ref=release-evidence show c55e26d52fa74010f9d9467911aa2de3e7de3b9d
 ```
 
-- 当前 `main` 后继并包含 `c1c9ede`；CI 与 Release 必须对同一精确 revision 完成，过期 `workflow_run` 不得覆盖 `main` 标签。
-- Git Note 记录 CI/Release Run、Release Artifact 与 checksum、应用/Web 镜像 Digest、SBOM 和 provenance 校验结果。
-- [V17 当前功能验收](v17-functional-validation.md)记录 65 个后端零跳过测试、Flyway V1-V17、后端 83.12% 行覆盖率，以及 Web 36 个组件测试、7 个浏览器场景和 71.69% 行覆盖率。
+- CI Run：[34465034299](https://github.com/lifei-cell/FitPilot/actions/runs/34465034299)，`head_sha=c55e26d52fa74010f9d9467911aa2de3e7de3b9d`；`verify` 与 `secret-scan` 均成功，CI 运行 revision 与发布 revision 一致。
+- CI 证据制品 `verification-evidence` 的 Artifact ID 为 `10147412207`，Gitleaks 制品 Artifact ID 为 `10147133391`，均未过期；CycloneDX SBOM 包含 149 个组件，`io.netty:netty-handler` 为 `4.1.137.Final`，依赖、应用镜像和 Web 镜像 Trivy SARIF 均无结果。
+- Release Run：[34465790273](https://github.com/lifei-cell/FitPilot/actions/runs/34465790273)，`select-revision` 与 `image` 均成功，并确认发布 head SHA 为 `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`。
+- Release Artifact `ghcr-digests-34465790273` 的 Artifact ID 为 `10147980959`；`release-manifest.json` SHA256 为 `3c95cbe54875431a1e0ca488e16fd50bcbe5c7ba594198448d1bdc60e5bfa5d9`，与归档校验文件一致。
+- 应用镜像：`ghcr.io/lifei-cell/fitpilot@sha256:72985f3d1e47855b82d7cdbb7db118d1eca5b45c84e0d1733618d4493fd1f9cd`。
+- Web 镜像：`ghcr.io/lifei-cell/fitpilot-web@sha256:22bd44742e769627312456cae058756ebb16848c6fd638f823b0504bbfc7f254`。
+- 两个 GHCR OCI Index 的 Registry Digest 均与 Release Manifest 一致，均包含 `linux/amd64`、`linux/arm64`；每个 Index 均包含对应平台的 attestation manifest，且原始 manifest 同时声明 SPDX SBOM 与 SLSA provenance layer。
+- 使用 GitHub CLI v2.100.0 从 OCI Registry 执行 `gh attestation verify --bundle-from-oci`：两个镜像各 1 个 attestation 均通过密码学验证，predicate 为 `https://slsa.dev/provenance/v1`，subject Digest 与上述镜像一致，并约束 `source-digest=c55e26d52fa74010f9d9467911aa2de3e7de3b9d`、`source-ref=refs/heads/main`、signer workflow `lifei-cell/FitPilot/.github/workflows/release.yml`；对应 Rekor tlog index 为应用 `2781771377`、Web `2781772808`。
+- 上述不可变证据已写入并推送至 `refs/notes/release-evidence`；V18 功能验收数据见 [V18 当前功能验收](v18-functional-validation.md)，记录 79 个后端零跳过测试、Flyway V1-V18 和后端 84.40% 行覆盖率。
+
+## V17 历史远端证据：PASS
+
+- 历史 V17 发布对象为 `c1c9edec2472ea4e3cb1655b1eae13e6d79ac16c`；本节及其旧 Note 只作为历史记录，不能覆盖当前 V18 的精确证据。
+- V17 的 [当前功能验收](v17-functional-validation.md)记录 65 个后端零跳过测试、Flyway V1-V17、后端 83.12% 行覆盖率，以及 Web 36 个组件测试、7 个浏览器场景和 71.69% 行覆盖率。
 
 ## V15 历史 CI 与安全门禁：PASS
 
@@ -51,4 +62,4 @@ git notes --ref=release-evidence show origin/main
 
 ## 最终结论
 
-包含 revision `c1c9ede` 的最终 `main` 已形成远端 CI、安全扫描、GHCR 多架构发布、不可变 Digest、SBOM 和 provenance 的一对一可追溯闭环，精确证据保存在 `refs/notes/release-evidence`。旧 revision `8a8e6ea` 的详细证据作为历史记录保留；Kind 演练仍只绑定 `1d98621`，真实 Production Delivery Gate 仍为 `SKIPPED`。
+V18 发布 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d` 已形成远端 CI、安全扫描、GHCR 多架构发布、不可变 Digest、SBOM 和 provenance 的一对一可追溯闭环，精确证据保存在 `refs/notes/release-evidence`；V18 功能验收 revision 为 `b3d708ac4249331bf74e1541481caca115dc55ff`。V17/V15 的旧证据继续作为历史记录保留；Kind 演练仍只绑定 `1d98621`，真实 Production Delivery Gate 仍为 `SKIPPED`。

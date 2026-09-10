@@ -202,11 +202,11 @@ V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭�
 | 证据层 | revision | 状态 | 原始报告 |
 |---|---|---|---|
 | 当前 V18 本地功能验收 | `b3d708ac4249331bf74e1541481caca115dc55ff` | `PASS`：79 个后端测试零跳过、V1-V18 迁移、Web 36 个组件测试与 7 个浏览器场景通过 | [V18 当前功能验收](docs/release/v18-functional-validation.md) |
-| V18 精确 SHA 远端 CI / Release / GHCR | `b3d708ac4249331bf74e1541481caca115dc55ff` | `FAIL`：CI Run `34463093054` 的 Trivy 依赖扫描检出 `CVE-2026-75595`，未触发 Release；Netty 已升级到 `4.1.137.Final`，修复 revision 待重新核验 | [远端发布验收](docs/release/p1-delivery-validation.md) |
+| V18 精确 SHA 远端 CI / Release / GHCR | `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`（修复 revision，包含 `b3d708a`） | `PASS`：CI Run `34465034299`、Release Run `34465790273`、GHCR Digest、SBOM 和 provenance 均按精确 SHA 核验；b3d708a 的旧 CI 失败及 Netty 修复过程见报告 | [远端发布验收](docs/release/p1-delivery-validation.md) |
 | 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
 | 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
 
-当前本地功能验收 revision 为 `b3d708a`；该 revision 的 CI 因 Netty 依赖安全扫描失败，修复 revision 的远端 CI、Release、GHCR、SBOM 和 provenance 仍待按精确 SHA 完成，历史 V17 远端证据不能直接复用于 V18。Kind 演练仍只绑定历史 revision `1d98621`，项目不得表述为已在真实生产集群上线。
+当前本地功能验收 revision 为 `b3d708a`；其后代修复 revision `c55e26d` 已完成精确 SHA 的 CI、Release、GHCR、SBOM 和 provenance 闭环，历史 V17 远端证据不能直接复用于 V18。Kind 演练仍只绑定历史 revision `1d98621`，Production Delivery Gate 仍为 `SKIPPED`，项目不得表述为已在真实生产集群上线。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 

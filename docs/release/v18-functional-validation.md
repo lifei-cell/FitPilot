@@ -31,5 +31,6 @@ $env:DOCKER_HOST = 'npipe:////./pipe/dockerDesktopLinuxEngine'
 - 该结果是 Windows + Docker Desktop 本地验收，不是生产容量或真实 Kubernetes 运行证据。
 - CI 使用 Mock OpenAI-compatible 服务，证明协议、解析、审计、降级和 Workflow 集成，不证明真实模型质量或真实 Provider 评测结果。
 - revision `b3d708a` 的精确 SHA CI Run `34463093054` 已完成，但 `verify` 在 Trivy 依赖扫描阶段因 CycloneDX SBOM 检出 `CRITICAL CVE-2026-75595`（`io.netty:netty-handler:4.1.136.Final`）失败；61 个单元测试、18 个集成测试、Web 质量门禁和 secret-scan 均通过，因此未触发该 revision 的 Release、GHCR 和 provenance 闭环。
-- 本报告之后已将 Netty 升级到 `4.1.137.Final`，修复 revision 必须重新执行精确 SHA 的 CI、Release、GHCR、SBOM 和 provenance 核验；在全部完成前不得表述为发布闭环。
+- 本报告之后已将 Netty 升级到 `4.1.137.Final`；修复发布 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d` 的精确 SHA CI、Release、GHCR、SBOM 和 provenance 均已完成，完整 Run、Digest、Artifact 和验证命令见 [P1 远端发布与生产交付验收](p1-delivery-validation.md)。
+- 该远端闭环只证明 `c55e26d` 的 CI 与 GHCR 发布，不证明真实模型质量、生产容量或生产集群上线；Production Delivery Gate 仍为 `SKIPPED`。
 - Production Delivery Gate 仍为 `SKIPPED`，不得表述为已生产上线。

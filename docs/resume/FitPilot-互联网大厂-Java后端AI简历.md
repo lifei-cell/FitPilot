@@ -41,7 +41,7 @@
 
 - **安全 Agent 与训练调节闭环：** 针对 LLM 直接执行写操作存在越权、幻觉参数和不可审计风险（S/T），将模型限制为结构化提议组件，由后端统一执行 JWT 身份继承、Tool 白名单、领域校验、Guardrail、一次性确认和持久化；会话以 PostgreSQL 为真源、Redis 为热缓存，并基于 28 天训练事实生成可解释调整（A）；实现跨设备会话与待确认动作恢复，数据不足或疼痛风险自动阻断，确认后只创建新 DRAFT，主备模型失败回退规则 Workflow 时仍不放宽安全链（R）。
 
-- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；V6/Flyway V18 功能基线通过 79 个后端零跳过测试，后端行覆盖率 84.40%，Web 通过 36 个组件测试和 7 个 Chromium E2E、行覆盖率 71.69%；修复依赖安全问题后，远端 CI、安全扫描和 GHCR `amd64/arm64` 镜像发布仍需按精确 SHA 完成可追溯闭环（R）。
+- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；V6/Flyway V18 功能基线通过 79 个后端零跳过测试，后端行覆盖率 84.40%，Web 通过 36 个组件测试和 7 个 Chromium E2E、行覆盖率 71.69%；Netty 安全修复后的 `c55e26d` 已完成精确 SHA 的远端 CI、GHCR `amd64/arm64` 镜像、SBOM 与 Provenance 闭环（R）。
 
 **补充验证数据：** 历史 V5 本机 Docker Compose 30 分钟混合流量完成 118,980 次 HTTP 请求，业务成功率 99.99%，普通 API P95 10.03ms、Agent P95 30.70ms；该数据用于证明测试环境下的实现与稳定性，不表述为真实生产容量。
 
@@ -76,7 +76,7 @@
 | 结论 | revision / Run | 原始报告 |
 |---|---|---|
 | V6、Flyway V1-V18、79 个后端测试、36 个组件测试、7 个浏览器场景 | `b3d708ac4249331bf74e1541481caca115dc55ff` | [V18 当前功能验收](../release/v18-functional-validation.md) |
-| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | `b3d708ac4249331bf74e1541481caca115dc55ff` 的 CI Run `34463093054` 因依赖安全扫描失败；修复 revision 待重新完成并写入 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
+| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | 修复 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`；CI `34465034299`、Release `34465790273`，精确证据见 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
 | 30 分钟混合流量与告警恢复 | Run ID `20260830-091822`，历史 V5/V9 本机基线 | [V5 性能验证](../performance/v5-production-validation.md) |
 | Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f`，仅历史本机演练 | [V6 远端发布验收](../release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
 | 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [V6 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
