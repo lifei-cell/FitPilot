@@ -522,6 +522,44 @@ class FitPilotApiIT {
         });
     }
 
+    @Test
+    void previousSetsAreOwnedCompletedWorkingSetsAndReadOnly() throws Exception {
+        register("quick_owner");
+        long owner = jdbc.queryForObject("SELECT id FROM users WHERE username='quick_owner'", Long.class);
+        register("quick_other");
+        long other = jdbc.queryForObject("SELECT id FROM users WHERE username='quick_other'", Long.class);
+        String token = login("quick_owner");
+        long current = seedQuickWorkout(owner, "IN_PROGRESS", 0, 1, 0);
+        long currentExercise = jdbc.queryForObject("SELECT id FROM workout_exercise WHERE workout_id=?", Long.class, current);
+        String path = "/api/v1/workouts/" + current + "/exercises/" + currentExercise + "/previous-sets";
+        mvc.perform(get(path).header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
+        seedQuickWorkout(owner, "COMPLETED", 5, 1, 40);
+        long latest = seedQuickWorkout(owner, "COMPLETED", 4, 1, 60);
+        long latestExercise = jdbc.queryForObject("SELECT id FROM workout_exercise WHERE workout_id=?", Long.class, latest);
+        jdbc.update("INSERT INTO workout_set(workout_exercise_id,set_number,weight_kg,reps,is_warmup,completed_at) VALUES (?,2,20,15,true,now()), (?,3,62.5,8,false,now())", latestExercise, latestExercise);
+        seedQuickWorkout(owner, "CANCELLED", 3, 1, 90);
+        seedQuickWorkout(owner, "COMPLETED", 2, 2, 95);
+        seedQuickWorkout(other, "COMPLETED", 1, 1, 100);
+        mvc.perform(get(path).header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].weightKg").value(60))
+                .andExpect(jsonPath("$.data[1].reps").value(8));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set WHERE workout_exercise_id=?", Long.class, currentExercise)).isEqualTo(1);
+        mvc.perform(get(path).header("Authorization", bearer(login("quick_other"))))
+                .andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/workouts/" + current + "/exercises/" + latestExercise + "/previous-sets")
+                .header("Authorization", bearer(token))).andExpect(status().isNotFound());
+    }
+
+    private long seedQuickWorkout(long owner, String state, int daysAgo, long exerciseId, int weight) {
+        long id = jdbc.queryForObject("INSERT INTO workout(user_id,name,status,started_at,completed_at) VALUES (?, 'Quick', ?, now() - (? * interval '1 day'), now() - (? * interval '1 day')) RETURNING id",
+                Long.class, owner, state, daysAgo, daysAgo);
+        long exercise = jdbc.queryForObject("INSERT INTO workout_exercise(workout_id,exercise_id,sequence,exercise_name) VALUES (?,?,1,'Quick') RETURNING id", Long.class, id, exerciseId);
+        jdbc.update("INSERT INTO workout_set(workout_exercise_id,set_number,weight_kg,reps,completed_at) VALUES (?,1,?,10,now())", exercise, weight);
+        return id;
+    }
+
     private JsonNode register(String username) throws Exception {
         return call(post("/api/v1/auth/register").contentType("application/json")
                 .content(json.writeValueAsBytes(Map.of("username", username, "email", username + "@example.com",

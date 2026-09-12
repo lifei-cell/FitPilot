@@ -71,6 +71,12 @@ public class WorkoutController {
         return ApiResponse.success(service.addSet(CurrentUser.id(auth), workoutId, workoutExerciseId, request));
     }
 
+    @GetMapping("/{workoutId}/exercises/{workoutExerciseId}/previous-sets")
+    ApiResponse<java.util.List<WorkoutDtos.SetView>> previousSets(@PathVariable long workoutId,
+            @PathVariable long workoutExerciseId, Authentication auth) {
+        return ApiResponse.success(service.previousSets(CurrentUser.id(auth), workoutId, workoutExerciseId));
+    }
+
     @PutMapping("/{workoutId}/sets/{setId}")
     ApiResponse<WorkoutDtos.SetView> updateSet(@PathVariable long workoutId, @PathVariable long setId,
                                                @Valid @RequestBody WorkoutDtos.SetRequest request, Authentication auth) {

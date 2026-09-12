@@ -73,6 +73,22 @@ public class WorkoutRepository {
     public List<WorkoutSet> findSets(long workoutExerciseId) {
         return sets.selectList(new QueryWrapper<WorkoutSet>().eq("workout_exercise_id", workoutExerciseId).orderByAsc("set_number"));
     }
+    /** Latest completed occurrence with usable working sets; never borrow another user's data. */
+    public List<WorkoutSet> findPreviousWorkingSets(long userId, long exerciseId, LocalDateTime before) {
+        List<Long> ids = jdbc.queryForList("""
+                SELECT e.id FROM workout_exercise e JOIN workout w ON w.id=e.workout_id
+                WHERE w.user_id=? AND e.exercise_id=? AND w.status='COMPLETED'
+                  AND w.completed_at < ? AND EXISTS (
+                    SELECT 1 FROM workout_set s WHERE s.workout_exercise_id=e.id
+                    AND s.completed_at IS NOT NULL AND NOT s.is_warmup
+                    AND s.weight_kg >= 0 AND s.reps > 0)
+                ORDER BY w.completed_at DESC, w.id DESC, e.sequence DESC LIMIT 1
+                """, Long.class, userId, exerciseId, before);
+        if (ids.isEmpty()) return List.of();
+        return findSets(ids.getFirst()).stream().filter(s -> s.completedAt != null
+                && !Boolean.TRUE.equals(s.isWarmup) && s.weightKg != null
+                && s.weightKg.signum() >= 0 && s.reps != null && s.reps > 0).toList();
+    }
     public int nextExerciseSequence(long workoutId) {
         WorkoutExercise last = exercises.selectOne(new QueryWrapper<WorkoutExercise>().eq("workout_id", workoutId)
                 .orderByDesc("sequence").last("LIMIT 1"));

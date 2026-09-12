@@ -138,6 +138,14 @@ public class WorkoutService {
         return get(userId, workout.id);
     }
 
+    public List<WorkoutDtos.SetView> previousSets(long userId, long workoutId, long workoutExerciseId) {
+        Workout workout = owned(userId, workoutId);
+        WorkoutExercise exercise = repository.findExercise(workoutId, workoutExerciseId)
+                .orElseThrow(this::workoutNotFound);
+        return repository.findPreviousWorkingSets(userId, exercise.exerciseId, workout.startedAt)
+                .stream().map(this::setView).toList();
+    }
+
     public PageResult<WorkoutDtos.WorkoutSummary> list(long userId, LocalDateTime start, LocalDateTime end,
                                                         String status, long page, long size) {
         if (start != null && end != null && start.isAfter(end)) {

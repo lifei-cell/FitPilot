@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { CheckCircle2, CircleStop, Play, Plus } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, CircleStop, Play } from "lucide-react";
 import { api } from "../api/client";
 import type {
   PageResult,
   Plan,
   Workout,
   WorkoutSetInput,
+  WorkoutSet,
   WorkoutSummary,
   WorkoutFeedbackInput,
 } from "../api/types";
@@ -17,12 +18,14 @@ import {
   SectionTitle,
   Status,
 } from "../components/PageParts";
+import { QuickSetForm } from "../features/workout/QuickSetForm";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
 import { navigate } from "../components/AppShell";
 
 export function WorkoutsPage() {
   const client = useQueryClient();
+  const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
@@ -76,23 +79,6 @@ export function WorkoutsPage() {
     },
     onError: (e) => setError(e.message),
   });
-  const addSet = useMutation({
-    mutationFn: ({
-      workoutId,
-      exerciseId,
-      payload,
-    }: {
-      workoutId: number;
-      exerciseId: number;
-      payload: unknown;
-    }) =>
-      api(`/workouts/${workoutId}/exercises/${exerciseId}/sets`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }),
-    onSuccess: refresh,
-    onError: (e) => setError(e.message),
-  });
   const updateSet = useMutation({
     mutationFn: ({
       workoutId,
@@ -116,22 +102,6 @@ export function WorkoutsPage() {
     onSuccess: refresh,
     onError: (e) => setError(e.message),
   });
-  function submitSet(event: FormEvent<HTMLFormElement>, exerciseId: number) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    addSet.mutate({
-      workoutId: active.data!.id,
-      exerciseId,
-      payload: {
-        weightKg: Number(data.get("weight")),
-        reps: Number(data.get("reps")),
-        rpe: Number(data.get("rpe")),
-        isWarmup: false,
-        isFailure: false,
-      },
-    });
-    event.currentTarget.reset();
-  }
   return (
     <main className="page">
       <PageHeader
@@ -157,6 +127,7 @@ export function WorkoutsPage() {
             <div className="action-row">
               <button
                 className="secondary-button danger"
+                disabled={recording || finish.isPending}
                 onClick={() =>
                   finish.mutate({ id: active.data!.id, action: "cancel" })
                 }
@@ -166,6 +137,7 @@ export function WorkoutsPage() {
               </button>
               <button
                 className="primary-button compact"
+                disabled={recording || finish.isPending}
                 onClick={() => setShowFeedback(true)}
               >
                 <CheckCircle2 size={17} />
@@ -173,7 +145,7 @@ export function WorkoutsPage() {
               </button>
             </div>
           </div>
-          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending}
+          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending || recording}
             onSubmit={(feedback) => finish.mutate({ id: active.data!.id, action: "complete", feedback })}
             onSkip={() => finish.mutate({ id: active.data!.id, action: "complete" })} /> : null}
           <div className="exercise-stack">
@@ -196,7 +168,7 @@ export function WorkoutsPage() {
                         key={set.id}
                         set={set}
                         busy={
-                          (updateSet.isPending &&
+                          recording || (updateSet.isPending &&
                             updateSet.variables?.setId === set.id) ||
                           (deleteSet.isPending &&
                             deleteSet.variables?.setId === set.id)
@@ -217,38 +189,23 @@ export function WorkoutsPage() {
                       />
                     ))}
                   </div>
-                  <form
-                    className="inline-set-form"
-                    onSubmit={(e) => submitSet(e, exercise.id)}
-                  >
-                    <input
-                      name="weight"
-                      type="number"
-                      step=".25"
-                      min="0"
-                      placeholder="重量 kg"
-                      required
-                    />
-                    <input
-                      name="reps"
-                      type="number"
-                      min="1"
-                      placeholder="次数"
-                      required
-                    />
-                    <input
-                      name="rpe"
-                      type="number"
-                      step=".5"
-                      min="1"
-                      max="10"
-                      placeholder="RPE"
-                    />
-                    <button className="secondary-button">
-                      <Plus size={15} />
-                      记录一组
-                    </button>
-                  </form>
+                  <QuickSetForm workoutId={active.data.id} exercise={exercise}
+                    busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending}
+                    onSave={async (payload, idempotencyKey) => {
+                      setRecording(true);
+                      try {
+                        await client.cancelQueries({ queryKey: ["active-workout"] });
+                        const saved = await api<WorkoutSet>(
+                          `/workouts/${active.data!.id}/exercises/${exercise.id}/sets`, {
+                            method: "POST", body: JSON.stringify(payload),
+                            headers: { "Idempotency-Key": idempotencyKey },
+                          });
+                        client.setQueryData<Workout>(["active-workout"], (current) => current && ({
+                          ...current, exercises: current.exercises.map((item) => item.id === exercise.id
+                            ? { ...item, sets: [...item.sets.filter((set) => set.id !== saved.id), saved] } : item),
+                        }));
+                      } finally { setRecording(false); }
+                    }} />
                 </div>
               </article>
             ))}

@@ -31,6 +31,8 @@ describe("WorkoutsPage", () => {
     let addedSet: WorkoutSetInput | undefined;
     let completedWith: unknown;
     server.use(
+      http.get("/api/v1/workouts/:id/exercises/:exerciseId/previous-sets", () =>
+        HttpResponse.json({ code: 0, message: "success", data: [] })),
       http.get("/api/v1/workouts/active/current", () => workout
         ? HttpResponse.json({ code: 0, message: "success", data: workout })
         : HttpResponse.json({ code: 30002, message: "no active workout", data: null }, { status: 404 })),
