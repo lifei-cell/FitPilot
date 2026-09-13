@@ -41,6 +41,8 @@ Workout + Outbox（同一事务）→ Kafka → PR / Analytics → PR Event → 
 
 Kafka 故障不会回滚已完成的 Workout。PR、分析投影和通知采用最终一致性；恢复后 Outbox 自动补发。
 
+Outbox 超时重领会更换领取 token；发送前续租及发送结果回写均校验领取权，防止旧执行者晚返回覆盖新状态。详见 [V20 领取保护与故障测试](docs/release/outbox-claim-ownership.md)。
+
 RAG 检索链路：
 
 ```text

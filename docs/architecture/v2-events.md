@@ -5,7 +5,7 @@
 ```text
 完成 Workout
   └─ 同一 PostgreSQL 事务写 WorkoutCompletedEvent 到 outbox_event
-       └─ Outbox Relay（SKIP LOCKED，多实例安全）
+       └─ Outbox Relay（SKIP LOCKED + 领取 token 条件回写）
             └─ Kafka，key = workoutId
                  ├─ PR Projector → personal_record
                  │    └─ PersonalRecordCreatedEvent → 通知消费者
@@ -35,7 +35,10 @@
 - `processed_event(event_id, consumer)` 与业务投影处在同一数据库事务；重复消息直接跳过。
 - `personal_record(workout_set_id, record_type)`、分析投影主键和通知来源事件唯一键提供第二层业务幂等。
 - 消费失败先按固定间隔重试，耗尽后同时写入 `dead_letter_event` 并投递原 Topic 的 `.DLT` Topic。
-- Relay 抢占使用 `FOR UPDATE SKIP LOCKED`；SENDING 超时事件会重新抢占，避免实例宕机造成永久卡死。
+- Relay 抢占使用 `FOR UPDATE SKIP LOCKED`；SENDING 超时事件会重新抢占，每次领取生成新 `claim_token`。续租、成功和失败回写都匹配 `id + SENDING + claim_token`，旧执行者不能覆盖新领取状态。
+- 每条事件发送前续租并检查领取权；排队期间已被重领的事件跳过发送。回写影响行数为 0 时记录 `CLAIM_LOST`，不计入 SENT/FAILED。
+
+领取 token 保护 PostgreSQL 状态，不会取消已发往 Kafka 的请求。超时意味着事件可被重领；尚未重领时，原 token 仍可续租或完成。UUID 是领取身份，不是 Kafka 可校验的单调 fencing 序号。实现、故障验证及发布顺序见 [Outbox 超时重领保护](../release/outbox-claim-ownership.md)。
 
 这套设计不承诺 exactly-once，也不把 Redis 作为事件或幂等事实来源。
 

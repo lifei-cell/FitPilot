@@ -36,16 +36,34 @@ public class OutboxRelay {
         for (OutboxEvent event : repository.claimBatch(relay.getBatchSize(), relay.getClaimTimeoutSeconds(),
                 relay.getMaxAttempts())) {
             try {
+                if (!repository.refreshClaim(event)) {
+                    claimLost(event);
+                    continue;
+                }
                 kafka.send(event.topic(), event.eventKey(), event.payload())
                         .get(relay.getSendTimeoutSeconds(), TimeUnit.SECONDS);
-                repository.markSent(event.id());
-                metrics.outbox("SENT");
+                if (repository.markSent(event)) metrics.outbox("SENT");
+                else claimLost(event);
+            } catch (InterruptedException interrupted) {
+                try { publishFailed(event, interrupted); }
+                finally { Thread.currentThread().interrupt(); }
+                return;
             } catch (Exception failure) {
-                repository.markFailed(event, failure, relay.getMaxAttempts());
-                metrics.outbox("FAILED");
-                log.warn("operation=OutboxPublishFailed outboxId={} topic={} attempt={}",
-                        event.id(), event.topic(), event.retryCount() + 1);
+                publishFailed(event, failure);
             }
         }
+    }
+
+    private void publishFailed(OutboxEvent event, Exception failure) {
+        if (repository.markFailed(event, failure, properties.getRelay().getMaxAttempts())) {
+            metrics.outbox("FAILED");
+            log.warn("operation=OutboxPublishFailed outboxId={} topic={} attempt={}",
+                    event.id(), event.topic(), event.retryCount() + 1);
+        } else claimLost(event);
+    }
+
+    private void claimLost(OutboxEvent event) {
+        metrics.outbox("CLAIM_LOST");
+        log.warn("operation=OutboxClaimLost outboxId={} topic={}", event.id(), event.topic());
     }
 }

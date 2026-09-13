@@ -10,6 +10,7 @@
 2. 检查 Kafka Broker/Topic/ACL、producer 错误、consumer group lag 与数据库连接池。
 3. 查询 outbox 的 `PENDING/FAILED` 数量和最老时间，不修改业务 payload。
 4. 查看 dead letter，仅使用受审计的 replay API 重放明确可恢复的消息。
+5. 若 `fitpilot.outbox.publish{status="CLAIM_LOST"}` 对应计数持续增长，结合 `OutboxClaimLost` 日志检查发送延迟、线程停顿、领取超时及批次排队。该状态表示没有领取权，不是一次已确认的发送失败；不要因此绕过 Inbox 或直接改写状态。
 
 ## 恢复
 
@@ -19,3 +20,5 @@
 4. 只有 pending=0、lag 回落、无重复副作用且 PR/分析投影一致时关闭事故。
 
 禁止直接删除 outbox/dead-letter 行或跳过幂等约束。
+
+V20 发布必须先停止全部旧版 Relay 并等待在途执行结束，再执行迁移并启用新版 Relay；旧版回写没有 token 条件，新旧 Relay 混跑时不能承诺保护生效。回滚保留 V20 列，回退旧版发布器会失去领取保护。详见 [迁移与验证记录](../release/outbox-claim-ownership.md)。
