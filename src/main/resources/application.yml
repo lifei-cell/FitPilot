@@ -186,9 +186,10 @@ fitpilot:
     cache:
       enabled: ${CACHE_ENABLED:true}
       l1-maximum-size: ${CACHE_L1_MAXIMUM_SIZE:10000}
-      l1-ttl-seconds: ${CACHE_L1_TTL_SECONDS:300}
-      l2-ttl-seconds: ${CACHE_L2_TTL_SECONDS:1800}
-      l2-ttl-jitter-seconds: ${CACHE_L2_TTL_JITTER_SECONDS:300}
+      # Display reads tolerate brief staleness; business validation reads PostgreSQL.
+      l1-ttl-seconds: ${CACHE_L1_TTL_SECONDS:5}
+      l2-ttl-seconds: ${CACHE_L2_TTL_SECONDS:30}
+      l2-ttl-jitter-seconds: ${CACHE_L2_TTL_JITTER_SECONDS:5}
       rebuild-lock-seconds: ${CACHE_REBUILD_LOCK_SECONDS:5}
     rate-limit:
       enabled: ${RATE_LIMIT_ENABLED:true}

@@ -30,7 +30,7 @@ Request → Caffeine L1 → Redis L2 → 分布式重建锁 → PostgreSQL
 
 - 空值缓存阻止缓存穿透，重建锁和有限等待抑制缓存击穿。
 - L2 TTL 加随机抖动缓解缓存雪崩，L1 有容量上限和自动淘汰。
-- 用户资料、ACTIVE 计划在数据库事务提交后删除缓存，采用 Cache Aside 保证一致性。
+- 用户资料、ACTIVE 计划在数据库事务提交后删除本实例 L1 与共享 L2；跨实例展示允许短暂旧值，默认 L1 写入后 5 秒过期，L2 为 30 秒加最多 5 秒抖动。关键业务判断读数据库，详见[短 TTL 缓存策略](docs/release/short-ttl-cache-consistency.md)。
 - Redis 故障时缓存回源数据库、限流降级为进程内 Token Bucket，核心业务保持可用。
 
 训练完成事件链路：

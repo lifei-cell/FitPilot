@@ -49,14 +49,28 @@ class TrainingAdjustmentServiceTest {
 
     @Test
     void rejectsConfirmationWhenActivePlanVersionChanged() {
-        when(plans.active(7)).thenReturn(plan(2));
+        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(false);
         var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
                 "PROGRESS", evidence(), List.of("平台期"), createRequest());
 
         assertThatThrownBy(() -> service.confirm(7, proposal)).isInstanceOf(BusinessException.class)
                 .hasMessageContaining("active plan changed");
         verify(repository).stale(proposal.adjustmentId());
+        verify(plans).isCurrentActiveVersion(7, 42, 1);
+        verify(plans, never()).active(anyLong());
         verify(plans, never()).create(anyLong(), any());
+    }
+
+    @Test
+    void acceptsConfirmationAfterDatabaseVersionCheck() {
+        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(true);
+        var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
+                "PROGRESS", evidence(), List.of("平台期"), createRequest());
+        when(plans.create(7, proposal.plan())).thenReturn(plan(1));
+
+        assertThat(service.confirm(7, proposal)).isEqualTo(plan(1));
+        verify(repository).accept(proposal.adjustmentId(), 42);
+        verify(plans, never()).active(anyLong());
     }
 
     @Test

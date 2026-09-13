@@ -161,8 +161,7 @@ public class TrainingAdjustmentService {
     }
 
     public TrainingPlanDtos.PlanView confirm(long userId, TrainingAdjustmentDtos.AdjustmentProposal proposal) {
-        TrainingPlanDtos.PlanView current = plans.active(userId);
-        if (current.id() != proposal.sourcePlanId() || current.version() != proposal.sourcePlanVersion()) {
+        if (!plans.isCurrentActiveVersion(userId, proposal.sourcePlanId(), proposal.sourcePlanVersion())) {
             repository.stale(proposal.adjustmentId());
             throw new BusinessException(ErrorCode.PLAN_ADJUSTMENT_STALE,
                     "active plan changed; regenerate the adjustment", HttpStatus.CONFLICT);

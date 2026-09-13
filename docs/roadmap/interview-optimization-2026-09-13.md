@@ -18,6 +18,8 @@
 
 ## 实施顺序
 
+2026-09-13 决策更新：缓存项采用短 TTL 与业务校验读数据库，替代失效通知/版本化缓存的实施方向；详见 [短 TTL 缓存策略](../release/short-ttl-cache-consistency.md)。上表保留评审时的候选方案与风险背景。
+
 Java 后端面试优先完成缓存与 Outbox 两个可复现并发案例，再补当前写链路性能报告。AI 应用后端岗位可将真实 Provider 评测提前。每项独立提交，实现、测试、故障证据与文档一起完成。
 
 Outbox 的领取 token 只约束数据库状态回写，无法撤回已发送的 Kafka 消息；仍保留 Inbox 和业务唯一约束，表述为至少一次投递与幂等业务效果。Kafka 外部数据库写入的语义边界参考 [Kafka 官方设计文档](https://kafka.apache.org/design/)。

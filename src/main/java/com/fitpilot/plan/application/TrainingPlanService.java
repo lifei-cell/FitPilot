@@ -149,6 +149,12 @@ public class TrainingPlanService {
                 .orElseThrow(this::notFound);
     }
 
+    /** Write preconditions must not depend on the briefly stale display cache. */
+    public boolean isCurrentActiveVersion(long userId, long planId, int version) {
+        return repository.findActive(userId)
+                .filter(plan -> plan.id == planId && plan.version == version).isPresent();
+    }
+
     @Transactional
     public TrainingPlanDtos.PlanView activate(long userId, long planId) {
         TrainingPlan plan = repository.findOwned(userId, planId).orElseThrow(this::notFound);
