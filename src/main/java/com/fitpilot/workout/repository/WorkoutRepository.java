@@ -44,6 +44,9 @@ public class WorkoutRepository {
     public Optional<Workout> findOwned(long userId, long id) {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>().eq("id", id).eq("user_id", userId)));
     }
+    public void lockOwned(long userId, long id) {
+        jdbc.queryForList("SELECT id FROM workout WHERE user_id=? AND id=? FOR UPDATE", Long.class, userId, id);
+    }
     public Optional<Workout> findById(long id) { return Optional.ofNullable(workouts.selectById(id)); }
     public Optional<Workout> findByIdempotencyKey(long userId, String idempotencyKey) {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>()
@@ -67,8 +70,17 @@ public class WorkoutRepository {
     }
     public List<WorkoutSet> findSets(Collection<Long> workoutExerciseIds) {
         if (workoutExerciseIds.isEmpty()) return List.of();
-        return sets.selectList(new QueryWrapper<WorkoutSet>().in("workout_exercise_id", workoutExerciseIds)
+        List<WorkoutSet> result = sets.selectList(new QueryWrapper<WorkoutSet>().in("workout_exercise_id", workoutExerciseIds)
                 .orderByAsc("workout_exercise_id", "set_number"));
+        // Match uncertain local submissions to server facts after a lost acknowledgement.
+        String placeholders = String.join(",", java.util.Collections.nCopies(workoutExerciseIds.size(), "?"));
+        java.util.Map<Long, String> operations = new java.util.HashMap<>();
+        jdbc.query("SELECT (response_body->>'id')::bigint, operation_id::text FROM workout_set_receipt "
+                        + "WHERE workout_exercise_id IN (" + placeholders + ")",
+                (org.springframework.jdbc.core.RowCallbackHandler) rs -> operations.put(rs.getLong(1), rs.getString(2)),
+                workoutExerciseIds.toArray());
+        result.forEach(set -> set.clientOperationId = operations.get(set.id));
+        return result;
     }
     public List<WorkoutSet> findSets(long workoutExerciseId) {
         return sets.selectList(new QueryWrapper<WorkoutSet>().eq("workout_exercise_id", workoutExerciseId).orderByAsc("set_number"));

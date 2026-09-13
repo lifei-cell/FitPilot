@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @TableName("workout_set")
 public class WorkoutSet {
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false) public String clientOperationId;
     @TableId(type = IdType.AUTO) public Long id;
     public Long workoutExerciseId;
     public Integer setNumber;

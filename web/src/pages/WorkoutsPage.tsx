@@ -7,7 +7,6 @@ import type {
   Plan,
   Workout,
   WorkoutSetInput,
-  WorkoutSet,
   WorkoutSummary,
   WorkoutFeedbackInput,
 } from "../api/types";
@@ -18,6 +17,8 @@ import {
   SectionTitle,
   Status,
 } from "../components/PageParts";
+import { useWorkoutRecovery } from "../features/workout/useWorkoutRecovery";
+import { exportRecovery } from "../features/workout/workoutRecoveryStore";
 import { QuickSetForm } from "../features/workout/QuickSetForm";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
@@ -29,11 +30,8 @@ export function WorkoutsPage() {
   const [error, setError] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
-  const active = useQuery({
-    queryKey: ["active-workout"],
-    queryFn: () => api<Workout>("/workouts/active/current"),
-    retry: false,
-  });
+  const recovery = useWorkoutRecovery();
+  const { active } = recovery;
   const plan = useQuery({
     queryKey: ["active-plan"],
     queryFn: () => api<Plan>("/training-plans/active/current"),
@@ -73,6 +71,7 @@ export function WorkoutsPage() {
       feedback?: WorkoutFeedbackInput;
     }) => api(`/workouts/${id}/${action}`, { method: "POST", body: feedback ? JSON.stringify({ feedback }) : undefined }),
     onSuccess: (_, variables) => {
+      recovery.finished(variables.id);
       setShowFeedback(false);
       if (variables.action === "complete") setShowAdjustmentPrompt(true);
       refresh();
@@ -109,6 +108,18 @@ export function WorkoutsPage() {
         title="训练执行"
         description="专注当前一组，系统负责保存上下文。"
       />
+      {active.data && <Panel>
+        <p role="status">{recovery.pending.length ? `已保存到本机 · ${recovery.pending.length} 组待同步`
+          : recovery.online ? "训练记录已同步；填写中的内容自动保存到本机" : "离线模式 · 可继续记录，联网后自动同步"}</p>
+        {recovery.syncing && <p>正在同步…</p>}
+        {recovery.isClosed && <p>这次训练已在服务器结束，本机待同步记录仍保留，请核对。</p>}
+        {recovery.pending.length > 0 && <p>所有组同步成功后，即可完成或取消训练。</p>}
+        {recovery.hasDraft && <p>还有填写中的一组，请先记录或清空输入，再完成训练。</p>}
+        <button className="secondary-button" disabled={!recovery.online || recovery.syncing}
+          onClick={() => void recovery.sync()}>重试同步</button>
+        {recovery.owner && <button className="secondary-button" onClick={() => exportRecovery(recovery.owner!)}>导出本机记录</button>}
+      </Panel>}
+      {recovery.error && <p role="alert" className="form-error">{recovery.error}</p>}
       {error && <p className="form-error error-banner">{error}</p>}
       {active.data ? (
         <Panel className="workout-live">
@@ -127,7 +138,7 @@ export function WorkoutsPage() {
             <div className="action-row">
               <button
                 className="secondary-button danger"
-                disabled={recording || finish.isPending}
+                disabled={recording || finish.isPending || !recovery.canFinish || Boolean(recovery.isClosed)}
                 onClick={() =>
                   finish.mutate({ id: active.data!.id, action: "cancel" })
                 }
@@ -137,7 +148,7 @@ export function WorkoutsPage() {
               </button>
               <button
                 className="primary-button compact"
-                disabled={recording || finish.isPending}
+                disabled={recording || finish.isPending || !recovery.canFinish || Boolean(recovery.isClosed)}
                 onClick={() => setShowFeedback(true)}
               >
                 <CheckCircle2 size={17} />
@@ -145,7 +156,7 @@ export function WorkoutsPage() {
               </button>
             </div>
           </div>
-          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending || recording}
+          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending || recording || !recovery.canFinish || Boolean(recovery.isClosed)}
             onSubmit={(feedback) => finish.mutate({ id: active.data!.id, action: "complete", feedback })}
             onSkip={() => finish.mutate({ id: active.data!.id, action: "complete" })} /> : null}
           <div className="exercise-stack">
@@ -163,12 +174,16 @@ export function WorkoutsPage() {
                     {exercise.targetRpe ?? "—"}
                   </p>
                   <div className="workout-set-list">
-                    {exercise.sets.map((set) => (
+                    {exercise.sets.map((set) => set.localOperationId ? (
+                      <div className="workout-set-line" key={set.localOperationId}>
+                        第 {set.setNumber} 组 · {set.weightKg} kg × {set.reps} 次 · 已保存到本机，待同步
+                      </div>
+                    ) : (
                       <WorkoutSetEditor
                         key={set.id}
                         set={set}
                         busy={
-                          recording || (updateSet.isPending &&
+                          !recovery.canFinish || Boolean(recovery.isClosed) || recording || (updateSet.isPending &&
                             updateSet.variables?.setId === set.id) ||
                           (deleteSet.isPending &&
                             deleteSet.variables?.setId === set.id)
@@ -189,21 +204,12 @@ export function WorkoutsPage() {
                       />
                     ))}
                   </div>
-                  <QuickSetForm workoutId={active.data.id} exercise={exercise}
-                    busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending}
+                  <QuickSetForm workoutId={active.data!.id} exercise={exercise}
+                    busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending || Boolean(recovery.isClosed)}
                     onSave={async (payload, idempotencyKey) => {
                       setRecording(true);
                       try {
-                        await client.cancelQueries({ queryKey: ["active-workout"] });
-                        const saved = await api<WorkoutSet>(
-                          `/workouts/${active.data!.id}/exercises/${exercise.id}/sets`, {
-                            method: "POST", body: JSON.stringify(payload),
-                            headers: { "Idempotency-Key": idempotencyKey },
-                          });
-                        client.setQueryData<Workout>(["active-workout"], (current) => current && ({
-                          ...current, exercises: current.exercises.map((item) => item.id === exercise.id
-                            ? { ...item, sets: [...item.sets.filter((set) => set.id !== saved.id), saved] } : item),
-                        }));
+                        await recovery.saveSet(active.data!.id, exercise.id, payload, idempotencyKey);
                       } finally { setRecording(false); }
                     }} />
                 </div>
@@ -219,6 +225,7 @@ export function WorkoutsPage() {
               {plan.data.days.map((day) => (
                 <button
                   className="day-card"
+                  disabled={!recovery.online || start.isPending}
                   key={day.id}
                   onClick={() => start.mutate(day.id)}
                 >

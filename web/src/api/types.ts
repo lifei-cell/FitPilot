@@ -113,6 +113,8 @@ export type PendingActionSummary = {
   preview: PlanCreateInput;
 };
 export type WorkoutSet = {
+  localOperationId?: string;
+  clientOperationId?: string;
   id: number;
   setNumber: number;
   weightKg: number;

@@ -7,7 +7,7 @@ test("手机宽度下沿用历史并单击完成，下一组预填且不自动�
   await page.route("**/api/v1/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     const ok = (data: unknown) => route.fulfill({ json: { code: 0, data } });
-    if (path.endsWith("/active/current") && path.includes("workouts")) return ok({
+    if ((path.endsWith("/active/current") && path.includes("workouts")) || path === "/api/v1/workouts/7") return ok({
       id: 7, name: "卧推训练", status: "IN_PROGRESS", startedAt: "2026-09-12T08:00:00Z",
       exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1, sets: saved }],
     });
@@ -16,7 +16,7 @@ test("手机宽度下沿用历史并单击完成，下一组预填且不自动�
       { id: 2, setNumber: 2, weightKg: 60, reps: 8, isWarmup: false, isFailure: false },
     ]);
     if (path.endsWith("/71/sets")) {
-      expect(route.request().headers()["idempotency-key"]).toBeTruthy();
+      expect(route.request().headers()["client-operation-id"]).toBeTruthy();
       const set = { ...route.request().postDataJSON(), id: 700 + saved.length, setNumber: saved.length + 1 };
       saved.push(set);
       return ok(set);

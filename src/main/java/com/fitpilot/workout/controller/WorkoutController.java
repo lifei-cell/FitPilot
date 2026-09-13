@@ -5,6 +5,7 @@ import com.fitpilot.common.response.PageResult;
 import com.fitpilot.common.idempotency.IdempotencyRequest;
 import com.fitpilot.common.security.CurrentUser;
 import com.fitpilot.workout.application.WorkoutService;
+import com.fitpilot.workout.application.RecoverableSetService;
 import com.fitpilot.workout.application.WorkoutFeedbackService;
 import com.fitpilot.workout.dto.WorkoutDtos;
 import jakarta.validation.Valid;
@@ -25,7 +26,10 @@ import java.time.LocalDateTime;
 public class WorkoutController {
     private final WorkoutService service;
     private final WorkoutFeedbackService feedback;
-    public WorkoutController(WorkoutService service, WorkoutFeedbackService feedback) { this.service = service; this.feedback = feedback; }
+    private final RecoverableSetService recoverableSets;
+    public WorkoutController(WorkoutService service, WorkoutFeedbackService feedback, RecoverableSetService recoverableSets) {
+        this.service = service; this.feedback = feedback; this.recoverableSets = recoverableSets;
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -67,8 +71,9 @@ public class WorkoutController {
     @PostMapping("/{workoutId}/exercises/{workoutExerciseId}/sets")
     @ResponseStatus(HttpStatus.CREATED)
     ApiResponse<WorkoutDtos.SetView> addSet(@PathVariable long workoutId, @PathVariable long workoutExerciseId,
-                                            @Valid @RequestBody WorkoutDtos.SetRequest request, Authentication auth) {
-        return ApiResponse.success(service.addSet(CurrentUser.id(auth), workoutId, workoutExerciseId, request));
+                                            @Valid @RequestBody WorkoutDtos.SetRequest request, Authentication auth,
+                                            @RequestHeader(value = "Client-Operation-Id", required = false) java.util.UUID operationId) {
+        return ApiResponse.success(recoverableSets.add(CurrentUser.id(auth), workoutId, workoutExerciseId, request, operationId));
     }
 
     @GetMapping("/{workoutId}/exercises/{workoutExerciseId}/previous-sets")

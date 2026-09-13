@@ -552,6 +552,45 @@ class FitPilotApiIT {
                 .header("Authorization", bearer(token))).andExpect(status().isNotFound());
     }
 
+    @Test
+    void offlineSetReceiptsSurviveRedisLossDeletionAndCompletion() throws Exception {
+        register("offline_owner");
+        register("offline_other");
+        long owner = jdbc.queryForObject("SELECT id FROM users WHERE username='offline_owner'", Long.class);
+        String token = login("offline_owner");
+        long workout = seedQuickWorkout(owner, "IN_PROGRESS", 0, 1, 0);
+        long exercise = jdbc.queryForObject("SELECT id FROM workout_exercise WHERE workout_id=?", Long.class, workout);
+        String path = "/api/v1/workouts/" + workout + "/exercises/" + exercise + "/sets";
+        String operation = UUID.randomUUID().toString();
+        String body = "{\"weightKg\":60,\"reps\":10,\"isWarmup\":false,\"isFailure\":false}";
+        JsonNode first = call(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", operation)
+                .contentType("application/json").content(body), 201);
+        redis.getConnectionFactory().getConnection().serverCommands().flushDb();
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var requests = java.util.stream.IntStream.range(0, 2).mapToObj(index -> executor.submit(() ->
+                call(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", operation)
+                    .contentType("application/json").content(body), 201))).toList();
+            for (var response : requests) assertThat(response.get(10, TimeUnit.SECONDS).path("data")).isEqualTo(first.path("data"));
+        }
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set WHERE workout_exercise_id=?", Long.class, exercise)).isEqualTo(2);
+        mvc.perform(get("/api/v1/workouts/" + workout).header("Authorization", bearer(token)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.exercises[0].sets[1].clientOperationId").value(operation));
+        mvc.perform(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", operation)
+                .contentType("application/json").content(body.replace("60", "70"))).andExpect(status().isConflict());
+        mvc.perform(post(path).header("Authorization", bearer(login("offline_other"))).header("Client-Operation-Id", operation)
+                .contentType("application/json").content(body)).andExpect(status().isNotFound());
+        long setId = first.path("data").path("id").asLong();
+        call(delete("/api/v1/workouts/" + workout + "/sets/" + setId).header("Authorization", bearer(token)), 200);
+        jdbc.update("UPDATE workout SET status='COMPLETED' WHERE id=?", workout);
+        JsonNode replay = call(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", operation)
+                .contentType("application/json").content(body), 201);
+        assertThat(replay.path("data")).isEqualTo(first.path("data"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set WHERE id=?", Long.class, setId)).isZero();
+        mvc.perform(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", UUID.randomUUID())
+                .contentType("application/json").content(body)).andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set_receipt WHERE workout_id=?", Long.class, workout)).isEqualTo(1);
+    }
+
     private long seedQuickWorkout(long owner, String state, int daysAgo, long exerciseId, int weight) {
         long id = jdbc.queryForObject("INSERT INTO workout(user_id,name,status,started_at,completed_at) VALUES (?, 'Quick', ?, now() - (? * interval '1 day'), now() - (? * interval '1 day')) RETURNING id",
                 Long.class, owner, state, daysAgo, daysAgo);

@@ -51,6 +51,7 @@ test("从计划开始 Workout、记录一组并完成训练", async ({ page }) =
       exercises: [{ id: 71, exerciseId: 101, exerciseName: "杠铃卧推", sequence: 1,
         targetSets: 4, targetRepsMin: 5, targetRepsMax: 8, targetRpe: 8,
         sets: setBody ? [{ id: 701, setNumber: 1, ...setBody }] : [] }] });
+    if (path === "/api/v1/workouts/7") return ok(workout());
     if (path === "/api/v1/workouts/active/current") {
       return active ? ok(workout()) : route.fulfill({ status: 404, json: { code: 30002, message: "no active workout", data: null } });
     }

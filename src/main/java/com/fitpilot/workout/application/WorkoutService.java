@@ -176,6 +176,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.SetView addSet(long userId, long workoutId, long workoutExerciseId, WorkoutDtos.SetRequest request) {
+        repository.lockOwned(userId, workoutId);
         ensureInProgress(owned(userId, workoutId));
         repository.findExercise(workoutId, workoutExerciseId).orElseThrow(this::workoutNotFound);
         LocalDateTime now = LocalDateTime.now();
@@ -192,6 +193,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.SetView updateSet(long userId, long workoutId, long setId, WorkoutDtos.SetRequest request) {
+        repository.lockOwned(userId, workoutId);
         ensureInProgress(owned(userId, workoutId));
         WorkoutSet set = ownedSet(workoutId, setId);
         apply(set, request);
@@ -202,6 +204,7 @@ public class WorkoutService {
 
     @Transactional
     public void deleteSet(long userId, long workoutId, long setId) {
+        repository.lockOwned(userId, workoutId);
         ensureInProgress(owned(userId, workoutId));
         WorkoutSet set = ownedSet(workoutId, setId);
         repository.deleteSet(set.id);
@@ -209,6 +212,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.WorkoutView cancel(long userId, long workoutId) {
+        repository.lockOwned(userId, workoutId);
         Workout workout = owned(userId, workoutId);
         if ("COMPLETED".equals(workout.status)) {
             throw new BusinessException(ErrorCode.WORKOUT_ALREADY_COMPLETED, "completed workout cannot be cancelled", HttpStatus.CONFLICT);
@@ -223,6 +227,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.CompleteView complete(long userId, long workoutId) {
+        repository.lockOwned(userId, workoutId);
         Workout workout = owned(userId, workoutId);
         if ("COMPLETED".equals(workout.status)) {
             return new WorkoutDtos.CompleteView(get(userId, workoutId),
@@ -291,7 +296,7 @@ public class WorkoutService {
 
     private WorkoutDtos.SetView setView(WorkoutSet s) {
         return new WorkoutDtos.SetView(s.id, s.setNumber, s.weightKg, s.reps, s.rpe, s.rir,
-                Boolean.TRUE.equals(s.isWarmup), Boolean.TRUE.equals(s.isFailure), s.completedAt);
+                Boolean.TRUE.equals(s.isWarmup), Boolean.TRUE.equals(s.isFailure), s.completedAt, s.clientOperationId);
     }
 
     private BusinessException workoutNotFound() {

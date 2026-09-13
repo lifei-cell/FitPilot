@@ -6,6 +6,7 @@ import type { Plan, Workout, WorkoutSetInput } from "../api/types";
 import { renderWithQueryClient } from "../test/render";
 import { server } from "../test/server";
 import { WorkoutsPage } from "./WorkoutsPage";
+import { snapshot } from "../features/workout/workoutRecoveryStore";
 
 const plan: Plan = {
   id: 1,
@@ -25,12 +26,36 @@ const plan: Plan = {
 };
 
 describe("WorkoutsPage", () => {
+  it("persists a cached workout and removes stale UI when another device ends it", async () => {
+    sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature");
+    let ended = false;
+    const cached: Workout = { id: 19, name: "缓存训练", status: "IN_PROGRESS",
+      startedAt: "2026-09-12T08:00:00Z", exercises: [] };
+    server.use(
+      http.get("/api/v1/workouts/active/current", () => ended
+        ? HttpResponse.json({ code: 30002, message: "no active workout" }, { status: 404 })
+        : HttpResponse.json({ code: 0, data: cached })),
+      http.get("/api/v1/workouts", () => HttpResponse.json({ code: 0, data: { items: [] } })),
+      http.get("/api/v1/training-plans/active/current", () => HttpResponse.json({ code: 0, data: plan })),
+    );
+    const view = renderWithQueryClient(<div />);
+    view.client.setQueryData(["active-workout"], cached);
+    view.rerender(<WorkoutsPage />);
+    await waitFor(() => expect(snapshot("99")?.id).toBe(19));
+    ended = true;
+    await view.client.invalidateQueries({ queryKey: ["active-workout"] });
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "缓存训练" })).not.toBeInTheDocument());
+    expect(snapshot("99")).toBeNull();
+  });
+
   it("starts a planned workout, adds a set, and completes it with feedback", async () => {
+    sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature");
     let workout: Workout | null = null;
     let startedWith: unknown;
     let addedSet: WorkoutSetInput | undefined;
     let completedWith: unknown;
     server.use(
+      http.get("/api/v1/workouts/7", () => HttpResponse.json({ code: 0, data: workout })),
       http.get("/api/v1/workouts/:id/exercises/:exerciseId/previous-sets", () =>
         HttpResponse.json({ code: 0, message: "success", data: [] })),
       http.get("/api/v1/workouts/active/current", () => workout

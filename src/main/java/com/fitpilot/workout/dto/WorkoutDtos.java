@@ -19,7 +19,7 @@ public final class WorkoutDtos {
                              @DecimalMin("0.0") @DecimalMax("10.0") BigDecimal rir,
                              Boolean isWarmup, Boolean isFailure) {}
     public record SetView(long id, int setNumber, BigDecimal weightKg, Integer reps, BigDecimal rpe,
-                          BigDecimal rir, boolean isWarmup, boolean isFailure, LocalDateTime completedAt) {}
+                          BigDecimal rir, boolean isWarmup, boolean isFailure, LocalDateTime completedAt, String clientOperationId) {}
     public record ExerciseView(long id, long exerciseId, String exerciseName, int sequence,
                                Integer targetSets, Integer targetRepsMin, Integer targetRepsMax,
                                BigDecimal targetRpe, Integer restSeconds, String notes, List<SetView> sets) {}

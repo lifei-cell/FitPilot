@@ -15,6 +15,7 @@ import {
 } from "../api/client";
 import { clearAgentSession } from "../agent/sessionStorage";
 import { clearPendingAction } from "../agent/pendingActionStorage";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AuthContextValue = {
   authenticated: boolean;
@@ -26,6 +27,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queries = useQueryClient();
   const [authenticated, setAuthenticated] = useState(() =>
     Boolean(sessionStorage.getItem("fitpilot_access")),
   );
@@ -34,11 +36,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       const userId = (event as CustomEvent<string | null>).detail ?? null;
       clearAgentSession(userId);
       clearPendingAction(userId);
+      queries.clear();
       setAuthenticated(false);
     };
     window.addEventListener(AUTH_EXPIRED_EVENT, expire);
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, expire);
-  }, []);
+  }, [queries]);
   const value = useMemo<AuthContextValue>(
     () => ({
       authenticated,
@@ -52,6 +55,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           false,
         );
         storeToken(result.accessToken);
+        queries.clear();
         setAuthenticated(true);
       },
       async register(username, email, password) {
@@ -72,6 +76,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           false,
         );
         storeToken(result.accessToken);
+        queries.clear();
         setAuthenticated(true);
       },
       async logout() {
@@ -85,11 +90,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
           clearAgentSession(userId);
           clearPendingAction(userId);
           clearToken();
+          queries.clear();
           setAuthenticated(false);
         }
       },
     }),
-    [authenticated],
+    [authenticated, queries],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -8,6 +8,8 @@ FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品�
 
 训练记录体验更新：[沿用上次记录与单击完成一组](docs/release/quick-set-recording.md)（2026-09-12，独立记录本地验证与能力边界）。
 
+训练可靠性更新：[自动保存、恢复与离线记录](docs/release/workout-auto-recovery.md)（V19，2026-09-13，含部署顺序与离线边界）。
+
 ```text
 REST Controller
       ↓
