@@ -2,6 +2,8 @@
 
 日期：2026-09-16。本文是待执行方案；当前仓库没有真实生产集群、域名、证书或生产恢复验收证据。不要把历史 CI/GHCR、Kind 演练或本机 Compose 当成已上线。
 
+逐项命令和首次部署的开关设置见[首次外网部署操作手册](../runbooks/first-public-deploy.md)。
+
 ## 推荐拓扑
 
 面向应用市场和真实用户，沿用仓库现有的 GitHub Actions → GHCR 不可变镜像 → Kubernetes 迁移 Job → App/Web 滚动部署路线。入口使用云厂商受维护的 HTTPS 网关或 Gateway API 控制器，路径 `/api` 到后端、`/` 到 Web；PostgreSQL/pgvector、Redis、Kafka、Elasticsearch 保持私网可达。PostgreSQL 需要自动备份与 PITR，独立恢复库只用于演练。
