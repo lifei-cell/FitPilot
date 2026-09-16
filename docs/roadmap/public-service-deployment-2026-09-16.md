@@ -3,6 +3,7 @@
 日期：2026-09-16。本文是待执行方案；当前仓库没有真实生产集群、域名、证书或生产恢复验收证据。不要把历史 CI/GHCR、Kind 演练或本机 Compose 当成已上线。
 
 逐项命令和首次部署的开关设置见[首次外网部署操作手册](../runbooks/first-public-deploy.md)。
+若使用当前 2 核 2 GB 的 CentOS 7 ECS，先按[现有 ECS 部署前检查](../runbooks/ecs-2g-preflight.md)更换受支持的系统并规划容量。
 
 ## 推荐拓扑
 
