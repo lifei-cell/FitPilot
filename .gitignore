@@ -10,3 +10,4 @@ evaluation-reports/
 release-evidence/
 load-test/reports/v5-*.json
 load-test/reports/v5-*/
+.repo_memory/
