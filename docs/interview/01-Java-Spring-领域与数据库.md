@@ -164,6 +164,34 @@ erDiagram
 
 **追问：为什么业务校验后还要数据库约束？** 应用校验改善错误提示，数据库约束防止并发竞态和旁路写入；两者是纵深防御。
 
+### Workout 状态图与非法边（核对 `72513d1`）
+
+```mermaid
+stateDiagram-v2
+    [*] --> IN_PROGRESS: 创建 201
+    IN_PROGRESS --> COMPLETED: complete，有效组，200
+    IN_PROGRESS --> CANCELLED: cancel，200
+    COMPLETED --> COMPLETED: complete 重试，200
+    CANCELLED --> CANCELLED: cancel 重试，200
+```
+
+终态没有回到 `IN_PROGRESS` 的接口。上图的自环是**返回既有状态**，并非再次完成或再次取消。
+
+| 当前状态 / 请求 | HTTP / 业务错误 | 实际处理 |
+|---|---|---|
+| `IN_PROGRESS` → complete，但没有有效组 | `400 / INVALID_WORKOUT_SET(40003)` | 保持进行中；当前“有效”仅指 `completed_at != null` 且 `reps > 0`，热身组也可能满足。 |
+| `COMPLETED` → cancel | `409 / WORKOUT_ALREADY_COMPLETED(40002)` | 拒绝；已完成不能撤回成已取消。 |
+| `CANCELLED` → complete | `409 / WORKOUT_CANCELLED(40004)` | 拒绝；不会写 Outbox。 |
+| `COMPLETED` → 新增 Set、update/delete Set 或 addExercise | `409 / WORKOUT_ALREADY_COMPLETED(40002)` | `ensureInProgress` 拒绝新的训练内容修改。 |
+| `CANCELLED` → 新增 Set、update/delete Set 或 addExercise | `409 / WORKOUT_CANCELLED(40004)` | `ensureInProgress` 拒绝新的训练内容修改。 |
+| 终态后重试此前已成功的 addSet，且 `Client-Operation-Id` 与请求内容完全相同 | `201 / 无业务错误` | `RecoverableSetService` 先返回持久回执；没有再插入 Set。复用操作 ID 但载荷不同则 `409 / IDEMPOTENCY_KEY_REUSED(50004)`。 |
+| 不存在或不属于当前用户的 Workout → complete/cancel/Set 写入 | `404 / WORKOUT_NOT_FOUND(40001)` | Owner 查询失败，不暴露他人训练状态。 |
+| `COMPLETED` → complete 重试；`CANCELLED` → cancel 重试 | `200 / 无业务错误` | 返回当前 Workout；重复 complete 不追加事件，重复 cancel 不再更新。 |
+
+并发 `complete` 与 `cancel`：两者都在事务中调用 `lockOwned`，对同一 Workout 执行 `SELECT ... FOR UPDATE`，后到者等待先到者提交，再读终态。先完成则后取消返回 `409/40002`；先取消则后完成返回 `409/40004`。这保证**同一行上的终态决策串行**，不保证哪个 HTTP 请求先到就先赢。Set 的 add/update/delete 也持有 Workout 行锁，故不会在完成事务之后成功写入。`addExercise` 当前只检查状态而未锁 Workout；它与 complete/cancel 并发的隔离弱于 Set 写入，不能把上述保证扩大到它。
+
+业务层检查负责解释“重复请求应返回已有结果，还是语义冲突”；单独先查状态再更新存在竞态。当前实现以行锁串行化，再按 ID 更新 Workout；数据库的部分唯一索引只保证每用户最多一个 `IN_PROGRESS`，没有状态迁移的 `CHECK`/触发器。另一种做法是 `UPDATE ... WHERE status='IN_PROGRESS' RETURNING ...` 原子条件更新；更新 0 行后仍须读当前状态，区分 404、幂等重试和 409。这里列的是源码契约；本次未新增并发执行报告。
+
 ## 6. PostgreSQL MVCC 与事务隔离
 
 ### MVCC 原理
