@@ -108,8 +108,12 @@ public class WorkoutRepository {
                 .orderByDesc("sequence").last("LIMIT 1"));
         return last == null ? 1 : last.sequence + 1;
     }
-    public int nextSetNumberForUpdate(long workoutExerciseId) {
-        exercises.lockById(workoutExerciseId);
+    /**
+     * The caller already holds the parent workout FOR UPDATE lock. That lock
+     * serializes every set append in the workout, so taking the child lock
+     * again only adds a round trip without increasing correctness.
+     */
+    public int nextSetNumber(long workoutExerciseId) {
         WorkoutSet last = sets.selectOne(new QueryWrapper<WorkoutSet>().eq("workout_exercise_id", workoutExerciseId)
                 .orderByDesc("set_number").last("LIMIT 1"));
         return last == null ? 1 : last.setNumber + 1;

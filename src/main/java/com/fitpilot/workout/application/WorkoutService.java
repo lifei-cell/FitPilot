@@ -181,7 +181,7 @@ public class WorkoutService {
         LocalDateTime now = LocalDateTime.now();
         WorkoutSet set = new WorkoutSet();
         set.workoutExerciseId = workoutExerciseId;
-        set.setNumber = repository.nextSetNumberForUpdate(workoutExerciseId);
+        set.setNumber = repository.nextSetNumber(workoutExerciseId);
         apply(set, request);
         set.completedAt = now;
         set.createdAt = now;
