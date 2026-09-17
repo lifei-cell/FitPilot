@@ -10,15 +10,57 @@ import com.fitpilot.rag.infrastructure.KnowledgeRepository;
 import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import com.fitpilot.rag.processing.TextAnalyzer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class HybridRetrievalServiceTest {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void failedSingleChannelDoesNotSilentlyUseDisabledAlternative(boolean lexicalOnly) {
+        var repository = mock(KnowledgeRepository.class);
+        var lexical = mock(ElasticsearchKnowledgeIndex.class);
+        var embeddings = mock(EmbeddingProvider.class);
+        var service = new HybridRetrievalService(repository, lexical, embeddings, new TextAnalyzer(),
+                new RagProperties(), mock(FitPilotMetrics.class), mock(RagGovernanceRepository.class));
+        if (lexicalOnly) when(lexical.search(anyString(), isNull(), anyInt())).thenThrow(new IllegalStateException("offline"));
+        else when(embeddings.embed(anyString())).thenThrow(new IllegalStateException("offline"));
+        var profile = new RagTuningProfile("single-channel", 2400, 700, 100, 60,
+                lexicalOnly ? 1 : 0, lexicalOnly ? 0 : 1, "NONE");
+        assertThatThrownBy(() -> service.searchOffline("rpe", 5, null, profile))
+                .isInstanceOfSatisfying(com.fitpilot.common.exception.BusinessException.class,
+                        failure -> assertThat(failure.errorCode()).isEqualTo(
+                                com.fitpilot.common.exception.ErrorCode.RAG_RETRIEVAL_UNAVAILABLE));
+        if (lexicalOnly) verify(embeddings, never()).embed(anyString());
+        else verifyNoInteractions(lexical);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void zeroWeightDisablesChannelRatherThanKeepingItsCandidatesOrCost(boolean lexicalOnly) {
+        var repository = mock(KnowledgeRepository.class);
+        var lexical = mock(ElasticsearchKnowledgeIndex.class);
+        var embeddings = mock(EmbeddingProvider.class);
+        var analyzer = new TextAnalyzer();
+        var service = new HybridRetrievalService(repository, lexical, embeddings, analyzer,
+                new RagProperties(), mock(FitPilotMetrics.class), mock(RagGovernanceRepository.class));
+        var profile = new RagTuningProfile("single-channel", 2400, 700, 100, 60,
+                lexicalOnly ? 1 : 0, lexicalOnly ? 0 : 1, "NONE");
+        var result = service.searchOffline("rpe", 5, null, profile);
+        assertThat(result.retrievalMode()).isEqualTo(lexicalOnly ? "BM25_ONLY" : "VECTOR_ONLY");
+        if (lexicalOnly) {
+            verify(embeddings, never()).embed(anyString());
+            verify(repository, never()).vectorSearch(any(), any(), anyInt());
+        } else verifyNoInteractions(lexical);
+    }
+
     @Test
     void usesTrustOnlyAsBoundedRerankSignalAndPersistsRetrieval() {
         KnowledgeRepository repository = mock(KnowledgeRepository.class);

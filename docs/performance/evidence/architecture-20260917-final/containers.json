@@ -1,0 +1,18 @@
+{
+  "pgvector/pgvector:pg17" : {
+    "imageId" : "sha256:dca0d688bbb31d3f851502ffcb9c7791387b4fcc544ae434dab41761e5ece317",
+    "repoDigests" : [ "fitpilot-delivery-pgtools@sha256:dca0d688bbb31d3f851502ffcb9c7791387b4fcc544ae434dab41761e5ece317", "pgvector/pgvector@sha256:dca0d688bbb31d3f851502ffcb9c7791387b4fcc544ae434dab41761e5ece317" ]
+  },
+  "redis:7.4-alpine" : {
+    "imageId" : "sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2",
+    "repoDigests" : [ "redis@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2" ]
+  },
+  "apache/kafka-native:3.8.0" : {
+    "imageId" : "sha256:8c671522f7f84d0fd20b1482a1d41fa4544eff02b4027673116d4fa74a508106",
+    "repoDigests" : [ "apache/kafka-native@sha256:8c671522f7f84d0fd20b1482a1d41fa4544eff02b4027673116d4fa74a508106" ]
+  },
+  "docker.elastic.co/elasticsearch/elasticsearch:8.17.4" : {
+    "imageId" : "sha256:413d8df69823e9f41f6008f025fcbaf31a5849ab9c74894731d7ded65543cd56",
+    "repoDigests" : [ "docker.elastic.co/elasticsearch/elasticsearch@sha256:413d8df69823e9f41f6008f025fcbaf31a5849ab9c74894731d7ded65543cd56" ]
+  }
+}

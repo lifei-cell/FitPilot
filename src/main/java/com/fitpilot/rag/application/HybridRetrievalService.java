@@ -118,6 +118,7 @@ public class HybridRetrievalService {
 
     private boolean collectLexical(String query, String category, int limit, RagTuningProfile profile,
                                    Map<UUID, Candidate> candidates) {
+        if (profile.bm25Weight() == 0) return false;
         try {
             List<KnowledgeModels.SearchHit> hits = lexicalIndex.search(query, category, limit);
             for (int i = 0; i < hits.size(); i++) {
@@ -133,6 +134,7 @@ public class HybridRetrievalService {
 
     private boolean collectVector(String query, String category, int limit, RagTuningProfile profile,
                                   Map<UUID, Candidate> candidates) {
+        if (profile.vectorWeight() == 0) return false;
         try {
             List<KnowledgeModels.SearchHit> hits = repository.vectorSearch(embeddings.embed(query), category, limit);
             for (int i = 0; i < hits.size(); i++) {

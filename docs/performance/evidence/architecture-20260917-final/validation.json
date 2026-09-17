@@ -1,0 +1,34 @@
+{
+  "runId": "architecture-20260917-final",
+  "experiment": {
+    "status": "PASS",
+    "entrypoints": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "release-evidence/architecture-20260917-final/experiment.log",
+    "logSha256": "87BF56F9B13E3F4B0990D5B3EB581132D961483FC5AB4E0DE385CCD64DE17E9B"
+  },
+  "quality": {
+    "command": "mvn clean verify",
+    "status": "PASS",
+    "unitTests": 70,
+    "integrationTests": 45,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "coverageGate": "PASS",
+    "zeroSkippedGate": "PASS",
+    "log": "release-evidence/architecture-20260917-final/quality.log",
+    "logSha256": "04E9F31034C0D2FD6BCB68BE8DD33DEFF09DAE983698F9C3CADF5F517177E568"
+  },
+  "rawEvidenceSha256": {
+    "cache.json": "51B2BD7EB17B10EE1C64AC94DC92EE0CCD8B87A8859366A3EA86E535D5AFAFA4",
+    "events.json": "61B592F936EA8C6A1DE1676F6E7B459B26F6D8ACD1CA43E692B1204BCE7AAD38",
+    "retrieval.json": "72AA73CBE32F4E314B17763719F4FAD50A3DEA5C158561BD2F250309DA748B4A",
+    "containers.json": "08307905608AF32C6E49911AB6A4ED9BAF414975C80A5CDF8CFBE20BC5306264",
+    "manifest.json": "E2A97C3A0C46F7FC746241978DFB0971CDBAB29E987B426D1BF75C6FDCBF7924"
+  },
+  "sourceHashVerification": "All manifest source hashes matched current files after full quality gate",
+  "scope": "Local isolated experiment and backend validation; no production capacity or real-model quality claim"
+}

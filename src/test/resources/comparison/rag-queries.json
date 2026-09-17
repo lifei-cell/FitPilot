@@ -1,0 +1,16 @@
+[
+  {"id":"term-01","category":"term","query":"卧推肩胛后缩和下沉","source":"bench-press"},
+  {"id":"term-02","category":"term","query":"深蹲膝盖方向跟随脚尖","source":"squat"},
+  {"id":"term-03","category":"term","query":"硬拉髋铰链腹压","source":"deadlift"},
+  {"id":"term-04","category":"term","query":"引体向上弹力带离心动作","source":"pull-up"},
+  {"id":"term-05","category":"term","query":"RPE 8 两次重复","source":"rpe"},
+  {"id":"term-06","category":"term","query":"减脂热量缺口力量训练","source":"fat-loss"},
+  {"id":"paraphrase-01","category":"paraphrase","query":"躺在凳子上推杠铃时上背怎么固定","source":"bench-press"},
+  {"id":"paraphrase-02","category":"paraphrase","query":"蹲下再站起来时双腿往里夹怎么办","source":"squat"},
+  {"id":"paraphrase-03","category":"paraphrase","query":"从地面提起杠铃时如何避免弯腰猛拽","source":"deadlift"},
+  {"id":"paraphrase-04","category":"paraphrase","query":"想让肌肉变大是不是每组都要做到举不动","source":"hypertrophy"},
+  {"id":"paraphrase-05","category":"paraphrase","query":"最近夜里没休息好白天训练特别累怎么调整","source":"recovery-sleep"},
+  {"id":"paraphrase-06","category":"paraphrase","query":"练完只喝补剂不认真吃饭能代替正常饮食吗","source":"protein"},
+  {"id":"no-answer-01","category":"no-answer","query":"Java HashMap 如何扩容","source":""},
+  {"id":"no-answer-02","category":"no-answer","query":"如何办理护照续期","source":""}
+]
