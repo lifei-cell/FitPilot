@@ -12,11 +12,6 @@ public class WorkoutReceiptRepository {
 
     public WorkoutReceiptRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    public boolean lockOwned(long userId, long workoutId) {
-        return !jdbc.queryForList("SELECT id FROM workout WHERE user_id=? AND id=? FOR UPDATE",
-                Long.class, userId, workoutId).isEmpty();
-    }
-
     public Optional<Receipt> find(long workoutId, UUID operationId) {
         return jdbc.query("SELECT workout_exercise_id, request_body::text, response_body::text "
                         + "FROM workout_set_receipt WHERE workout_id=? AND operation_id=?",

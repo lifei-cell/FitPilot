@@ -160,7 +160,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.ExerciseView addExercise(long userId, long workoutId, WorkoutDtos.AddExerciseRequest request) {
-        ensureInProgress(owned(userId, workoutId));
+        ensureInProgress(lockedOwned(userId, workoutId));
         ExerciseView source = exercises.findActive(request.exerciseId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND, "exercise not found", HttpStatus.NOT_FOUND));
         WorkoutExercise snapshot = new WorkoutExercise();
@@ -176,8 +176,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.SetView addSet(long userId, long workoutId, long workoutExerciseId, WorkoutDtos.SetRequest request) {
-        repository.lockOwned(userId, workoutId);
-        ensureInProgress(owned(userId, workoutId));
+        ensureInProgress(lockedOwned(userId, workoutId));
         repository.findExercise(workoutId, workoutExerciseId).orElseThrow(this::workoutNotFound);
         LocalDateTime now = LocalDateTime.now();
         WorkoutSet set = new WorkoutSet();
@@ -193,8 +192,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.SetView updateSet(long userId, long workoutId, long setId, WorkoutDtos.SetRequest request) {
-        repository.lockOwned(userId, workoutId);
-        ensureInProgress(owned(userId, workoutId));
+        ensureInProgress(lockedOwned(userId, workoutId));
         WorkoutSet set = ownedSet(workoutId, setId);
         apply(set, request);
         set.updatedAt = LocalDateTime.now();
@@ -204,16 +202,14 @@ public class WorkoutService {
 
     @Transactional
     public void deleteSet(long userId, long workoutId, long setId) {
-        repository.lockOwned(userId, workoutId);
-        ensureInProgress(owned(userId, workoutId));
+        ensureInProgress(lockedOwned(userId, workoutId));
         WorkoutSet set = ownedSet(workoutId, setId);
         repository.deleteSet(set.id);
     }
 
     @Transactional
     public WorkoutDtos.WorkoutView cancel(long userId, long workoutId) {
-        repository.lockOwned(userId, workoutId);
-        Workout workout = owned(userId, workoutId);
+        Workout workout = lockedOwned(userId, workoutId);
         if ("COMPLETED".equals(workout.status)) {
             throw new BusinessException(ErrorCode.WORKOUT_ALREADY_COMPLETED, "completed workout cannot be cancelled", HttpStatus.CONFLICT);
         }
@@ -227,8 +223,7 @@ public class WorkoutService {
 
     @Transactional
     public WorkoutDtos.CompleteView complete(long userId, long workoutId) {
-        repository.lockOwned(userId, workoutId);
-        Workout workout = owned(userId, workoutId);
+        Workout workout = lockedOwned(userId, workoutId);
         if ("COMPLETED".equals(workout.status)) {
             return new WorkoutDtos.CompleteView(get(userId, workoutId),
                     personalRecords.countByWorkout(userId, workoutId));
@@ -261,6 +256,10 @@ public class WorkoutService {
 
     private Workout owned(long userId, long workoutId) {
         return repository.findOwned(userId, workoutId).orElseThrow(this::workoutNotFound);
+    }
+
+    private Workout lockedOwned(long userId, long workoutId) {
+        return repository.lockOwned(userId, workoutId).orElseThrow(this::workoutNotFound);
     }
 
     private void ensureInProgress(Workout workout) {

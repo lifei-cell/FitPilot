@@ -3,6 +3,7 @@ package com.fitpilot.workout.application;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.workout.dto.WorkoutDtos;
+import com.fitpilot.workout.repository.WorkoutRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -13,17 +14,18 @@ import java.time.LocalDateTime;
 @Service
 public class WorkoutFeedbackService {
     private final JdbcTemplate jdbc;
+    private final WorkoutRepository workouts;
 
-    public WorkoutFeedbackService(JdbcTemplate jdbc) {
+    public WorkoutFeedbackService(JdbcTemplate jdbc, WorkoutRepository workouts) {
         this.jdbc = jdbc;
+        this.workouts = workouts;
     }
 
     @Transactional
     public WorkoutDtos.FeedbackView upsert(long userId, long workoutId, WorkoutDtos.FeedbackRequest request) {
-        String status = jdbc.query("SELECT status FROM workout WHERE id=? AND user_id=?",
-                rs -> rs.next() ? rs.getString(1) : null, workoutId, userId);
-        if (status == null) throw new BusinessException(ErrorCode.WORKOUT_NOT_FOUND, "workout not found", HttpStatus.NOT_FOUND);
-        if (!"COMPLETED".equals(status)) {
+        var workout = workouts.lockOwned(userId, workoutId).orElseThrow(() ->
+                new BusinessException(ErrorCode.WORKOUT_NOT_FOUND, "workout not found", HttpStatus.NOT_FOUND));
+        if (!"COMPLETED".equals(workout.status)) {
             throw new BusinessException(ErrorCode.INVALID_WORKOUT_SET, "feedback requires a completed workout", HttpStatus.CONFLICT);
         }
         jdbc.update("""

@@ -30,6 +30,7 @@ class WorkoutServiceTest {
         workout.completedAt = LocalDateTime.now();
         workout.durationSeconds = 3600;
         when(workouts.findOwned(3L, 7L)).thenReturn(Optional.of(workout));
+        when(workouts.lockOwned(3L, 7L)).thenReturn(Optional.of(workout));
         when(workouts.findExercises(7L)).thenReturn(List.of());
         when(workouts.findSets(anyCollection())).thenReturn(List.of());
         when(records.countByWorkout(3L, 7L)).thenReturn(4);

@@ -44,8 +44,10 @@ public class WorkoutRepository {
     public Optional<Workout> findOwned(long userId, long id) {
         return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>().eq("id", id).eq("user_id", userId)));
     }
-    public void lockOwned(long userId, long id) {
-        jdbc.queryForList("SELECT id FROM workout WHERE user_id=? AND id=? FOR UPDATE", Long.class, userId, id);
+    /** All existing-workout writes lock the parent before checking state or locking children. */
+    public Optional<Workout> lockOwned(long userId, long id) {
+        return Optional.ofNullable(workouts.selectOne(new QueryWrapper<Workout>()
+                .eq("id", id).eq("user_id", userId).last("FOR UPDATE")));
     }
     public Optional<Workout> findById(long id) { return Optional.ofNullable(workouts.selectById(id)); }
     public Optional<Workout> findByIdempotencyKey(long userId, String idempotencyKey) {

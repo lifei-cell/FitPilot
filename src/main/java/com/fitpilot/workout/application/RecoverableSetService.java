@@ -6,6 +6,7 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.workout.dto.WorkoutDtos;
 import com.fitpilot.workout.repository.WorkoutReceiptRepository;
+import com.fitpilot.workout.repository.WorkoutRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,17 +19,20 @@ public class RecoverableSetService {
     private final WorkoutReceiptRepository receipts;
     private final WorkoutService workouts;
     private final ObjectMapper json;
+    private final WorkoutRepository repository;
 
-    public RecoverableSetService(WorkoutReceiptRepository receipts, WorkoutService workouts, ObjectMapper json) {
+    public RecoverableSetService(WorkoutReceiptRepository receipts, WorkoutService workouts, ObjectMapper json,
+                                 WorkoutRepository repository) {
         this.receipts = receipts;
         this.workouts = workouts;
         this.json = json;
+        this.repository = repository;
     }
 
     @Transactional
     public WorkoutDtos.SetView add(long userId, long workoutId, long exerciseId,
                                   WorkoutDtos.SetRequest request, UUID operationId) {
-        if (!receipts.lockOwned(userId, workoutId)) {
+        if (repository.lockOwned(userId, workoutId).isEmpty()) {
             throw new BusinessException(ErrorCode.WORKOUT_NOT_FOUND, "workout resource not found", HttpStatus.NOT_FOUND);
         }
         if (operationId == null) return workouts.addSet(userId, workoutId, exerciseId, request);
