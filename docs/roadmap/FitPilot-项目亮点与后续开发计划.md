@@ -1,6 +1,6 @@
 # FitPilot 项目亮点与后续开发计划
 
-日期：2026-09-17。梳理基线：`a797e8a`（当前检出代码）；本次为源码与既有报告复核，未重新运行测试、压测或远端门禁。文中的性能数字仅属于所链报告的隔离环境，不是当前生产指标。
+日期：2026-09-17。更新基线：`1be0e38`。本次按当前仓库与已归档实验结果调整后续顺序，未重新运行测试或远端门禁。文中的性能数字仅属于所链报告的隔离环境，不是生产指标。
 
 ## 一句话定位
 
@@ -12,10 +12,10 @@ FitPilot 是 Java 21 / Spring Boot 模块化单体加 React Web 的力量训练�
 |---|---|---|
 | 训练事实与并发控制 | 可变 `TrainingPlan` 与事实型 `Workout` 分离；开始时复制动作目标。已有 Workout 写操作经 owner 条件的父行 `FOR UPDATE` 串行检查状态、分配序号并写入，唯一约束兜底。完成状态与 Outbox 同事务提交。 | [并发控制记录](../release/workout-write-concurrency.md)在真实 PostgreSQL 上覆盖完成/取消与加动作、加组、改删组等竞争；该记录对应修复时的本地 111 项后端测试，不是生产并发容量。当前源码：`WorkoutService`、`WorkoutRepository`。 |
 | 快速记组与弱网恢复 | 历史组预填减少重复输入；本地草稿和待同步队列配合 `Client-Operation-Id`，服务端 V19 回执与组写入同事务，响应丢失后可重放原结果。 | [恢复验收](../release/workout-auto-recovery.md)记录本地 44 项 Web 单测、8 个常规及 1 个离线浏览器场景；尚未证明真机存储回收、跨设备合并或真实用户省时。 |
-| 异步事件的正确性 | PostgreSQL 保存 Workout 与 Outbox 事实；Kafka 投影 PR、分析和通知。Inbox 与业务唯一约束处理重复投递；V20 `claim_token` 防止旧 Relay 回写覆盖新领取者。语义是**至少一次投递、消费幂等、最终一致**。 | [领取保护](../release/outbox-claim-ownership.md)有真实数据库竞争测试。当前 `OutboxRelay` 仍逐条等待 Kafka Future，积压恢复能力未做当前规格压测。 |
+| 异步事件的正确性 | PostgreSQL 保存 Workout 与 Outbox 事实；Kafka 投影 PR、分析和通知。Inbox 与业务唯一约束处理重复投递；V20 `claim_token` 防止旧 Relay 回写覆盖新领取者。Relay 已改为发送前逐条领取，语义是**至少一次投递、消费幂等、最终一致**。 | [积压恢复实验](../performance/outbox-backlog-recovery-2026-09-17.md)覆盖 Kafka 中断、双 Relay 重领和合成过期长积压；本地护栏通过。多进程持续负载与冷启动发送等待上限仍待验证。 |
 | 性能优化有反例 | 两级缓存服务热点展示读，关键状态判断读数据库；同训练写依赖父行锁。移除已无正确性收益的子行重复锁，保留父锁及唯一约束。 | [写链路报告](../performance/workout-write-load-2026-09-17.md)：隔离 Testcontainers 的同训练 192 次写入，P99 228.67→170.38 ms（降 25.47%），吞吐 282.64→332.25 RPS；多用户场景未改善。[架构对照](../performance/architecture-comparison-2026-09-17.md)显示热 L1 获益、冷缓存变慢，不能概括为所有请求加速。 |
-| AI 建议由后端约束 | RAG 实现 BM25、pgvector、RRF、引用与知识版本治理；单 Agent 用 owner 限定工具、结构化提议、领域规则、待确认动作和一次性确认，确认后才创建草案。会话与训练反馈支持持续调整。 | 代码与 Mock/规则测试可证明流程和安全边界；默认确定性哈希 Embedding 的[消融实验](../performance/architecture-comparison-2026-09-17.md)未证明混合检索优于 BM25，也未证明真实模型建议质量或训练效果。 |
-| 可复核的交付工程 | Testcontainers、ArchUnit、零跳过与覆盖率门禁、Web 浏览器测试、CI 扫描、SBOM、镜像 digest 和回滚手册组成可追溯链路。 | [架构对照报告](../performance/architecture-comparison-2026-09-17.md)记录当时 `mvn clean verify` 115 项后端测试通过；[远端交付报告](../release/p1-delivery-validation.md)的 CI/Release/GHCR 只绑定较早的精确 SHA。当前 `a797e8a` 无本次重新执行的全量或远端门禁；真实 Production Delivery Gate 仍为 `SKIPPED`。 |
+| AI 建议由后端约束 | RAG 实现 BM25、pgvector、RRF、引用与知识版本治理；单 Agent 用 owner 限定工具、结构化提议、领域规则、待确认动作和一次性确认，确认后才创建草案。会话与训练反馈支持持续调整。 | [真实 Embedding 留出集实验](../performance/real-embedding-retrieval-2026-09-17.md)显示混合检索局部获益、未达稳定必要性门槛，且三路对 4 道无答案题均返回候选。Mock/规则测试不证明真实模型建议质量或训练效果。 |
+| 可复核的交付工程 | Testcontainers、ArchUnit、零跳过与覆盖率门禁、Web 浏览器测试、CI 扫描、SBOM、镜像 digest 和回滚手册组成可追溯链路。 | [真实检索实验门禁](../performance/real-embedding-retrieval-2026-09-17.md)记录最新相关源码的 `mvn clean verify` 116 项后端测试通过；未在本次重跑 Web、远端 CI 或真实 Production Delivery Gate。[远端交付报告](../release/p1-delivery-validation.md)只绑定较早 SHA。 |
 
 ## 后续开发顺序
 
@@ -23,12 +23,13 @@ FitPilot 是 Java 21 / Spring Boot 模块化单体加 React Web 的力量训练�
 
 | 优先级 | 模块与具体工作 | 验收条件 |
 |---|---|---|
-| P0（已完成一轮） | `infrastructure/events`：已完成隔离 Kafka 中断、重领与过期积压实验，改为发送前逐条领取；[报告](../performance/outbox-backlog-recovery-2026-09-17.md)记录年龄、追平时间与重复结果。后续补多实例持续负载及冷启动发送等待治理。 | 本地训练写入、投影追平和业务幂等护栏通过；真实多实例容量、严格故障时限及生产 SLO 尚未验证。 |
-| P0 | `rag` / `evaluation`：用真实 Embedding、独立人工标注留出集和可授权语料比较 BM25、向量、混合；加入无答案、撤销文档和人工引用支撑核对。先确定数据许可、费用和模型版本。 | 分类别 Recall@5/MRR、无答案误引、引用支撑率、P95、每次检索成本及索引成本齐全；混合只有在预设目标分类稳定优于简单基线且护栏成立时才保留。当前哈希向量结果不能代替。 |
-| P1 | `agent`：把真实模型与规则 Workflow 在相同匿名事实集上对照，覆盖越权工具、过期计划、疼痛风险、确认重放和 Provider 故障；人工盲评建议。 | 未确认写入与跨用户泄露均为零；报告任务成功率、工具正确率、人工可用率、P95 和单次成功成本。拒绝与降级样本保留原始原因。 |
-| P1 | `web/src/features/workout` 与 V19 回执：在移动浏览器进行小样本任务测试，并补存储回收、多标签页、跨设备结束后本机队列冲突的恢复体验。 | 逐人记录每组耗时、误操作、确认成功后数据库记录、未同步状态可见性和退出原因；已确认的组恰好一条，冲突不静默覆盖。小样本只用于可用性判断。 |
-| P1 | `infrastructure/performance`：补真实 HTTP、多实例、热/冷分布和 Redis 故障对照；复核直读 PG、Redis 单层、L1+L2 的成本与陈旧窗口。 | 固定数据快照与负载，至少三轮交替运行；同时记录 P95/P99、DB CPU/QPS、缓存命中、旧值时长和资源成本。关键业务状态仍从数据库判定。 |
-| P2 | `deploy` / `scripts/delivery`：在有合适目标环境和凭据时，为**当前待发布 SHA**执行发布、回滚、备份恢复、密钥轮换和 SLO 观察；先做容量预估。 | digest、迁移、回滚、RTO/RPO 与脱敏证据一一对应；目标环境和门禁真实通过后才称上线。此前保持 `SKIPPED`。 |
+| P0 | `rag` / `evaluation`：给无答案及近邻干扰问增加证据阈值与拒答决策；原 4 题只作回归，另冻结至少 20 道未参与阈值选择的难负例。 | 原 4 题零返回无依据的候选引用，新难负例最多 1/20 返回；当前 24 道可回答题的 Recall@3 与首位证据支撑不退化；保存逐问拒答理由。 |
+| P0 | `web/src/features/workout` 与 V19 回执：在真机补断网重连、存储回收、多标签页和跨设备结束训练后的队列冲突；再做少量真实用户任务观察。 | 已显示保存成功的组在数据库恰好一条；未同步可见、可恢复，冲突不静默覆盖。记录逐人耗时、误操作和退出原因，不把小样本当留存结论。 |
+| P1 | `rag` / `evaluation`：扩充获授权语料和独立领域标注，覆盖长文、过期/撤销、近邻干扰及多相关段落；人工盲审最终答案的引用支撑；重跑 BM25、向量、混合和 rerank。 | 分类别 Recall@1/3/5、MRR、真实答案引用支撑、误引、P95 和模型/索引成本齐全；混合只在预设门槛稳定通过后强调必要性。当前 10 文档、28 问的 R@5 已饱和。 |
+| P1 | `agent`：真实模型与规则 Workflow 使用相同脱敏事实集对照，覆盖越权工具、过期计划、疼痛信号、确认重放和 Provider 故障；人工盲评建议。 | 未确认写入和跨用户泄露为零；报告分意图成功率、工具正确率、人工可用率、P95 与单次成功成本。外部模型调用先确定数据与预算边界。 |
+| P1 | `infrastructure/events`：在两个独立应用实例上做持续写入、Kafka 冷启动中断及恢复；观察 producer metadata/观测查询等待。 | 训练事实不丢、投影最终追平、业务重复为零；记录最大积压年龄、追平时间和发送等待上界。只有测到背压问题才考虑缩批或有界并发。 |
+| P1 | `infrastructure/performance`：补 HTTP 多实例、热/冷分布和 Redis 故障对照，复核 PG 直读、Redis 单层、L1+L2 的成本与陈旧窗口。 | 固定快照并交替重复至少三轮；记录 P95/P99、DB CPU/QPS、命中率、旧值时长与资源成本，关键状态仍从数据库判断。 |
+| P2 | `deploy` / `scripts/delivery`：有合适目标环境和凭据后，按**待发布 SHA**验证容量、发布、回滚、备份恢复、密钥轮换和 SLO。 | digest、迁移、RTO/RPO 与脱敏证据对应；真实目标环境通过门禁后才称上线，此前保持 `SKIPPED`。 |
 
 ## 取舍原则
 
