@@ -1,0 +1,26 @@
+{
+  "finishedAt" : "2026-09-17T14:17:04.259318900Z",
+  "scope" : "service writes and real PostgreSQL/Kafka Testcontainers; manual production handlers; synthetic aged backlog",
+  "batchSize" : 100,
+  "scenarios" : [ {
+    "completedWhileBrokerPaused" : 1,
+    "maximumObservedOldestAgeMs" : 3200.154,
+    "outageMs" : 6015.55,
+    "name" : "broker-outage",
+    "recoveryMs" : 2812.13,
+    "duplicateBusinessRows" : 0
+  }, {
+    "name" : "dual-relay-reclaim",
+    "oldClaimRejected" : true,
+    "sameEventKafkaPublishes" : 2,
+    "duplicateBusinessRows" : 0,
+    "recoveryMs" : 413.04
+  }, {
+    "ageWasBackdated" : true,
+    "workouts" : 40,
+    "maximumObservedOldestAgeMs" : 120001.731,
+    "name" : "aged-backlog",
+    "recoveryMs" : 3796.09,
+    "duplicateBusinessRows" : 0
+  } ]
+}

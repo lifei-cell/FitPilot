@@ -173,6 +173,7 @@ fitpilot:
   events:
     enabled: ${EVENTS_ENABLED:true}
     relay:
+      # Maximum events per pass; claims are acquired one at a time before Kafka sends.
       batch-size: ${OUTBOX_BATCH_SIZE:100}
       fixed-delay-ms: ${OUTBOX_FIXED_DELAY_MS:500}
       claim-timeout-seconds: ${OUTBOX_CLAIM_TIMEOUT_SECONDS:30}

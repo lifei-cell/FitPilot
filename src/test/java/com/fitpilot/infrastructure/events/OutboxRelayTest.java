@@ -23,7 +23,7 @@ class OutboxRelayTest {
 
     @Test
     void skipsQueuedEventThatWasReclaimedBeforeSending() {
-        when(repository.claimBatch(100, 30, 20)).thenReturn(List.of(event));
+        when(repository.claimBatch(1, 30, 20)).thenReturn(List.of(event), List.of());
         when(repository.refreshClaim(event)).thenReturn(false);
         relay.relay();
         verifyNoInteractions(kafka);
@@ -36,7 +36,7 @@ class OutboxRelayTest {
     @SuppressWarnings("unchecked")
     void interruptionPreservesInterruptAndStopsSendingRemainingBatch() throws Exception {
         var next = new OutboxEvent(2, "test", "2", "{}", 0, UUID.randomUUID());
-        when(repository.claimBatch(100, 30, 20)).thenReturn(List.of(event, next));
+        when(repository.claimBatch(1, 30, 20)).thenReturn(List.of(event), List.of(next));
         when(repository.refreshClaim(event)).thenReturn(true);
         var future = (CompletableFuture<SendResult<String, String>>) mock(CompletableFuture.class);
         when(kafka.send(event.topic(), event.eventKey(), event.payload())).thenReturn(future);
@@ -50,5 +50,26 @@ class OutboxRelayTest {
         } finally {
             Thread.interrupted();
         }
+    }
+
+    @Test
+    void claimsNextEventOnlyAfterCurrentSendIsCommitted() throws Exception {
+        var next = new OutboxEvent(2, "test", "2", "{}", 0, UUID.randomUUID());
+        when(repository.claimBatch(1, 30, 20)).thenReturn(List.of(event), List.of(next), List.of());
+        when(repository.refreshClaim(any())).thenReturn(true);
+        when(kafka.send(anyString(), anyString(), anyString()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+        when(repository.markSent(any())).thenReturn(true);
+
+        relay.relay();
+
+        var order = inOrder(repository, kafka);
+        order.verify(repository).claimBatch(1, 30, 20);
+        order.verify(kafka).send(event.topic(), event.eventKey(), event.payload());
+        order.verify(repository).markSent(event);
+        order.verify(repository).claimBatch(1, 30, 20);
+        order.verify(kafka).send(next.topic(), next.eventKey(), next.payload());
+        order.verify(repository).markSent(next);
+        order.verify(repository).claimBatch(1, 30, 20);
     }
 }

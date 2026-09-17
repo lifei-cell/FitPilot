@@ -1,0 +1,23 @@
+{
+  "runId": "final-concurrent-20260917",
+  "startedAt": "2026-09-17T22:16:25.6120798+08:00",
+  "finishedAt": "2026-09-17T22:17:36.3326675+08:00",
+  "baseCommit": "bf3ffc4bf92e248651195a992e2640036bc65405",
+  "batchSize": 100,
+  "java": [
+    "java version \"25.0.2\" 2026-01-20 LTS",
+    "Java(TM) SE Runtime Environment (build 25.0.2+10-LTS-69)",
+    "Java HotSpot(TM) 64-Bit Server VM (build 25.0.2+10-LTS-69, mixed mode, sharing)"
+  ],
+  "docker": "29.7.2",
+  "filesSha256": {
+    "pom.xml": "EC008EE75A1EA24F3DB673242C5494D86168C150DE3D33DB16F26DB444AD09E3",
+    "src/main/resources/application.yml": "C8C535B5880F3A697F09277DDC298CFEA686EFE42D570F4F63FECE7BA59852B4",
+    "src/main/java/com/fitpilot/infrastructure/events/OutboxRelay.java": "07A1999765633D169EDF63BDA2E785895A5AE446FFB680A621DED8745175F4DB",
+    "src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java": "154ED4CF20EAC5F217D956358E00F5BFF280C32A3B8EBC203276F0677D299294",
+    "src/main/java/com/fitpilot/infrastructure/events/EventProperties.java": "FC6C3DFDA81456E138357BF8B80C45971549ACE9089CBB551B0C6265B5606C76",
+    "src/test/java/com/fitpilot/infrastructure/events/OutboxBacklogBenchmark.java": "C0C5AED3E6FF0326ACC1749443A86BC2D3C03DE04924A3972ECC9A5C863FE9D8",
+    "scripts/run-outbox-backlog.ps1": "9B70287974BCEAADDA24BCB132E45EC65FB756B9941DAACF807C9F56CCE10A3E"
+  },
+  "status": "PASS"
+}

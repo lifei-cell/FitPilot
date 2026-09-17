@@ -16,6 +16,7 @@ public class EventProperties {
     public Consumer getConsumer() { return consumer; }
 
     public static class Relay {
+        /** Maximum events handled per relay pass; each event is claimed just before its send. */
         private int batchSize = 100;
         private long fixedDelayMs = 500;
         private long claimTimeoutSeconds = 30;

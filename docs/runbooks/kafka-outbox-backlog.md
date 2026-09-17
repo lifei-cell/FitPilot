@@ -22,3 +22,5 @@
 禁止直接删除 outbox/dead-letter 行或跳过幂等约束。
 
 V20 发布必须先停止全部旧版 Relay 并等待在途执行结束，再执行迁移并启用新版 Relay；旧版回写没有 token 条件，新旧 Relay 混跑时不能承诺保护生效。回滚保留 V20 列，回退旧版发布器会失去领取保护。详见 [迁移与验证记录](../release/outbox-claim-ownership.md)。
+
+当前 Relay 每次发送前领取 1 条，`OUTBOX_BATCH_SIZE` 限制每轮最多处理的条数。调整该值只改变单轮上限，不改变单次领取数量；不要用扩大上限替代排查 Broker 发送延迟、消费者 lag 和数据库投影耗时。[隔离积压恢复实验](../performance/outbox-backlog-recovery-2026-09-17.md)记录了实际故障注入、追平时间与冷启动边界。

@@ -33,8 +33,11 @@ public class OutboxRelay {
     @Observed(name = "fitpilot.outbox.relay")
     public void relay() {
         var relay = properties.getRelay();
-        for (OutboxEvent event : repository.claimBatch(relay.getBatchSize(), relay.getClaimTimeoutSeconds(),
-                relay.getMaxAttempts())) {
+        // A batch of claims can expire while earlier Kafka sends block. Claim each event just before sending.
+        for (int processed = 0; processed < relay.getBatchSize(); processed++) {
+            var claimed = repository.claimBatch(1, relay.getClaimTimeoutSeconds(), relay.getMaxAttempts());
+            if (claimed.isEmpty()) return;
+            OutboxEvent event = claimed.getFirst();
             try {
                 if (!repository.refreshClaim(event)) {
                     claimLost(event);
