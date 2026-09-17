@@ -1,0 +1,20 @@
+[INFO]
+[INFO] --- jacoco:0.8.13:report (report) @ fitpilot-backend ---
+[INFO] Loading execution data file D:\projects-2\FitPilot\target\jacoco.exec
+[INFO] Analyzed bundle 'FitPilot' with 347 classes
+[INFO]
+[INFO] --- jacoco:0.8.13:check (coverage-gate) @ fitpilot-backend ---
+[INFO] Loading execution data file D:\projects-2\FitPilot\target\jacoco.exec
+[INFO] Analyzed bundle 'fitpilot-backend' with 347 classes
+[INFO] All coverage checks have been met.
+[INFO]
+[INFO] --- failsafe:3.5.6:verify (default) @ fitpilot-backend ---
+[INFO]
+[INFO] --- exec:3.5.0:java (zero-skipped-tests-gate) @ fitpilot-backend ---
+Zero-skipped gate passed: tests=116 skipped=0
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:59 min
+[INFO] Finished at: 2026-09-17T22:50:08+08:00
+[INFO] ------------------------------------------------------------------------

@@ -1,0 +1,41 @@
+{
+  "runId": "20260917-real-embedding-final",
+  "startedAt": "2026-09-17T22:50:39.9093034+08:00",
+  "baseCommit": "61088e1ccc85a024ec86432605d370015225836b",
+  "worktreeStatus": [
+    " M \"docs/resume/FitPilot-\\344\\272\\222\\350\\201\\224\\347\\275\\221\\345\\244\\247\\345\\216\\202-Java\\345\\220\\216\\347\\253\\257AI\\347\\256\\200\\345\\216\\206.md\"",
+    "?? .memorax-code/",
+    "?? docs/performance/real-retrieval-protocol-2026-09-17.md",
+    "?? scripts/evaluation/",
+    "?? scripts/run-real-retrieval.ps1",
+    "?? src/test/java/com/fitpilot/evaluation/RealEmbeddingRetrievalBenchmark.java",
+    "?? src/test/resources/retrieval/"
+  ],
+  "os": "Microsoft Windows NT 10.0.26200.0",
+  "logicalProcessors": 32,
+  "java": [
+    "java version \"25.0.2\" 2026-01-20 LTS",
+    "Java(TM) SE Runtime Environment (build 25.0.2+10-LTS-69)",
+    "Java HotSpot(TM) 64-Bit Server VM (build 25.0.2+10-LTS-69, mixed mode, sharing)"
+  ],
+  "python": "Python 3.14.3",
+  "docker": "29.7.2",
+  "modelRevision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "modelSha256": "98A01D88B7DE996CDEA58C32CA71208C09968D143798814B2EA09D3439DC334F",
+  "tokenizerSha256": "2C3387BE76557BD40970CEC13153B3BBF80407865484B209E655E5E4729076B8",
+  "holdoutSha256": "EDDC5922F71DF776E8474BB7EB01AF3762CF627CCCEADAC1EA15546BB527DE91",
+  "pythonDependencies": "{'onnxruntime': '1.24.4', 'tokenizers': '0.22.2', 'numpy': '2.4.3'}",
+  "corpusSha256": "4F54AC4F5C1D0D645F04FE21B6BD2FD06BE67FBB75EA06E8C5B8493CFEFFBDE4",
+  "codeSha256": {
+    "scripts/evaluation/prepare_model.py": "6FF3C24D865A828C9865EA7BF283DAA5EEEACEF55B8EE4775B99E90D9701481E",
+    "scripts/evaluation/local_embedding_server.py": "3C89FF43C92E71F5F988FFDC12014E1CCA50B893E9B221A0E3D54E879819D786",
+    "scripts/evaluation/summarize_retrieval.py": "E37E7D9FC7B30B1E571BC18BC44ED357C15AD226971E0AB322040ECABFEBAA86",
+    "scripts/run-real-retrieval.ps1": "9CA6A894DA3C7A8532DEDB63B4DFE53DDBF25721C3CDD3F82A30F8D553207DBB",
+    "src/test/java/com/fitpilot/evaluation/RealEmbeddingRetrievalBenchmark.java": "04506EC31F465824E91680A4E579531BFB2671A2307AE5A4AA7FEF8A07F0F87F"
+  },
+  "status": "PASS",
+  "image:pgvector/pgvector:pg17": "sha256:dca0d688bbb31d3f851502ffcb9c7791387b4fcc544ae434dab41761e5ece317",
+  "image:redis:7.4-alpine": "sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2",
+  "image:docker.elastic.co/elasticsearch/elasticsearch:8.17.4": "sha256:413d8df69823e9f41f6008f025fcbaf31a5849ab9c74894731d7ded65543cd56",
+  "finishedAt": "2026-09-17T22:51:36.6485592+08:00"
+}
