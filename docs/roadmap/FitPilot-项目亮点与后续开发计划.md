@@ -1,134 +1,37 @@
 # FitPilot 项目亮点与后续开发计划
 
-> 梳理基线：2026-09-10，FitPilot V6，功能验收 revision `b3d708ac4249331bf74e1541481caca115dc55ff`，数据库迁移 Flyway V1-V18。修复 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d` 已完成精确 SHA 的 CI/Release/GHCR/SBOM/provenance 闭环，真实 Production Delivery Gate 为 `SKIPPED`。
+日期：2026-09-17。梳理基线：`a797e8a`（当前检出代码）；本次为源码与既有报告复核，未重新运行测试、压测或远端门禁。文中的性能数字仅属于所链报告的隔离环境，不是当前生产指标。
 
-## 1. 项目定位
+## 一句话定位
 
-FitPilot 是一个 Java 21 + Spring Boot 3.5 + React 19 的 AI Native 健身训练平台。项目以模块化单体承载训练计划、Workout、PR、训练分析等核心业务，以 Transactional Outbox、二级缓存、Hybrid RAG 和受控单 Agent Workflow 解决一致性、性能、知识检索和 AI 安全写入问题，并补齐可观测、测试、供应链和 Kubernetes 交付门禁。
+FitPilot 是 Java 21 / Spring Boot 模块化单体加 React Web 的力量训练记录产品。主线是“计划 → 训练快照 → 快速记组与恢复 → 完成训练 → PR/分析 → 受控 AI 建议”。工程设计围绕训练事实的正确性、弱网记录的可信反馈、异步派生的恢复，以及 AI 写入前的后端授权。
 
-当前最有价值的特征不是技术组件数量，而是形成了“训练业务闭环 + AI 辅助决策 + 后端最终授权 + 可验证交付”的完整链路。
+## 已实现的亮点
 
-## 2. 已落地项目亮点
-
-| 亮点 | 关键设计 | 业务与工程价值 | 主要证据 |
-|---|---|---|---|
-| 训练领域建模与历史快照 | 将可变的 `TrainingPlan` 与事实型 `Workout` 分离，开始训练时复制动作、目标组次、RPE、休息时间等快照 | 计划调整不会污染历史训练、PR 和分析口径 | `plan`、`workout` 模块，Flyway V1 |
-| 核心写链路一致性 | Workout 状态机、事务完成、重复完成幂等、Set 行锁分配与唯一约束；数据库限制每个用户只能有一个进行中 Workout | 防止重复完成、并发错号、半完成状态和多活训练 | `WorkoutService`、`WorkoutRepository`、Flyway V10 |
-| Owner 安全边界 | 私有资源以 `userId + resourceId` 查询，身份来自 JWT；通用写请求支持 `Idempotency-Key` | 降低 IDOR、跨用户确认和重复提交风险 | `CurrentUser`、各领域 Repository、`SecurityConfig` |
-| 可靠事件驱动 | Workout 与 Outbox 同事务提交，经 Kafka 异步更新 PR、Analytics、Notification；Inbox、业务唯一约束、退避重试、DLT、死信与回放兜底 | Kafka 故障不回滚核心训练，恢复后派生数据可追平 | `infrastructure/events`、Flyway V3 |
-| 二级缓存与故障降级 | Caffeine L1 + Redis L2、空值缓存、TTL 抖动、分布式重建锁；Redis 故障时回源 PostgreSQL，限流降级为本地 Token Bucket | 优化热点读，同时避免 Redis 成为核心业务单点 | `infrastructure/performance`、`RedisFailureGuard`、`TwoLevelCache` |
-| Hybrid RAG 与内容治理 | Parent-Child Chunk、pgvector HNSW 与 Elasticsearch BM25 双路召回、RRF、确定性 Rerank、Parent Context 与 Citation；增加可信等级、不可变版本、删除传播、反馈审核和动态评测 | 兼顾专业术语、语义召回、来源追溯和知识生命周期治理 | `rag`、`evaluation` 模块，Flyway V4/V8-V9/V14/V18 |
-| 安全可控的单 Agent Workflow | LLM 只生成结构化提议；后端执行 Tool 白名单、Owner 校验、领域校验、Guardrail、一次性确认和最终持久化；主备模型失败后回退规则 Workflow | 实现“模型提议、后端决策、用户确认”，降级不绕过安全链 | `agent`、`llm` 模块，Flyway V5-V7/V11-V13 |
-| 持久会话与训练调整闭环 | PostgreSQL 保存会话真源，Redis 缓存最近 30 条消息；基于 28 天完成率、RPE、疲劳、疼痛、容量和 PR 趋势生成调整证据，确认后只创建新 DRAFT | 支持跨设备连续对话，将 AI 从一次性生成推进到可解释、可拒绝的训练反馈闭环 | `AgentSessionStore`、`TrainingAdjustmentService`、Flyway V12-V13 |
-| 完整 Web 业务入口 | React Web 覆盖登录注册、Dashboard、计划编辑、训练执行与反馈、动作库、进度、通知、个人资料、AI Coach、会话管理和 Citation 反馈 | 项目从后端 API 演进为可操作的端到端产品 | `web/src/pages`、`web/src/features`、`web/e2e` |
-| 可观测与生产工程 | Metrics/Logs/Traces/Alert、LLM Token/费用审计、SBOM、密钥扫描、镜像扫描、不可变 Digest、Migration/Rollout/Rollback/密钥轮换脚本 | 将“能运行”推进到“可验证、可观测、可恢复” | `observability`、`.github/workflows`、`scripts/delivery`、`docs/runbooks` |
-
-## 3. 当前成熟度与证据边界
-
-### 3.1 已验证
-
-- 当前功能验收 revision `b3d708ac4249331bf74e1541481caca115dc55ff` 已执行统一门禁：35 个 Surefire/Failsafe XML 报告、79 个后端测试，失败 0、错误 0、跳过 0；Flyway V1-V18 和 JaCoCo 通过，后端行覆盖率 84.40%。
-- 后端 JaCoCo 总体行覆盖率门槛为 60%，关键包为 70%；Testcontainers 覆盖 PostgreSQL/pgvector、Redis、Kafka、Elasticsearch 和 Mock OpenAI-compatible 链路。
-- Web 同一功能基线已通过 ESLint、TypeScript、36 个 Vitest/RTL 测试、生产构建和 7 个 Playwright Chromium 场景，行覆盖率 71.69%；Token 刷新、Workout 闭环、Agent 确认异常和计划并发冲突均进入浏览器验收。
-- 本地 Docker Compose 已验证六个核心容器健康，以及注册/登录、Agent 会话、消息分页、RAG 检索、PostgreSQL V14、Redis 热缓存和 Kafka 业务主题。
-- 已归档 P0 报告完成 30 分钟混合流量与 5 分钟突发流量验证。混合场景 118,980 次 HTTP 请求、业务成功率 99.99%、普通 API P95 10.03 ms、Agent P95 30.70 ms；该数据只代表本机 Compose 环境。
-- Prometheus、Grafana、Loki、Tempo、Alertmanager 在线联调，以及应用下线告警、恢复和告警解除已有本机演练记录。
-- revision `b3d708a` 的精确 SHA CI Run `34463093054` 曾在 Trivy 依赖扫描阶段检出 `CVE-2026-75595` 并失败；升级 Netty 到 `4.1.137.Final` 后，修复 revision `c55e26d` 的 CI Run `34465034299`、Release Run `34465790273`、GHCR 多架构发布、不可变 Digest、SBOM 和 provenance 均已按精确 SHA 核验。历史 V17 远端证据不能直接复用。历史 revision `1d98621` 的一次性 Kind 集群完成 Migration、Rollout、Rollback、备份恢复和双密钥轮换演练。
-
-### 3.2 仍需补齐
-
-- 真实 Kubernetes Production Delivery Gate 按用户决定跳过；Kind 演练不能表述为生产上线，也没有真实集群 SLO、容量、恢复时间和成本证据。
-- 系统实现的是 `At-least-once + 幂等消费 + 最终一致性`，不应表述为 Exactly Once；本机压测结果也不能直接外推为生产容量。
-
-### 3.3 原始证据索引
-
-| 证据 | revision / Run | 原始报告 |
+| 亮点 | 业务问题与实现 | 可陈述的证据及边界 |
 |---|---|---|
-| V6、Flyway V1-V18、79 个后端测试、36 个 Web 组件测试、7 个浏览器场景 | `b3d708ac4249331bf74e1541481caca115dc55ff` | [V18 当前功能验收](../release/v18-functional-validation.md) |
-| 30 分钟混合流量、5 分钟突发流量、可观测告警恢复 | Run ID `20260830-091822`，历史 V5/V9 基线 | [V5 性能验证](../performance/v5-production-validation.md)、[P0 生产验收](../release/p0-production-validation.md) |
-| CI、安全扫描、Release、GHCR Digest、SBOM、provenance | 修复 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`；CI `34465034299`、Release `34465790273`，精确证据已写入 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
-| 本机 Kind 交付演练 | 历史 revision `1d98621891ff92d98ad57c77ff212015b641681f` | [V6 远端发布验收](../release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
-| 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [V6 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
+| 训练事实与并发控制 | 可变 `TrainingPlan` 与事实型 `Workout` 分离；开始时复制动作目标。已有 Workout 写操作经 owner 条件的父行 `FOR UPDATE` 串行检查状态、分配序号并写入，唯一约束兜底。完成状态与 Outbox 同事务提交。 | [并发控制记录](../release/workout-write-concurrency.md)在真实 PostgreSQL 上覆盖完成/取消与加动作、加组、改删组等竞争；该记录对应修复时的本地 111 项后端测试，不是生产并发容量。当前源码：`WorkoutService`、`WorkoutRepository`。 |
+| 快速记组与弱网恢复 | 历史组预填减少重复输入；本地草稿和待同步队列配合 `Client-Operation-Id`，服务端 V19 回执与组写入同事务，响应丢失后可重放原结果。 | [恢复验收](../release/workout-auto-recovery.md)记录本地 44 项 Web 单测、8 个常规及 1 个离线浏览器场景；尚未证明真机存储回收、跨设备合并或真实用户省时。 |
+| 异步事件的正确性 | PostgreSQL 保存 Workout 与 Outbox 事实；Kafka 投影 PR、分析和通知。Inbox 与业务唯一约束处理重复投递；V20 `claim_token` 防止旧 Relay 回写覆盖新领取者。语义是**至少一次投递、消费幂等、最终一致**。 | [领取保护](../release/outbox-claim-ownership.md)有真实数据库竞争测试。当前 `OutboxRelay` 仍逐条等待 Kafka Future，积压恢复能力未做当前规格压测。 |
+| 性能优化有反例 | 两级缓存服务热点展示读，关键状态判断读数据库；同训练写依赖父行锁。移除已无正确性收益的子行重复锁，保留父锁及唯一约束。 | [写链路报告](../performance/workout-write-load-2026-09-17.md)：隔离 Testcontainers 的同训练 192 次写入，P99 228.67→170.38 ms（降 25.47%），吞吐 282.64→332.25 RPS；多用户场景未改善。[架构对照](../performance/architecture-comparison-2026-09-17.md)显示热 L1 获益、冷缓存变慢，不能概括为所有请求加速。 |
+| AI 建议由后端约束 | RAG 实现 BM25、pgvector、RRF、引用与知识版本治理；单 Agent 用 owner 限定工具、结构化提议、领域规则、待确认动作和一次性确认，确认后才创建草案。会话与训练反馈支持持续调整。 | 代码与 Mock/规则测试可证明流程和安全边界；默认确定性哈希 Embedding 的[消融实验](../performance/architecture-comparison-2026-09-17.md)未证明混合检索优于 BM25，也未证明真实模型建议质量或训练效果。 |
+| 可复核的交付工程 | Testcontainers、ArchUnit、零跳过与覆盖率门禁、Web 浏览器测试、CI 扫描、SBOM、镜像 digest 和回滚手册组成可追溯链路。 | [架构对照报告](../performance/architecture-comparison-2026-09-17.md)记录当时 `mvn clean verify` 115 项后端测试通过；[远端交付报告](../release/p1-delivery-validation.md)的 CI/Release/GHCR 只绑定较早的精确 SHA。当前 `a797e8a` 无本次重新执行的全量或远端门禁；真实 Production Delivery Gate 仍为 `SKIPPED`。 |
 
-## 4. 后续开发计划
+## 后续开发顺序
 
-### P0：交付闭环与质量补强（1-2 周）
+按“先补正确性与可用性证据，再补选型收益，最后按真实负载扩展”推进。每项都记录源码 SHA、环境、数据、原始样本和失败路径，避免把局部实验当成生产或用户价值结论。详细用例见[设计取舍验证测试计划](../test-plans/设计取舍验证测试计划-2026-09-17.md)。
 
-#### 4.1 当前 V6/V18 revision 远端发布证据闭环（已完成）
+| 优先级 | 模块与具体工作 | 验收条件 |
+|---|---|---|
+| P0 | `infrastructure/events`：对默认批量领取、逐条发送和 30 秒租约做 Kafka 中断恢复、双 Relay 重领及长积压实验；根据积压年龄、重复投递和恢复速率决定缩小批次或有界并发。 | Workout 核心写入不丢；投影最终追平且业务结果无重复；旧 token 不覆盖新状态；报告积压最大年龄、恢复时间、资源消耗及异常样本。 |
+| P0 | `rag` / `evaluation`：用真实 Embedding、独立人工标注留出集和可授权语料比较 BM25、向量、混合；加入无答案、撤销文档和人工引用支撑核对。先确定数据许可、费用和模型版本。 | 分类别 Recall@5/MRR、无答案误引、引用支撑率、P95、每次检索成本及索引成本齐全；混合只有在预设目标分类稳定优于简单基线且护栏成立时才保留。当前哈希向量结果不能代替。 |
+| P1 | `agent`：把真实模型与规则 Workflow 在相同匿名事实集上对照，覆盖越权工具、过期计划、疼痛风险、确认重放和 Provider 故障；人工盲评建议。 | 未确认写入与跨用户泄露均为零；报告任务成功率、工具正确率、人工可用率、P95 和单次成功成本。拒绝与降级样本保留原始原因。 |
+| P1 | `web/src/features/workout` 与 V19 回执：在移动浏览器进行小样本任务测试，并补存储回收、多标签页、跨设备结束后本机队列冲突的恢复体验。 | 逐人记录每组耗时、误操作、确认成功后数据库记录、未同步状态可见性和退出原因；已确认的组恰好一条，冲突不静默覆盖。小样本只用于可用性判断。 |
+| P1 | `infrastructure/performance`：补真实 HTTP、多实例、热/冷分布和 Redis 故障对照；复核直读 PG、Redis 单层、L1+L2 的成本与陈旧窗口。 | 固定数据快照与负载，至少三轮交替运行；同时记录 P95/P99、DB CPU/QPS、缓存命中、旧值时长和资源成本。关键业务状态仍从数据库判定。 |
+| P2 | `deploy` / `scripts/delivery`：在有合适目标环境和凭据时，为**当前待发布 SHA**执行发布、回滚、备份恢复、密钥轮换和 SLO 观察；先做容量预估。 | digest、迁移、回滚、RTO/RPO 与脱敏证据一一对应；目标环境和门禁真实通过后才称上线。此前保持 `SKIPPED`。 |
 
-交付内容：
+## 取舍原则
 
-- 已提交并推送 Netty 安全修复后的精确 revision `c55e26d`，其 `main` CI 全量成功并归档 Gitleaks、SBOM/Trivy 依赖扫描、镜像扫描和测试报告。
-- 已由通过验证的 revision 触发 Release，发布 GHCR 多架构镜像并归档不可变 Digest 清单。
-- 已将 revision、镜像 Digest、SBOM、provenance 与本地 V18 功能验收建立一对一索引，详见 [P1 远端发布与生产交付验收](../release/p1-delivery-validation.md)。
-
-验收标准：修复 revision `c55e26d` 的 CI 与 Release 均有成功链接；镜像 revision、Digest、SBOM、provenance 与功能验收可双向追溯，已达成。
-
-#### 4.2 提升前端关键链路测试（已完成）
-
-交付内容：
-
-- 为 Auth 刷新/登出、Workout 开始/加组/完成、AI 会话恢复/待确认动作、计划版本冲突补齐 RTL + MSW 测试。
-- Playwright 增加“完整 Workout 闭环”“AI 生成计划并确认”“Token 过期自动刷新”“并发编辑冲突”四条核心 E2E。
-- 分阶段将前端总体行覆盖率提升到至少 60%，`api`、`auth`、`agent`、`features/workout` 关键目录达到至少 80%，并保持零跳过。
-
-验收标准：`npm run quality` 全部通过；覆盖率阈值写入配置；关键失败场景有断言，不只验证页面能打开。
-
-#### 4.3 真实生产交付（有生产凭据时执行）
-
-交付内容：
-
-- 在指定 Kubernetes context 执行 Migration、2 副本 Rollout、readiness、PDB/HPA/NetworkPolicy 验证、Rollback 和候选版本恢复。
-- 在隔离的真实数据副本完成备份恢复、JWT/Operations Token 轮换与旧密钥撤销。
-- 将生产执行证据与精确 revision、镜像 Digest 和审批记录绑定，禁止使用 Kind 结果替代。
-
-验收标准：Production Delivery Gate 有真实成功链接；迁移、回滚、恢复、轮换均有脱敏证据，失败路径能够恢复。未提供生产凭据时保持 `SKIPPED`，不伪造闭环。
-
-### P1：AI 产品成效与安全增强（2-4 周）
-
-#### 4.4 已完成：建立 Agent 产品效果指标
-
-- 统计会话留存、建议接受/拒绝率、确认转化率、规则降级率和单次成功成本。
-- 将指标按 Prompt、模型和业务意图分组，避免只使用整体平均值掩盖局部退化。
-- 已提供 Operations 聚合 API、Prometheus 指标、Grafana Dashboard、带最小样本数的告警和回溯调整 ID。
-
-工程验收已完成：每项指标有稳定定义、Dashboard、告警边界和可回溯样本。模型切换仍必须通过离线评测与小流量对照。
-
-#### 4.5 已具备度量链路：验证训练调整的真实收益
-
-- 对比调整前后的计划完成率、疼痛反馈、训练容量和 PR 趋势，保留计划版本与建议证据。
-- 增加正常、数据不足、疼痛风险、越界负荷和对抗输入样本，持续验证确定性安全规则。
-- 已实现以草案激活日为锚点的等长前后窗口，输出完成率、疼痛、训练容量和 PR 的 before/after/delta，并排除观察期未结束样本。
-
-工程验收已完成；真实业务收益需等待足量线上样本，并通过小流量对照排除季节、用户阶段等混杂因素。任何安全回归阻断发布；用户始终可以拒绝、回滚并查看差异。
-
-#### 4.6 用审核反馈驱动 RAG 离线迭代
-
-- 用审核后的动态样本比较 Chunk、召回权重和 Rerank 候选方案，不直接用在线负反馈改写排序。
-- 按知识类别输出 Recall@5、MRR、Citation Validity、反馈率和删除传播延迟。
-
-验收标准：Citation Validity 保持 100%，任一分类 Recall@5/MRR 相对最近成功基线回退超过 5pp 即阻断发布。
-
-### P2：真实生产运营与规模化（6-12 周）
-
-#### 4.7 SLO、容量与故障预算
-
-- 为核心 API、Workout 完成、Agent、Outbox Lag、RAG 和 LLM Cost 定义 SLI/SLO，建立告警分级和责任手册。
-- 在多实例环境执行持续容量测试、实例滚动、Kafka/Redis/ES 抖动与数据库连接耗尽演练。
-- 根据观测数据调优连接池、线程池、缓存容量和消费者并发，不用单机短压测直接决定生产配置。
-
-验收标准：连续观察窗口满足 SLO；告警可执行且不过度噪声；容量结论包含饱和点、恢复时间和成本。
-
-#### 4.8 保持模块化单体，按证据演进架构
-
-- 以 ArchUnit 持续强化模块边界和领域事件契约，自动禁止 Controller 直连 Mapper、跨模块访问内部适配器及业务模块循环依赖。
-- 只有当独立扩缩容、故障隔离或团队发布节奏出现明确瓶颈时，再评估拆分事件、RAG/LLM 或通知模块。
-- 不把 Multi-Agent 或微服务化作为版本目标；只有单 Workflow 无法满足可衡量的业务场景时才引入额外复杂度。
-
-验收标准：模块依赖可自动检查；架构变更必须绑定性能、可靠性或组织收益，并给出迁移和回滚方案。
-
-## 5. 推荐执行顺序
-
-1. 在具备生产凭据时执行真实 Production Delivery Gate，补齐最新 revision 的集群级发布、回滚、恢复和密钥轮换证据。
-2. 持续积累线上窗口并量化 Agent、训练调整和 RAG 反馈带来的真实产品收益。
-3. 基于真实 SLO、容量和成本数据决定架构扩展，避免提前微服务化或 Multi-Agent 化。
+- 当前小规模场景，PG worker 是 Kafka 的合理简化候选；[现有局部对照](../performance/architecture-comparison-2026-09-17.md)证明异步接受较快，未证明 Kafka 比 PG worker 快。只有独立消费者扩展、回放或隔离收益在目标负载下可复现时，才把 Kafka 复杂度写成必要性。
+- 保持模块化单体。微服务、分库分表或 Multi-Agent 要由独立扩容、故障隔离或真实任务失败的证据触发，不作为版本目标。
+- 真实用户的留存、操作效率和训练收益尚无充分证据；工程指标、规则测试和演示数据不能替代用户研究。
