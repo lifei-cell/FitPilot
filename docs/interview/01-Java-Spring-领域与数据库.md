@@ -108,9 +108,35 @@ Operations 路径由 Spring Security 统一要求 `ROLE_OPERATIONS`，专用 Fil
 
 ### 项目方案
 
-开始训练时将动作名、顺序、目标组次、RPE、休息时间等复制到 `WorkoutExercise`。后续 Set、PR 和 Analytics 基于快照，不依赖当前计划内容。
+开始训练时将动作名、顺序、目标组次、RPE、休息时间等复制到 `WorkoutExercise`。Workout 详情读取该快照，Set 挂在快照动作下；PR 与 Analytics 从已完成 Workout/Set 派生，不读取当前计划内容。
 
 这不是无意义冗余，而是典型的**事实快照**：用存储换审计性、可追溯性和稳定统计口径。类似设计常见于订单商品快照、合同版本和支付账单。
+
+### 实际关系与字段边界（核对 `5a5e54c`）
+
+```mermaid
+erDiagram
+    TRAINING_PLAN ||--o{ TRAINING_PLAN_DAY : contains
+    TRAINING_PLAN_DAY ||--o{ TRAINING_PLAN_EXERCISE : contains
+    TRAINING_PLAN ||--o{ WORKOUT : source_plan_nullable
+    TRAINING_PLAN_DAY ||--o{ WORKOUT : source_day_nullable
+    WORKOUT ||--o{ WORKOUT_EXERCISE : snapshots_at_start
+    WORKOUT_EXERCISE ||--o{ WORKOUT_SET : records
+    EXERCISE ||--o{ TRAINING_PLAN_EXERCISE : catalog_ref
+    EXERCISE ||--o{ WORKOUT_EXERCISE : catalog_ref
+```
+
+`TRAINING_PLAN_EXERCISE` 与 `WORKOUT_EXERCISE` **没有直接外键**：开始训练时遍历计划动作生成新行。图中 Plan/Day → Workout 是可空的来源引用（删除源行时 `ON DELETE SET NULL`），不是历史详情的读取路径；Exercise → WorkoutExercise 是不可空目录外键，未配置级联删除。
+
+| 历史字段 | 当前存放/生成方式 | 改动来源后会怎样 |
+|---|---|---|
+| 训练名 | `workout.name`：请求指定，或复制当时的计划日名称 | 计划日改名不改变训练名；未另存计划标题。 |
+| 动作名、顺序、目标组数/次数上下限、目标 RPE、休息秒数、备注 | `WorkoutService.create` 从计划动作和动作目录复制到 `workout_exercise` | 当前 Workout 详情从快照行读取，动作目录改名不改变历史显示。训练中另加动作时只复制动作 ID、名称、顺序、备注，目标字段为空。 |
+| 实际重量、次数、RPE/RIR、热身/力竭标记、完成时间 | `workout_set` 是执行记录，不是计划快照 | `workout_set.workout_exercise_id` 指向当次快照动作；完成前可修改/删除组。 |
+| 计划 ID、计划日 ID、动作 ID | `workout.training_plan_id/training_plan_day_id` 和 `workout_exercise.exercise_id` 保留来源引用 | 来源计划/日可删除后置空；动作 ID 用于跨训练关联和 PR。没有保存计划版本、计划动作行 ID，不能仅凭这些 ID 完整重建当时计划。 |
+| 动作目录的肌群、器械、说明等 | 未复制到 `workout_exercise` | 历史 Workout 详情仍能显示已存的动作名/目标；若业务要重现当时肌群、器械或教学内容，现有快照不够。 |
+
+**追问边界**：当前计划服务只允许编辑 DRAFT，ACTIVE 计划不能通过现有 API 直接修改。当前 Exercise 服务没有删除接口；若直接硬删目录动作，计划动作、WorkoutExercise 和 PR 的外键会阻止删除，停用/改名也不会改写 Workout 中已存的动作名。从计划中移除动作与删除目录动作是两件事。Workout 完成后，`updateSet/deleteSet` 会因状态检查而拒绝；若以后需要纠错，应另设授权与审计记录，并规定 PR/Analytics 的重算、撤销和对外可见时序，不能直接改 Set 后只重发旧事件。
 
 ### 状态机与不变量
 
