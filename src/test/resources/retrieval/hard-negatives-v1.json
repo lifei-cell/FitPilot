@@ -1,0 +1,22 @@
+[
+  {"id":"hard-01","topic":"bench-press","query":"卧推世界纪录目前是多少公斤？","missingFact":"world record weight"},
+  {"id":"hard-02","topic":"bench-press","query":"肩袖撕裂手术后第几周可以恢复卧推？","missingFact":"post-surgery rehabilitation timeline"},
+  {"id":"hard-03","topic":"squat","query":"身高一米八做深蹲，两脚站距应该精确到多少厘米？","missingFact":"stance width in centimeters"},
+  {"id":"hard-04","topic":"squat","query":"深蹲比赛判定动作有效时髋部必须低于哪个位置？","missingFact":"competition judging rule"},
+  {"id":"hard-05","topic":"deadlift","query":"硬拉腰带按腰围买哪个尺码和品牌？","missingFact":"belt size and brand"},
+  {"id":"hard-06","topic":"deadlift","query":"硬拉杠铃杆生锈后用什么溶液清洗？","missingFact":"rust cleaning solution"},
+  {"id":"hard-07","topic":"pull-up","query":"家用引体向上杆安装在墙上需要多大膨胀螺栓？","missingFact":"mounting bolt size"},
+  {"id":"hard-08","topic":"pull-up","query":"引体向上训练器械哪个品牌的售后保修最长？","missingFact":"equipment warranty comparison"},
+  {"id":"hard-09","topic":"rpe","query":"RPE 8 对应的准确心率区间是多少次每分钟？","missingFact":"heart rate interval"},
+  {"id":"hard-10","topic":"rpe","query":"RPE 量表最早由哪位研究者在何年提出？","missingFact":"historical author and year"},
+  {"id":"hard-11","topic":"hypertrophy","query":"增肌时每天肌酸应该服用多少克？","missingFact":"creatine dosage"},
+  {"id":"hard-12","topic":"hypertrophy","query":"增肌用的乳清蛋白粉哪种口味最便宜？","missingFact":"product price and flavor"},
+  {"id":"hard-13","topic":"fat-loss","query":"体重七十公斤的人每天精确吃多少千卡才能一个月减五公斤？","missingFact":"personal calorie prescription"},
+  {"id":"hard-14","topic":"fat-loss","query":"减脂时服用奥利司他应当如何确定药物剂量？","missingFact":"drug dosing"},
+  {"id":"hard-15","topic":"recovery-sleep","query":"睡眠呼吸暂停需要做什么检查才能确诊？","missingFact":"sleep apnea diagnosis"},
+  {"id":"hard-16","topic":"recovery-sleep","query":"褪黑素和安眠药同时服用有哪些相互作用？","missingFact":"drug interaction"},
+  {"id":"hard-17","topic":"protein","query":"肾病患者每天蛋白质摄入应该精确控制在每公斤几克？","missingFact":"renal disease protein prescription"},
+  {"id":"hard-18","topic":"protein","query":"蛋白粉过敏后应该购买哪种品牌的替代品？","missingFact":"allergy-safe brand recommendation"},
+  {"id":"hard-19","topic":"training-volume","query":"训练容量用哪款智能手表自动统计最准确？","missingFact":"device accuracy comparison"},
+  {"id":"hard-20","topic":"training-volume","query":"一个月训练量超过多少千克会被正式诊断为过度训练？","missingFact":"medical diagnostic threshold"}
+]

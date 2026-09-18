@@ -1,0 +1,22 @@
+[
+  {"id":"fresh-01","topic":"bench-press","query":"卧推触胸停顿两秒是否满足正式赛事规则？","missingFact":"competition pause rule"},
+  {"id":"fresh-02","topic":"bench-press","query":"卧推保持肩胛后缩能治愈肩峰撞击吗？","missingFact":"medical treatment outcome"},
+  {"id":"fresh-03","topic":"squat","query":"深蹲到九十度时是否一定会伤膝盖？","missingFact":"injury causality"},
+  {"id":"fresh-04","topic":"squat","query":"穿举重鞋和平底鞋哪个让深蹲最大重量更高？","missingFact":"shoe comparison"},
+  {"id":"fresh-05","topic":"deadlift","query":"硬拉时腰背刺痛，可以服止痛药继续训练吗？","missingFact":"medication safety"},
+  {"id":"fresh-06","topic":"deadlift","query":"硬拉世界纪录是哪一年由谁创造的？","missingFact":"record holder and year"},
+  {"id":"fresh-07","topic":"pull-up","query":"引体向上时下巴高出单杠几厘米才算比赛有效？","missingFact":"competition distance rule"},
+  {"id":"fresh-08","topic":"pull-up","query":"把引体向上杆固定在门框要用什么规格的螺丝？","missingFact":"mounting screw specification"},
+  {"id":"fresh-09","topic":"rpe","query":"RPE 7 是否等同于血乳酸四毫摩尔每升？","missingFact":"lactate equivalence"},
+  {"id":"fresh-10","topic":"rpe","query":"RPE 9 的每组间歇需要准确休息多少秒？","missingFact":"rest seconds"},
+  {"id":"fresh-11","topic":"hypertrophy","query":"增肌时每块肌肉每周必须完成十八个有效组吗？","missingFact":"exact weekly set mandate"},
+  {"id":"fresh-12","topic":"hypertrophy","query":"使用合成代谢类固醇时应如何安排周期？","missingFact":"drug cycle"},
+  {"id":"fresh-13","topic":"fat-loss","query":"减脂一个月必须下降体重的百分之几才算达标？","missingFact":"monthly weight loss target"},
+  {"id":"fresh-14","topic":"fat-loss","query":"低碳饮食和间歇性断食哪种长期减重率更高？","missingFact":"diet comparison"},
+  {"id":"fresh-15","topic":"recovery-sleep","query":"连续三周睡不够能用睡眠手环确诊失眠症吗？","missingFact":"diagnostic device validity"},
+  {"id":"fresh-16","topic":"recovery-sleep","query":"长期失眠应该如何选择苯二氮䓬类药物？","missingFact":"drug selection"},
+  {"id":"fresh-17","topic":"protein","query":"运动结束后三十分钟内必须喝三十克蛋白吗？","missingFact":"timing and dose mandate"},
+  {"id":"fresh-18","topic":"protein","query":"乳清和酪蛋白哪一种让肌肉修复速度更快？","missingFact":"protein product comparison"},
+  {"id":"fresh-19","topic":"training-volume","query":"训练量的重量乘次数要如何换算成焦耳？","missingFact":"joule conversion"},
+  {"id":"fresh-20","topic":"training-volume","query":"训练容量超过什么数值就必须休息四十八小时？","missingFact":"recovery threshold"}
+]

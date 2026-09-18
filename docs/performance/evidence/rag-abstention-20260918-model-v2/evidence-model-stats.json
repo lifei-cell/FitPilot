@@ -1,0 +1,9 @@
+{
+  "requests": 430,
+  "cacheHits": 220,
+  "inputTokens": 260251,
+  "outputTokens": 1290,
+  "inferenceMs": 690348.63,
+  "modelWorkingSetBytes": 6973886464,
+  "modelFileBytes": 3087467144
+}

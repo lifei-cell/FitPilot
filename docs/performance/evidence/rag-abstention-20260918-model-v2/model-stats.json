@@ -1,0 +1,7 @@
+{
+  "requests": 106,
+  "tokens": 2357,
+  "inferenceMs": 575.48,
+  "modelWorkingSetBytes": 62029824,
+  "modelFileBytes": 118453870
+}
