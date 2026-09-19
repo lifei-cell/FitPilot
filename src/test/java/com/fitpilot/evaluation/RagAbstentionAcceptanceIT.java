@@ -66,7 +66,7 @@ class RagAbstentionAcceptanceIT {
     @Autowired HybridRetrievalService retrieval;
 
     @Test
-    void independentHardNegativeV2ProducesAtMostOnePotentialCitation() throws Exception {
+    void independentHardNegativeV2ProducesNoPotentialCitation() throws Exception {
         ingestCorpus();
         List<HardNegative> cases = readJson("/retrieval/hard-negatives-v2.json",
                 new TypeReference<>() {});
@@ -76,7 +76,7 @@ class RagAbstentionAcceptanceIT {
                 .count();
 
         assertThat(cases).hasSize(20);
-        assertThat(returned).isLessThanOrEqualTo(1);
+        assertThat(returned).isZero();
     }
 
     @Test
