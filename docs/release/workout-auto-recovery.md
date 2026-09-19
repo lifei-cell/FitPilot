@@ -42,3 +42,9 @@
 最终门禁（2026-09-13）：`mvn verify` BUILD SUCCESS，81 项测试（61 单元 + 20 集成），零失败、零错误、零跳过，V1–V19 迁移及覆盖率门禁通过。`npm run quality --prefix web` 全部通过：44 项 Vitest 测试、8 个常规 Playwright 场景、1 个生产离线场景，前端行覆盖率 76.26%，lint、TypeScript 与生产构建通过。
 
 上述为本地验证，不代表远端 CI、镜像发布或真实生产部署。
+
+## 2026-09-19 补验：移动端弱网与跨设备冲突
+
+新增 [`workout-recovery-device-validation-2026-09-19.md`](workout-recovery-device-validation-2026-09-19.md)，覆盖 Pixel 5 移动端仿真的弱网/响应丢失恢复、同账户双设备结束训练冲突，以及真实 PostgreSQL/Redis 后端事实核对。补验后的 Web 门禁仍为 44 项 Vitest、8 个常规 Playwright 和 3 个离线 Playwright 场景，行覆盖率 76.26%；后端 `mvn clean verify` 为 74 单元 + 48 集成 = 122 项，零失败、零错误、零跳过。
+
+本次移动端是浏览器仿真，不是物理真机。当前环境没有连接 Android/iOS 设备，系统存储回收、锁屏/后台挂起和进程被杀后的恢复仍按补验报告中的真机执行卡待外部设备完成；不能将本地仿真结果写成真机或生产兼容性结论。
