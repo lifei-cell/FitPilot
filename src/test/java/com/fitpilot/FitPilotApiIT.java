@@ -200,8 +200,9 @@ class FitPilotApiIT {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.trainingVolume").value(0));
         mvc.perform(get("/api/v1/leaderboards/exercises/1").header("Authorization", bearer(token)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM outbox_event WHERE event_type='WorkoutCompletedEvent' AND status='PENDING'",
-                Long.class)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM outbox_event WHERE event_type='WorkoutCompletedEvent' "
+                        + "AND status='PENDING' AND aggregate_id=?", Long.class, String.valueOf(workoutId)))
+                .isEqualTo(1L);
 
         mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());
         mvc.perform(get("/api/v1/exercises/1")).andExpect(status().isOk());
