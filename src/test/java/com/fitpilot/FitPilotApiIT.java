@@ -591,6 +591,33 @@ class FitPilotApiIT {
         assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set_receipt WHERE workout_id=?", Long.class, workout)).isEqualTo(1);
     }
 
+    @Test
+    void crossDeviceCompletionRejectsUnsyncedSetAndKeepsDatabaseFactIntact() throws Exception {
+        register("cross_device_owner");
+        long owner = jdbc.queryForObject("SELECT id FROM users WHERE username='cross_device_owner'", Long.class);
+        String token = login("cross_device_owner");
+        long workout = seedQuickWorkout(owner, "IN_PROGRESS", 0, 1, 60);
+        long exercise = jdbc.queryForObject("SELECT id FROM workout_exercise WHERE workout_id=?", Long.class, workout);
+        String path = "/api/v1/workouts/" + workout + "/exercises/" + exercise + "/sets";
+        String operation = UUID.randomUUID().toString();
+
+        // Device B completes the shared workout while device A still has a local, unsent set.
+        call(post("/api/v1/workouts/" + workout + "/complete").header("Authorization", bearer(token)), 200);
+
+        mvc.perform(post(path).header("Authorization", bearer(token)).header("Client-Operation-Id", operation)
+                        .contentType("application/json")
+                        .content("{\"weightKg\":62.5,\"reps\":8,\"isWarmup\":false,\"isFailure\":false}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(40002));
+
+        assertThat(jdbc.queryForObject("SELECT status FROM workout WHERE id=?", String.class, workout))
+                .isEqualTo("COMPLETED");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set WHERE workout_exercise_id=?", Long.class, exercise))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM workout_set_receipt WHERE workout_id=?", Long.class, workout))
+                .isZero();
+    }
+
     private long seedQuickWorkout(long owner, String state, int daysAgo, long exerciseId, int weight) {
         long id = jdbc.queryForObject("INSERT INTO workout(user_id,name,status,started_at,completed_at) VALUES (?, 'Quick', ?, now() - (? * interval '1 day'), now() - (? * interval '1 day')) RETURNING id",
                 Long.class, owner, state, daysAgo, daysAgo);
