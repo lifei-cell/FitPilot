@@ -167,6 +167,8 @@ fitpilot:
       candidate-limit: ${RAG_CANDIDATE_LIMIT:30}
       rrf-k: ${RAG_RRF_K:60}
       max-top-k: ${RAG_MAX_TOP_K:20}
+      evidence-gate-enabled: ${RAG_EVIDENCE_GATE_ENABLED:true}
+      evidence-min-query-term-coverage: ${RAG_EVIDENCE_MIN_QUERY_TERM_COVERAGE:0.4}
     indexing:
       fixed-delay-ms: ${RAG_INDEX_FIXED_DELAY_MS:5000}
       retry-batch-size: ${RAG_INDEX_RETRY_BATCH_SIZE:20}

@@ -106,6 +106,7 @@ class HybridRetrievalServiceTest {
         FitPilotMetrics metrics = mock(FitPilotMetrics.class);
         RagGovernanceRepository governance = mock(RagGovernanceRepository.class);
         RagProperties properties = new RagProperties();
+        properties.getRetrieval().setEvidenceGateEnabled(false);
         UUID lexicalFirst = UUID.randomUUID(), vectorFirst = UUID.randomUUID();
         when(analyzer.lexicalText("rpe")).thenReturn("rpe");
         when(analyzer.tokens(anyString())).thenReturn(List.of());

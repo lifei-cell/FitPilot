@@ -93,6 +93,8 @@ class FitPilotRagFlowIT {
                 .header("Authorization", bearer(token)).param("q", "RPE 8 还剩多少次重复")
                 .param("category", "training-theory").param("topK", "3"), 200);
         assertThat(result.path("data").path("retrievalMode").asText()).isEqualTo("HYBRID_RRF");
+        assertThat(result.path("data").path("evidenceDecision").asText()).isEqualTo("SUPPORTED");
+        assertThat(result.path("data").path("evidenceReason").asText()).isEqualTo("EVIDENCE_FOUND");
         String retrievalId = result.path("data").path("retrievalId").asText();
         assertThat(retrievalId).isNotBlank();
         JsonNode first = result.path("data").path("contexts").get(0);
@@ -173,6 +175,7 @@ class FitPilotRagFlowIT {
                 .param("q", "RPE 8"), 200);
         assertThat(empty.path("data").path("retrievalMode").asText()).isEqualTo("HYBRID_RRF");
         assertThat(empty.path("data").path("contexts")).isEmpty();
+        assertThat(empty.path("data").path("evidenceDecision").asText()).isEqualTo("ABSTAINED");
         org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             JsonNode deletion = call(get("/api/v1/operations/rag/documents/{id}/delete-status", documentId)
                     .header("X-Operations-Token", OPERATIONS_TOKEN), 200);

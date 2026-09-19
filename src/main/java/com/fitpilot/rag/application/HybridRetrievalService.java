@@ -42,6 +42,7 @@ public class HybridRetrievalService {
     private final RagProperties properties;
     private final FitPilotMetrics metrics;
     private final RagGovernanceRepository governance;
+    private final EvidenceSupportGate evidenceGate;
 
     public HybridRetrievalService(KnowledgeRepository repository, ElasticsearchKnowledgeIndex lexicalIndex,
                                   EmbeddingProvider embeddings, TextAnalyzer analyzer, RagProperties properties,
@@ -53,6 +54,9 @@ public class HybridRetrievalService {
         this.properties = properties;
         this.metrics = metrics;
         this.governance = governance;
+        this.evidenceGate = new EvidenceSupportGate(analyzer,
+                properties.getRetrieval().isEvidenceGateEnabled(),
+                properties.getRetrieval().getEvidenceMinQueryTermCoverage());
     }
 
     @Observed(name = "fitpilot.rag.search")
@@ -101,15 +105,31 @@ public class HybridRetrievalService {
             RankedContext ranked = new RankedContext(candidate, context, score);
             parents.merge(context.parentChunkId(), ranked, this::better);
         }
-        List<RagDtos.RetrievedContext> results = parents.values().stream()
-                .sorted(Comparator.comparingDouble(RankedContext::score).reversed())
+        List<RankedContext> rankedParents = parents.values().stream()
+                .sorted(Comparator.comparingDouble(RankedContext::score).reversed()).toList();
+        List<RagDtos.RetrievedContext> results = rankedParents.stream()
+                .filter(ranked -> evidenceGate.verify(query, evidenceText(ranked.context())).supported())
                 .limit(topK).map(this::toDto).toList();
         String mode = lexicalSucceeded && vectorSucceeded ? "HYBRID_RRF"
                 : lexicalSucceeded ? "BM25_ONLY" : "VECTOR_ONLY";
         UUID retrievalId = persistRetrieval
                 ? governance.saveRetrieval(userId, hash(query), query, normalizedCategory, mode, results) : null;
-        metrics.rag(mode, "SUCCEEDED", elapsedMillis(started));
-        return new RagDtos.SearchResponse(retrievalId, query, mode, embeddings.name(), candidates.size(), results);
+        String evidenceDecision = results.isEmpty() ? "ABSTAINED" : "SUPPORTED";
+        String evidenceReason = evidenceReason(query, rankedParents, results);
+        metrics.rag(mode, evidenceDecision, elapsedMillis(started));
+        return new RagDtos.SearchResponse(retrievalId, query, mode, embeddings.name(), candidates.size(), results,
+                evidenceDecision, evidenceReason);
+    }
+
+    private String evidenceReason(String query, List<RankedContext> rankedParents,
+                                   List<RagDtos.RetrievedContext> results) {
+        if (!results.isEmpty()) return "EVIDENCE_FOUND";
+        if (rankedParents.isEmpty()) return "NO_CANDIDATE";
+        return evidenceGate.verify(query, evidenceText(rankedParents.getFirst().context())).reason();
+    }
+
+    private String evidenceText(KnowledgeModels.ChunkContext context) {
+        return context.title() + " " + context.heading() + " " + context.childContent() + " " + context.parentContent();
     }
 
     private long elapsedMillis(long started) {

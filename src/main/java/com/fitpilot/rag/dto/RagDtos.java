@@ -35,7 +35,14 @@ public final class RagDtos {
 
     public record SearchResponse(
             UUID retrievalId, String query, String retrievalMode, String embeddingProvider, int candidateCount,
-            List<RetrievedContext> contexts) {}
+            List<RetrievedContext> contexts, String evidenceDecision, String evidenceReason) {
+        public SearchResponse(UUID retrievalId, String query, String retrievalMode, String embeddingProvider,
+                               int candidateCount, List<RetrievedContext> contexts) {
+            this(retrievalId, query, retrievalMode, embeddingProvider, candidateCount, contexts,
+                    contexts.isEmpty() ? "ABSTAINED" : "SUPPORTED",
+                    contexts.isEmpty() ? "NO_EVIDENCE" : "EVIDENCE_FOUND");
+        }
+    }
 
     public record RetrievedContext(
             UUID documentId, UUID chunkId, String title, String category, String heading,

@@ -84,12 +84,18 @@ public class RagProperties {
         private int candidateLimit = 30;
         private int rrfK = 60;
         private int maxTopK = 20;
+        private boolean evidenceGateEnabled = true;
+        private double evidenceMinQueryTermCoverage = 0.4;
         public int getCandidateLimit() { return candidateLimit; }
         public void setCandidateLimit(int candidateLimit) { this.candidateLimit = candidateLimit; }
         public int getRrfK() { return rrfK; }
         public void setRrfK(int rrfK) { this.rrfK = rrfK; }
         public int getMaxTopK() { return maxTopK; }
         public void setMaxTopK(int maxTopK) { this.maxTopK = maxTopK; }
+        public boolean isEvidenceGateEnabled() { return evidenceGateEnabled; }
+        public void setEvidenceGateEnabled(boolean evidenceGateEnabled) { this.evidenceGateEnabled = evidenceGateEnabled; }
+        public double getEvidenceMinQueryTermCoverage() { return evidenceMinQueryTermCoverage; }
+        public void setEvidenceMinQueryTermCoverage(double value) { this.evidenceMinQueryTermCoverage = value; }
     }
 
     public static class Indexing {
