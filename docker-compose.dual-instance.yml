@@ -1,0 +1,51 @@
+x-dual-app: &dual-app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: "no"
+  environment:
+    DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-fitpilot}
+    DB_USERNAME: ${DB_USERNAME:-fitpilot}
+    DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+    REDIS_HOST: redis
+    KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+    JWT_REFRESH_COOKIE_SECURE: "false"
+    CACHE_ENABLED: "false"
+    RATE_LIMIT_ENABLED: "false"
+    IDEMPOTENCY_ENABLED: "true"
+    EVENTS_ENABLED: "true"
+    OPERATIONS_TOKEN: dual-instance-validation-token
+    RAG_ENABLED: "false"
+    LLM_ENABLED: "false"
+    AGENT_ENABLED: "false"
+    OUTBOX_FIXED_DELAY_MS: "200"
+    OUTBOX_CLAIM_TIMEOUT_SECONDS: "3"
+    OUTBOX_SEND_TIMEOUT_SECONDS: "2"
+    OUTBOX_MAX_ATTEMPTS: "5"
+    EVENT_CONSUMER_CONCURRENCY: "1"
+    OTEL_TRACING_EXPORT_ENABLED: "false"
+    LOG_FILE: ""
+    MANAGEMENT_SERVER_PORT: "9091"
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+    kafka: {condition: service_healthy}
+    elasticsearch: {condition: service_healthy}
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:9091/actuator/health/readiness"]
+    interval: 5s
+    timeout: 3s
+    retries: 24
+    start_period: 30s
+
+services:
+  app-a:
+    <<: *dual-app
+    ports: ["18080:8080", "127.0.0.1:19091:9091"]
+  app-b:
+    <<: *dual-app
+    ports: ["18081:8080", "127.0.0.1:19092:9091"]

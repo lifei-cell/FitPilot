@@ -1,0 +1,23 @@
+{
+  "runId": "architecture-20260919-followup",
+  "baseCommit": "5cd23a3e8ccaad291f4cba4d6cdf89968646057a",
+  "status": "PASS",
+  "environment": "Windows; Java 25.0.2; Docker 29.7.2; isolated PostgreSQL/Redis/Kafka/Elasticsearch Testcontainers",
+  "samples": "3 rounds per mode and workload; 600 sequential reads per round; 20 hot keys or 600 cold keys",
+  "hotP95Ms": {
+    "PG_DIRECT": [0.5964, 0.604, 0.588],
+    "REDIS_ONLY": [0.8635, 0.5855, 0.5623],
+    "L1_L2": [0.0052, 0.0021, 0.0015]
+  },
+  "coldP95Ms": {
+    "PG_DIRECT": [0.5564, 0.6121, 0.5135],
+    "REDIS_ONLY": [3.3707, 2.851, 2.6491],
+    "L1_L2": [3.2185, 2.7858, 2.797]
+  },
+  "hotDbLoadsPerRound": {"PG_DIRECT": 600, "REDIS_ONLY": 0, "L1_L2": 0},
+  "hotL1HitsPerRound": {"PG_DIRECT": 0, "REDIS_ONLY": 0, "L1_L2": 600},
+  "coldDbLoadsPerRound": {"PG_DIRECT": 600, "REDIS_ONLY": 600, "L1_L2": 600},
+  "remoteL1ConvergenceMs": 5052.7551,
+  "decision": "Keep L1+L2 for high-reuse display reads; keep PostgreSQL as the business fact source; do not claim universal latency or capacity gain",
+  "scope": "JVM sequential service calls; no HTTP concurrency, resource curve, Redis outage peak or production capacity claim"
+}

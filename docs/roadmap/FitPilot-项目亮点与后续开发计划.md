@@ -1,6 +1,6 @@
 # FitPilot 项目亮点与后续开发计划
 
-日期：2026-09-19。更新基线：`586f2f5`。本次核对当前源码、P0 拒答修复、独立样本验收，以及移动端弱网与跨设备冲突补验；完整本地质量门禁已运行通过。文中的性能数字仅属于所链报告的隔离环境，不是生产指标。
+日期：2026-09-19。更新基线：`5cd23a3`。本次核对当前源码、P0 拒答修复、独立样本验收、移动端弱网与跨设备冲突，并补做真实模型前置检查、双实例事件恢复和缓存收益对照。文中的性能数字仅属于所链报告的隔离环境，不是生产指标。
 
 ## 一句话定位
 
@@ -12,23 +12,31 @@ FitPilot 是 Java 21 / Spring Boot 模块化单体加 React Web 的力量训练�
 |---|---|---|
 | 训练事实与并发控制 | 可变 `TrainingPlan` 与事实型 `Workout` 分离；开始时复制动作目标。已有 Workout 写操作经 owner 条件的父行 `FOR UPDATE` 串行检查状态、分配序号并写入，唯一约束兜底。完成状态与 Outbox 同事务提交。 | [并发控制记录](../release/workout-write-concurrency.md)在真实 PostgreSQL 上覆盖完成/取消与加动作、加组、改删组等竞争；该记录对应修复时的本地 111 项后端测试，不是生产并发容量。当前源码：`WorkoutService`、`WorkoutRepository`。 |
 | 快速记组与弱网恢复 | 历史组预填减少重复输入；本地草稿和待同步队列配合 `Client-Operation-Id`，服务端 V19 回执与组写入同事务，响应丢失后可重放原结果；服务器已结束时保留本机队列并暂停同步。 | [恢复验收](../release/workout-auto-recovery.md)与[移动端补验](../release/workout-recovery-device-validation-2026-09-19.md)记录 44 项 Web 单测、8 个常规及 3 个离线浏览器场景，并在真实 PostgreSQL/Redis 集成门禁中通过；Pixel 5 为移动浏览器仿真，真机存储回收仍待执行。 |
-| 异步事件的正确性 | PostgreSQL 保存 Workout 与 Outbox 事实；Kafka 投影 PR、分析和通知。Inbox 与业务唯一约束处理重复投递；V20 `claim_token` 防止旧 Relay 回写覆盖新领取者。Relay 已改为发送前逐条领取，语义是**至少一次投递、消费幂等、最终一致**。 | [积压恢复实验](../performance/outbox-backlog-recovery-2026-09-17.md)覆盖 Kafka 中断、双 Relay 重领和合成过期长积压；本地护栏通过。多进程持续负载与冷启动发送等待上限仍待验证。 |
+| 异步事件的正确性 | PostgreSQL 保存 Workout 与 Outbox 事实；Kafka 投影 PR、分析和通知。Inbox 与业务唯一约束处理重复投递；V20 `claim_token` 防止旧 Relay 回写覆盖新领取者。Relay 已改为发送前逐条领取，语义是**至少一次投递、消费幂等、最终一致**。 | [积压恢复实验](../performance/outbox-backlog-recovery-2026-09-17.md)覆盖 Kafka 中断、双 Relay 重领和合成过期长积压；[双实例恢复](../performance/real-model-event-cache-validation-2026-09-19.md)已用两个独立应用容器验证 app-a 停止后 app-b 追平。仍不是生产容量或长期 SLO。 |
 | 性能优化有反例 | 两级缓存服务热点展示读，关键状态判断读数据库；同训练写依赖父行锁。移除已无正确性收益的子行重复锁，保留父锁及唯一约束。 | [写链路报告](../performance/workout-write-load-2026-09-17.md)：隔离 Testcontainers 的同训练 192 次写入，P99 228.67→170.38 ms（降 25.47%），吞吐 282.64→332.25 RPS；多用户场景未改善。[架构对照](../performance/architecture-comparison-2026-09-17.md)显示热 L1 获益、冷缓存变慢，不能概括为所有请求加速。 |
-| AI 建议由后端约束 | RAG 实现 BM25、pgvector、RRF、引用与知识版本治理；新增共享证据门槛，在引用出站前过滤未被段落支撑的具体请求，并返回可解释拒答状态；单 Agent 用 owner 限定工具、结构化提议、领域规则、待确认动作和一次性确认，确认后才创建草案。 | [新的 P0 验收报告](../performance/rag-abstention-2026-09-19.md)：冻结的 v2 独立难负例 0/20 返回潜在引用，50 道可回答题 BM25/向量/混合 Recall@3 均为 50/50；验收使用真实 Testcontainers，但向量为 LOCAL 确定性实现，不能外推到真实模型、人工最终答案或生产。混合检索的必要性仍见[真实 Embedding 对照](../performance/real-embedding-retrieval-2026-09-17.md)。 |
+| AI 建议由后端约束 | RAG 实现 BM25、pgvector、RRF、引用与知识版本治理；新增共享证据门槛，在引用出站前过滤未被段落支撑的具体请求，并返回可解释拒答状态；单 Agent 用 owner 限定工具、结构化提议、领域规则、待确认动作和一次性确认，确认后才创建草案。 | [新的 P0 验收报告](../performance/rag-abstention-2026-09-19.md)：冻结的 v2 独立难负例 0/20 返回潜在引用，50 道可回答题 BM25/向量/混合 Recall@3 均为 50/50；验收使用真实 Testcontainers，但向量为 LOCAL 确定性实现，不能外推到真实模型、人工最终答案或生产。[真实模型前置检查](../performance/real-model-event-cache-validation-2026-09-19.md)因外部 Provider 数据外发未授权而未调用模型。 |
 | 可复核的交付工程 | Testcontainers、ArchUnit、零跳过与覆盖率门禁、Web 浏览器测试、CI 扫描、SBOM、镜像 digest 和回滚手册组成可追溯链路。 | [9 月 18 日实验回退后的完整门禁](../performance/rag-abstention-2026-09-18.md)记录本地 `mvn clean verify` 116 项后端测试、零跳过；它验证的是实验回退后的源码，不是拒答能力通过。未在本次重跑 Web、远端 CI 或真实 Production Delivery Gate。[远端交付报告](../release/p1-delivery-validation.md)只绑定较早 SHA。 |
 
 ## 后续开发顺序
 
 按“先补正确性与可用性证据，再补选型收益，最后按真实负载扩展”推进。每项都记录源码 SHA、环境、数据、原始样本和失败路径，避免把局部实验当成生产或用户价值结论。详细用例见[设计取舍验证测试计划](../test-plans/设计取舍验证测试计划-2026-09-17.md)。
 
+## 2026-09-19 补充验证状态
+
+| 项目 | 当前状态 | 下一步 |
+|---|---|---|
+| 真实模型质量 | `BLOCKED_EXTERNAL_PROVIDER`：只完成无外发 preflight，未生成模型质量结论。 | 明确 Provider、脱敏样本和数据外发授权后，再跑 `ACTIVE_MODEL`，保留实际模型名、Prompt 版本、成本和 P95。 |
+| 双实例事件恢复 | `PASS`：两个独立应用容器共享 Outbox，app-a 领取后停止，app-b 追平且业务重复为 0。 | 扩展到持续写入、冷启动 producer metadata 等待和资源曲线；在此之前不写生产 SLO。 |
+| 缓存收益对照 | `PASS（局部收益）`：热点 L1 命中明显，冷读比 PG 直读慢；跨对象约 5 秒收敛。 | 补 HTTP 并发、Redis 故障峰值、DB QPS/CPU 与资源成本后，决定是否扩大缓存范围。 |
+
 | 优先级 | 模块与具体工作 | 验收条件 |
 |---|---|---|
 | **已完成 P0** | `rag` / `evaluation`：在引用出站前加入确定性证据门槛，检查问题锚点和具体事实缺口；失败时返回空上下文与可解释拒答状态。 | [2026-09-19 验收](../performance/rag-abstention-2026-09-19.md)：新的 `hard-negatives-v2.json`（SHA-256 `AB48E6...B44DC`，20 题）返回潜在引用 0/20；50 道可回答题三路 Recall@3 均 50/50。完整 `mvn clean verify` 为 74 单元 + 47 集成，失败/错误/跳过 0。规则门槛与 LOCAL 向量仅属本地证据；扩充语料或改规则后需重新冻结留出集。 |
 | **P0 自动化补验完成，真机待执行** | `web/src/features/workout` 与 V19 回执：已补移动端弱网/响应丢失、双设备结束训练冲突和真实数据库不变量；下一步在物理设备补断网重连、存储回收、锁屏/后台挂起、多标签页，并做少量真实用户任务观察。 | [2026-09-19 移动端补验](../release/workout-recovery-device-validation-2026-09-19.md)：已显示保存成功的组在数据库恰好一条；未同步可见、可恢复，409 冲突不静默覆盖。物理真机和系统生命周期仍未执行，不能写成兼容性结论。 |
 | P1 | `rag` / `evaluation`：扩充获授权语料和独立领域标注，覆盖长文、过期/撤销、近邻干扰及多相关段落；人工盲审最终答案的引用支撑；重跑 BM25、向量、混合和 rerank。 | 分类别 Recall@1/3/5、MRR、真实答案引用支撑、误引、P95 和模型/索引成本齐全；混合只在预设门槛稳定通过后强调必要性。当前 10 文档、28 问的 R@5 已饱和。 |
-| P1 | `agent`：真实模型与规则 Workflow 使用相同脱敏事实集对照，覆盖越权工具、过期计划、疼痛信号、确认重放和 Provider 故障；人工盲评建议。 | 未确认写入和跨用户泄露为零；报告分意图成功率、工具正确率、人工可用率、P95 与单次成功成本。外部模型调用先确定数据与预算边界。 |
-| P1 | `infrastructure/events`：在两个独立应用实例上做持续写入、Kafka 冷启动中断及恢复；观察 producer metadata/观测查询等待。 | 训练事实不丢、投影最终追平、业务重复为零；记录最大积压年龄、追平时间和发送等待上界。只有测到背压问题才考虑缩批或有界并发。 |
-| P1 | `infrastructure/performance`：补 HTTP 多实例、热/冷分布和 Redis 故障对照，复核 PG 直读、Redis 单层、L1+L2 的成本与陈旧窗口。 | 固定快照并交替重复至少三轮；记录 P95/P99、DB CPU/QPS、命中率、旧值时长与资源成本，关键状态仍从数据库判断。 |
+| P1 | `agent`：真实模型与规则 Workflow 使用相同脱敏事实集对照，覆盖越权工具、过期计划、疼痛信号、确认重放和 Provider 故障；人工盲评建议。 | [本轮前置报告](../performance/real-model-event-cache-validation-2026-09-19.md)已阻断未授权外发；授权后要求未确认写入和跨用户泄露为零，并报告分意图成功率、工具正确率、人工可用率、P95 与单次成功成本。 |
+| P1 | `infrastructure/events`：在两个独立应用实例上做持续写入、Kafka 冷启动中断及恢复；观察 producer metadata/观测查询等待。 | [双实例最小故障演练](../performance/real-model-event-cache-validation-2026-09-19.md)已通过单条请求；继续补持续写入、最大积压年龄和发送等待上界。只有测到背压问题才考虑缩批或有界并发。 |
+| P1 | `infrastructure/performance`：补 HTTP 多实例、热/冷分布和 Redis 故障对照，复核 PG 直读、Redis 单层、L1+L2 的成本与陈旧窗口。 | [缓存三路径对照](../performance/real-model-event-cache-validation-2026-09-19.md)已完成三轮 JVM 样本；继续记录 HTTP P95/P99、DB CPU/QPS、命中率、旧值时长与资源成本，关键状态仍从数据库判断。 |
 | P2 | `deploy` / `scripts/delivery`：有合适目标环境和凭据后，按**待发布 SHA**验证容量、发布、回滚、备份恢复、密钥轮换和 SLO。 | digest、迁移、RTO/RPO 与脱敏证据对应；真实目标环境通过门禁后才称上线，此前保持 `SKIPPED`。 |
 
 ## 取舍原则

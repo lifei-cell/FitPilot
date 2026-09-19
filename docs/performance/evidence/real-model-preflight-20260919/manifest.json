@@ -1,0 +1,10 @@
+{
+  "status": "BLOCKED_EXTERNAL_PROVIDER",
+  "baseCommit": "5cd23a3e8ccaad291f4cba4d6cdf89968646057a",
+  "mode": "ACTIVE_MODEL",
+  "dataset": "agent-v1 + rag-v1.2",
+  "providerCallMade": false,
+  "reason": "The local provider credentials would send project evaluation samples to an external endpoint; this run had no explicit authorization for that data egress.",
+  "requiredPrerequisites": ["LLM_ENABLED=true", "LLM_PRIMARY_URL", "LLM_PRIMARY_API_KEY", "LLM_PRIMARY_SMALL_MODEL", "OPERATIONS_TOKEN"],
+  "scope": "Preflight only; no model quality, latency or cost conclusion"
+}

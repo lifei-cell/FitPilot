@@ -1,0 +1,25 @@
+{
+  "runId": "dual-20260919-r3",
+  "baseCommit": "5cd23a3e8ccaad291f4cba4d6cdf89968646057a",
+  "status": "PASS",
+  "startedAt": "2026-09-19T14:11:48+08:00",
+  "finishedAt": "2026-09-19T14:13:02+08:00",
+  "docker": "29.7.2",
+  "dockerHost": "npipe:////./pipe/dockerDesktopLinuxEngine",
+  "sourceSha256": {
+    "docker-compose.dual-instance.yml": "4BE97412B373DCDAC0E66B758D566FBBE947009D44D436D3FAAE08A83A7BD471",
+    "scripts/run-dual-instance-event-recovery.ps1": "E02F49879DEF1D9F88316567C03B09844E4DA0D1D7F001427A7187AF47226BAD"
+  },
+  "topology": "two independent Spring Boot containers sharing PostgreSQL, Redis, Kafka and Elasticsearch",
+  "fault": "Kafka and app-b stopped; app-a claimed the event and stopped; Kafka and app-b restarted; app-b recovered",
+  "claimTimeoutSeconds": 3,
+  "outboxStatus": "SENT",
+  "pendingEvents": 0,
+  "processedConsumers": 2,
+  "personalRecords": 3,
+  "analytics": 1,
+  "notifications": 3,
+  "duplicateBusinessRows": 0,
+  "proof": {"appBPausedBeforeFault": true, "appAStoppedAfterClaim": true, "appBHealthy": true},
+  "scope": "one API completion and one controlled crash; local Docker recovery evidence, not production capacity or long-running SLO"
+}
