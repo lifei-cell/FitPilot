@@ -1,0 +1,16 @@
+title = "FitPilot Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic JWT used only by Web tests"
+regexTarget = "secret"
+regexes = ['''^header\.eyJzdWIiOiI5OSJ9\.signature$''']
+paths = ['''^web/(e2e|e2e-offline|src)/.*\.(spec|test)\.(ts|tsx)$''']
+
+[[allowlists]]
+description = "SHA-256 digests recorded in immutable performance evidence manifests"
+regexTarget = "secret"
+regexes = ['''^[A-Fa-f0-9]{64}$''']
+paths = ['''^docs/performance/evidence/.+/manifest\.json$''']

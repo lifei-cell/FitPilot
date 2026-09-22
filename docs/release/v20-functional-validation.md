@@ -32,6 +32,10 @@ Windows + Docker Desktop 环境设置 `DOCKER_HOST=npipe:////./pipe/dockerDeskto
 - 本地生成的 SBOM 证明构建已产出依赖清单；远端 Trivy、镜像多架构 digest、OCI SBOM 与 SLSA provenance 只能由对应 GitHub Actions 运行和发布证据证明。
 - Kind 历史演练和真实生产集群不是本次本地验收内容；Production Delivery Gate 未执行前保持 `SKIPPED`。
 
+## 远端门禁跟进
+
+首次推送触发的 CI Run `35681334604` 发现 Gitleaks 历史扫描误报：Web 测试中的固定伪 JWT，以及性能证据 manifest 中记录的 SHA-256 被 `generic-api-key` 规则识别为密钥。仓库增加 `.gitleaks.toml`，只允许测试目录中的该固定伪 JWT，以及 `docs/performance/evidence/**/manifest.json` 中格式严格为 64 位十六进制的摘要；默认规则仍完整启用，不按整个文件或目录跳过扫描。修复后使用与 CI 相同的 Gitleaks v8.28.0 扫描完整 Git 历史，必须达到零 finding 后才能重新推送。
+
 读取远端精确证据：
 
 ```powershell
