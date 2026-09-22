@@ -36,6 +36,15 @@ Windows + Docker Desktop 环境设置 `DOCKER_HOST=npipe:////./pipe/dockerDeskto
 
 首次推送触发的 CI Run `35681334604` 发现 Gitleaks 历史扫描误报：Web 测试中的固定伪 JWT，以及性能证据 manifest 中记录的 SHA-256 被 `generic-api-key` 规则识别为密钥。仓库增加 `.gitleaks.toml`，只允许测试目录中的该固定伪 JWT，以及 `docs/performance/evidence/**/manifest.json` 中格式严格为 64 位十六进制的摘要；默认规则仍完整启用，不按整个文件或目录跳过扫描。修复后使用与 CI 相同的 Gitleaks v8.28.0 扫描完整 Git 历史，必须达到零 finding 后才能重新推送。
 
+第二次 CI Run `35681988053` 的 `secret-scan` 已通过，但原合并步骤 `Backend and web quality gate` 失败；公开 API 仅返回退出码 1，未提供可下载的私有步骤日志，因此不能据此宣称已定位具体根因。对应 Release Run `35682575910` 因 CI 未通过而跳过。
+
+为排除 Windows 本地偶然成功和运行环境差异，在官方 Linux 容器中复现同一门禁：
+
+- `maven:3.9.11-eclipse-temurin-21`：后端 122 个测试全部通过、零跳过，Flyway 到 V20，覆盖率与 SBOM 门禁通过。
+- `mcr.microsoft.com/playwright:v1.62.1-noble`（Node.js 24.18.1）：ESLint、类型检查、20 文件/44 个测试、生产构建及 Playwright 8+3 场景全部通过。
+
+因此第二次远端失败目前只能标记为“未确认的远端失败”，不能归因于源码或声称已经修复。CI 将后端与 Web 拆成两个独立步骤，本地默认入口仍执行完整组合门禁；后续失败可直接归属到具体子门禁。
+
 读取远端精确证据：
 
 ```powershell

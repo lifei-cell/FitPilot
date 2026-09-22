@@ -1,11 +1,17 @@
 param(
     [switch]$SkipInstall,
-    [switch]$SkipBrowserInstall
+    [switch]$SkipBrowserInstall,
+    [switch]$BackendOnly,
+    [switch]$WebOnly
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $web = Join-Path $root "web"
+
+if ($BackendOnly -and $WebOnly) {
+    throw "BackendOnly and WebOnly cannot be used together"
+}
 
 function Assert-LastExitCode([string]$Step) {
     if ($LASTEXITCODE -ne 0) {
@@ -15,27 +21,31 @@ function Assert-LastExitCode([string]$Step) {
 
 Push-Location $root
 try {
-    & mvn --batch-mode --no-transfer-progress clean verify
-    Assert-LastExitCode "Maven quality gate"
+    if (-not $WebOnly) {
+        & mvn --batch-mode --no-transfer-progress clean verify
+        Assert-LastExitCode "Maven quality gate"
+    }
 
-    Push-Location $web
-    try {
-        if (-not $SkipInstall) {
-            & npm ci
-            Assert-LastExitCode "npm ci"
-        }
-        if (-not $SkipBrowserInstall) {
-            $installArguments = @("playwright", "install", "chromium")
-            if ($env:CI -eq "true") {
-                $installArguments += "--with-deps"
+    if (-not $BackendOnly) {
+        Push-Location $web
+        try {
+            if (-not $SkipInstall) {
+                & npm ci
+                Assert-LastExitCode "npm ci"
             }
-            & npx @installArguments
-            Assert-LastExitCode "Playwright Chromium install"
+            if (-not $SkipBrowserInstall) {
+                $installArguments = @("playwright", "install", "chromium")
+                if ($env:CI -eq "true") {
+                    $installArguments += "--with-deps"
+                }
+                & npx @installArguments
+                Assert-LastExitCode "Playwright Chromium install"
+            }
+            & npm run quality
+            Assert-LastExitCode "Web quality gate"
+        } finally {
+            Pop-Location
         }
-        & npm run quality
-        Assert-LastExitCode "Web quality gate"
-    } finally {
-        Pop-Location
     }
 } finally {
     Pop-Location
