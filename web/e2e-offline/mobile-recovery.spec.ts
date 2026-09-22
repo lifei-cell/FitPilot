@@ -83,14 +83,20 @@ test.describe("移动端弱网与跨设备恢复", () => {
     await installToken(contextB);
     const state = { closed: false, sets: [{ id: 701, setNumber: 1, weightKg: 60, reps: 10,
       isWarmup: false, isFailure: false }] as Record<string, unknown>[] };
-    const handler = async (route: import("@playwright/test").Route) => {
+    let deviceAHasObservedClosure = false;
+    const createHandler = (isDeviceA: boolean) => async (route: import("@playwright/test").Route) => {
       const request = route.request();
       const path = new URL(request.url()).pathname;
       const json = (data: unknown) => route.fulfill({ status: 200, contentType: "application/json",
         body: JSON.stringify({ code: 0, message: "success", data }) });
       if (path === "/api/v1/workouts/active/current") {
-        if (state.closed) return route.fulfill({ status: 404, contentType: "application/json",
-          body: JSON.stringify({ code: 40001, message: "workout resource not found" }) });
+        if (state.closed) {
+          if (isDeviceA && !deviceAHasObservedClosure) {
+            return json(workout({ closed: false, sets: state.sets }));
+          }
+          return route.fulfill({ status: 404, contentType: "application/json",
+            body: JSON.stringify({ code: 40001, message: "workout resource not found" }) });
+        }
         return json(workout(state));
       }
       if (path === "/api/v1/workouts/7") return json(workout(state));
@@ -107,8 +113,8 @@ test.describe("移动端弱网与跨设备恢复", () => {
       return route.fulfill({ status: 404, contentType: "application/json",
         body: JSON.stringify({ code: 404, message: "not found" }) });
     };
-    await contextA.route("**/api/v1/**", handler);
-    await contextB.route("**/api/v1/**", handler);
+    await contextA.route("**/api/v1/**", createHandler(true));
+    await contextB.route("**/api/v1/**", createHandler(false));
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
     try {
@@ -127,6 +133,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
       await expect(pageA.getByRole("alert")).toContainText("同步暂停");
       await expect(pageA.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
 
+      deviceAHasObservedClosure = true;
       await pageA.reload();
       await expect(pageA.getByText("这次训练已在服务器结束，本机待同步记录仍保留，请核对。"))
         .toBeVisible();
