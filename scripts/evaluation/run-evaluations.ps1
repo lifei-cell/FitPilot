@@ -2,7 +2,7 @@ param(
     [string]$BaseUrl = "http://localhost:8080",
     [Parameter(Mandatory = $true)][string]$OperationsToken,
     [ValidateSet("RULE_WORKFLOW", "ACTIVE_MODEL")][string]$AgentMode = "RULE_WORKFLOW",
-    [string]$ReportDirectory = (Join-Path (Split-Path $PSScriptRoot -Parent) "evaluation-reports"),
+    [string]$ReportDirectory = (Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "evaluation-reports"),
     [int]$TimeoutSeconds = 300
 )
 

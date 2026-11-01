@@ -12,7 +12,7 @@
 
 ## 1. 真实模型质量
 
-入口：`scripts/run-real-model-quality.ps1`。脚本先检查 `LLM_ENABLED`、主 Provider URL/API Key/模型名和运维 Token，再调用现有 `run-evaluations.ps1 -AgentMode ACTIVE_MODEL`；若最终 `model` 为 `RULE_WORKFLOW`，会拒绝把规则兜底当成真实模型通过。
+入口：`scripts/evaluation/run-real-model-quality.ps1`。脚本先检查 `LLM_ENABLED`、主 Provider URL/API Key/模型名和运维 Token，再调用现有 `run-evaluations.ps1 -AgentMode ACTIVE_MODEL`；若最终 `model` 为 `RULE_WORKFLOW`，会拒绝把规则兜底当成真实模型通过。
 
 本次只执行了无外发的 preflight，结果见[manifest](evidence/real-model-preflight-20260919/manifest.json)。工作区 `.env` 虽配置了 Provider 字段，但实际调用会把项目评测样本发送到外部地址，当前没有得到该数据外发的明确授权，因此没有执行。GitHub 的真实模型工作流仍可在已授权的受控环境中运行，并上传脱敏评测报告。
 
@@ -20,7 +20,7 @@
 
 ## 2. 双实例事件恢复
 
-入口：`scripts/run-dual-instance-event-recovery.ps1 -RunId <name>`，拓扑由 `docker-compose.dual-instance.yml` 提供。运行 `dual-20260919-r3` 的关键护栏如下：
+入口：`scripts/operations/run-dual-instance-event-recovery.ps1 -RunId <name>`，拓扑由 `docker-compose.dual-instance.yml` 提供。运行 `dual-20260919-r3` 的关键护栏如下：
 
 - Kafka 和 app-b 停止期间通过 app-a 完成一条真实训练，Workout 与 Outbox 同事务提交；确认 app-a 已领取事件后停止 app-a。
 - Kafka 与 app-b 恢复后，app-b 在 3 秒领取租约过期后重领；Outbox 最终为 `SENT`，待处理事件为 `0`。
@@ -30,7 +30,7 @@
 
 ## 3. 缓存收益对照
 
-入口：`scripts/run-architecture-comparison.ps1 -RunId architecture-20260919-followup`；三路径使用同一 PostgreSQL 表、同一 payload、两个独立 L1 对象和本地 Redis，热/冷各 3 轮、每轮 600 次。
+入口：`scripts/performance/run-architecture-comparison.ps1 -RunId architecture-20260919-followup`；三路径使用同一 PostgreSQL 表、同一 payload、两个独立 L1 对象和本地 Redis，热/冷各 3 轮、每轮 600 次。
 
 | 场景 | PG 直读 P95（ms） | Redis 单层 P95（ms） | L1+L2 P95（ms） | 解释 |
 |---|---:|---:|---:|---|
@@ -43,6 +43,6 @@
 
 ## 复现入口
 
-- 双实例事件恢复：`./scripts/run-dual-instance-event-recovery.ps1 -RunId <new-run>`。
-- 缓存三路径：`./scripts/run-architecture-comparison.ps1 -RunId <new-run>`，只读取该 run 的 `cache.json`。
-- 真实模型：仅在明确授权 Provider 与评测数据外发后，使用 `./scripts/run-real-model-quality.ps1 -EnvFile .env -ReportDirectory <dir>`。
+- 双实例事件恢复：`./scripts/operations/run-dual-instance-event-recovery.ps1 -RunId <new-run>`。
+- 缓存三路径：`./scripts/performance/run-architecture-comparison.ps1 -RunId <new-run>`，只读取该 run 的 `cache.json`。
+- 真实模型：仅在明确授权 Provider 与评测数据外发后，使用 `./scripts/evaluation/run-real-model-quality.ps1 -EnvFile .env -ReportDirectory <dir>`。

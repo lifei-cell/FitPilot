@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AgentPendingAction } from "../api/types";
+import type { AgentPendingAction } from "../../../api/types";
 import {
   clearPendingAction,
   loadPendingAction,

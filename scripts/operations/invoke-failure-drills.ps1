@@ -1,12 +1,12 @@
 param(
     [string]$BaseUrl = "http://localhost:8080",
     [Parameter(Mandatory = $true)][string]$OperationsToken,
-    [string]$EnvFile = (Join-Path (Split-Path $PSScriptRoot -Parent) ".env.example"),
+    [string]$EnvFile = (Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) ".env.example"),
     [switch]$IncludeLlm
 )
 
 $ErrorActionPreference = "Stop"
-$composeFile = Join-Path (Split-Path $PSScriptRoot -Parent) "docker-compose.yml"
+$composeFile = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "docker-compose.yml"
 $suffix = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 $username = "v5drill_$suffix"
 $password = "FitPilot!V5Drill"

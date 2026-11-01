@@ -1,7 +1,7 @@
 param([string]$RunId = (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $ErrorActionPreference = 'Stop'
 if ($RunId -notmatch '^[a-zA-Z0-9-]{3,80}$') { throw 'RunId must contain only letters, digits and hyphens.' }
-$repo = Split-Path $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $output = Join-Path $repo "target/architecture-comparison/$RunId"
 if (Test-Path -LiteralPath $output) { throw "Evidence directory already exists: $output" }
 New-Item -ItemType Directory -Path $output | Out-Null
@@ -12,7 +12,7 @@ try {
     $env:FITPILOT_COMPARISON_OUTPUT = $output
     if ($IsWindows) { $env:DOCKER_HOST = 'npipe:////./pipe/dockerDesktopLinuxEngine' }
     $files = Get-ChildItem src/main,src/test -Recurse -File
-    $files += Get-Item pom.xml,scripts/run-architecture-comparison.ps1
+    $files += Get-Item pom.xml,scripts/performance/run-architecture-comparison.ps1
     $hashes = [ordered]@{}
     foreach ($file in ($files | Sort-Object FullName)) {
         $hashes[[IO.Path]::GetRelativePath($repo, $file.FullName).Replace('\','/')] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash

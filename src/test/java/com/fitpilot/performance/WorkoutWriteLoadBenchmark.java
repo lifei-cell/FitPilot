@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Service-level write-path load test. Run explicitly with scripts/run-workout-write-load.ps1.
+ * Service-level write-path load test. Run explicitly with scripts/performance/run-workout-write-load.ps1.
  * It keeps the Docker and data set fixed so the baseline and optimized runs are comparable.
  */
 @SpringBootTest

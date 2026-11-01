@@ -1,4 +1,4 @@
-import type { AgentPendingAction } from "../api/types";
+import type { AgentPendingAction } from "../../../api/types";
 
 const prefix = "fitpilot_agent_pending_";
 

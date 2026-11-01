@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $runId = Get-Date -Format "yyyyMMdd-HHmmss"
 $evidenceDirectory = Join-Path $root "load-test\reports\v5-$runId"
 $reportPath = Join-Path $root "docs\release\p0-production-validation.md"
@@ -41,11 +41,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "production Compose baseline failed to start" }
     $composeStarted = $true
 
-    $observabilityScript = Join-Path $PSScriptRoot "production-validation\test-observability.ps1"
+    $observabilityScript = Join-Path $PSScriptRoot "test-observability.ps1"
     & $observabilityScript -OutputDirectory $evidenceDirectory
 
     if (-not $SkipLoad) {
-        $collector = Join-Path $PSScriptRoot "production-validation\collect-runtime-evidence.ps1"
+        $collector = Join-Path $PSScriptRoot "collect-runtime-evidence.ps1"
         $collectorJob = Start-Job -ScriptBlock {
             param($WorkingDirectory, $Script, $Output, $Token)
             Set-Location $WorkingDirectory
@@ -98,7 +98,7 @@ try {
         StartedAt = $startedAt
         CompletedAt = $completedAt
     }
-    & (Join-Path $PSScriptRoot "production-validation\new-validation-report.ps1") @reportParameters
+    & (Join-Path $PSScriptRoot "new-validation-report.ps1") @reportParameters
 }
 
 if ($null -ne $pipelineError) { throw $pipelineError }

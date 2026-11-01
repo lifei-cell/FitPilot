@@ -4,7 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $environmentPath = Join-Path $root ".env"
 $seedPath = Join-Path $PSScriptRoot "seed-demo-data.sql"
 

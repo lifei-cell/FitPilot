@@ -8,7 +8,7 @@
 - Windows、Java 25.0.2、Docker Engine 29.7.2；四个新建 Testcontainers，使用 PostgreSQL/pgvector 17、Redis 7.4、Kafka native 3.8.0、Elasticsearch 8.17.4；实际镜像 ID/digest 见 [containers](evidence/architecture-20260917-final/containers.json)。没有调用外部 AI 服务。
 - [实验卡](architecture-comparison-protocol.md)固定负载、指标与判定边界；3 轮轮换方案顺序，全部使用真实服务调用与相同业务处理器。测试中的断言验证结果正确，不对不稳定耗时设“必须更快”的门禁。
 - 初次 Run `architecture-20260917` 发现事件夹具跨方案累计、总耗时包含核对开销；修正这两项测量设计后独立重跑，本文只使用最终 Run，不混用两轮数据。
-- 实验入口：`./scripts/run-architecture-comparison.ps1 -RunId <新名称>`；3 个实验入口零失败、零错误、零跳过，耗时约 81 秒。每项包含多轮原始样本，不把 3 个入口数当作全部场景数。
+- 实验入口：`./scripts/performance/run-architecture-comparison.ps1 -RunId <新名称>`；3 个实验入口零失败、零错误、零跳过，耗时约 81 秒。每项包含多轮原始样本，不把 3 个入口数当作全部场景数。
 
 本次没有模拟真实用户分布、并发 HTTP、独立应用进程、长期资源曲线或生产部署；结果不转换为 QPS/容量保证。
 

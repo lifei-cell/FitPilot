@@ -1,7 +1,7 @@
 param([string]$RunId = (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $ErrorActionPreference = 'Stop'
 if ($RunId -notmatch '^[a-zA-Z0-9-]{3,80}$') { throw 'Invalid RunId.' }
-$repo = Split-Path $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $output = Join-Path $repo "target/real-retrieval/$RunId"
 if (Test-Path -LiteralPath $output) { throw "Evidence directory already exists: $output" }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
@@ -42,7 +42,7 @@ try {
     foreach ($name in @('scripts/evaluation/prepare_model.py',
             'scripts/evaluation/local_embedding_server.py',
             'scripts/evaluation/summarize_retrieval.py',
-            'scripts/run-real-retrieval.ps1',
+            'scripts/evaluation/run-real-retrieval.ps1',
             'src/test/java/com/fitpilot/evaluation/RealEmbeddingRetrievalBenchmark.java')) {
         $metadata.codeSha256[$name] = (Get-FileHash -LiteralPath $name -Algorithm SHA256).Hash
     }

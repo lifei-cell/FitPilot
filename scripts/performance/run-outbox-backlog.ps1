@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 if ($RunId -notmatch '^[a-zA-Z0-9-]{3,80}$') { throw 'RunId must contain only letters, digits and hyphens.' }
 if ($BatchSize -lt 1) { throw 'BatchSize must be positive.' }
 
-$repo = Split-Path $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $output = Join-Path $repo "target/outbox-backlog/$RunId"
 if (Test-Path -LiteralPath $output) { throw "Evidence directory already exists: $output" }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
@@ -23,7 +23,7 @@ try {
         'src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java',
         'src/main/java/com/fitpilot/infrastructure/events/EventProperties.java',
         'src/test/java/com/fitpilot/infrastructure/events/OutboxBacklogBenchmark.java',
-        'scripts/run-outbox-backlog.ps1'
+        'scripts/performance/run-outbox-backlog.ps1'
     )
     $hashes = [ordered]@{}
     foreach ($file in $files) { $hashes[$file] = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash }

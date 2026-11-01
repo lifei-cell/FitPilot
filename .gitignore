@@ -8,6 +8,8 @@ target/
 .DS_Store
 evaluation-reports/
 release-evidence/
-load-test/reports/v5-*.json
-load-test/reports/v5-*/
+load-test/reports/*
+!load-test/reports/.gitkeep
 .repo_memory/
+.memorax-code/
+.claude/

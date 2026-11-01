@@ -3,12 +3,12 @@ param(
     [string]$BaseUrl = 'http://localhost:8080',
     [string]$OperationsToken,
     [string]$EnvFile = '.env',
-    [string]$ReportDirectory = (Join-Path (Split-Path $PSScriptRoot -Parent) 'evaluation-reports/real-model'),
+    [string]$ReportDirectory = (Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'evaluation-reports/real-model'),
     [int]$TimeoutSeconds = 300
 )
 
 $ErrorActionPreference = 'Stop'
-$repo = Split-Path $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $envPath = if ([IO.Path]::IsPathRooted($EnvFile)) { $EnvFile } else { Join-Path $repo $EnvFile }
 $settings = @{}
 if (Test-Path -LiteralPath $envPath) {

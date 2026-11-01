@@ -8,11 +8,11 @@ $ErrorActionPreference = 'Stop'
 if ($RunId -notmatch '^[a-zA-Z0-9-]{3,80}$') { throw 'RunId must contain only letters, digits and hyphens.' }
 if ($TimeoutSeconds -lt 30 -or $TimeoutSeconds -gt 600) { throw 'TimeoutSeconds must be between 30 and 600.' }
 
-$repo = Split-Path $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $envFile = Join-Path $repo '.env'
 $compose = Join-Path $repo 'docker-compose.yml'
 $override = Join-Path $repo 'docker-compose.dual-instance.yml'
-$seed = Join-Path $repo 'scripts/seed-demo-data.sql'
+$seed = Join-Path $repo 'scripts/development/seed-demo-data.sql'
 $output = Join-Path $repo "target/dual-instance-events/$RunId"
 $project = "fitpilot-dual-$RunId".ToLowerInvariant()
 if (-not (Test-Path -LiteralPath $envFile)) { throw '.env is required. Copy .env.example first.' }
@@ -38,7 +38,7 @@ $manifest = [ordered]@{
     scope = 'one API completion while Kafka and app-b are stopped; app-a claims then stops; app-b restarts with Kafka and recovers the shared Outbox and projections'
     sourceSha256 = [ordered]@{
         'docker-compose.dual-instance.yml' = (Get-FileHash -LiteralPath $override -Algorithm SHA256).Hash
-        'scripts/run-dual-instance-event-recovery.ps1' = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
+        'scripts/operations/run-dual-instance-event-recovery.ps1' = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
     }
     status = 'RUNNING'
 }

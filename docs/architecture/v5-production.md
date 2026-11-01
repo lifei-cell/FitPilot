@@ -69,7 +69,7 @@ Kustomize production overlay 使用外部 PostgreSQL、Redis、Kafka 和 Elastic
 mvn verify
 docker compose --env-file .env.example up -d --build --wait
 ./load-test/run-v5.ps1 -Scenario all
-./scripts/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
+./scripts/operations/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
 kubectl kustomize deploy/k8s/overlays/production
 kubectl kustomize deploy/k8s/overlays/production-migration
 ```

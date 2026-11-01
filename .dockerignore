@@ -6,3 +6,13 @@ target
 *.log
 .env
 load-test/reports
+.repo_memory
+.memorax-code
+.claude
+web/node_modules
+web/dist
+web/coverage
+web/playwright-report
+web/test-results
+evaluation-reports
+release-evidence

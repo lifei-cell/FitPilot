@@ -1,5 +1,9 @@
 # V5 HTTP 压测
 
+`reports/` 仅存放本地生成结果，不纳入 Git。V1 的三份历史热点读报告已归档至
+[`docs/performance/evidence/v1-hot-read-20260828/`](../docs/performance/evidence/v1-hot-read-20260828/)，
+实验边界见 [V1 报告](../docs/performance/v1-benchmark.md)。`run-v1.ps1` 仍可用于重跑热点读场景。
+
 `v5-mixed.js` 为持续混合负载，`v5-burst.js` 为五分钟突发负载。
 迭代比例约为读 70%、写 20%、Agent 10%；一次写迭代可能包含多个 HTTP 请求，
 因此 `RATE` / `PEAK_RATE` 是迭代速率，不是 HTTP RPS。

@@ -44,7 +44,7 @@ jobs:
         run: docker compose up -d --build --wait
       - name: Run real-model and RAG gates
         shell: pwsh
-        run: ./scripts/run-evaluations.ps1 -OperationsToken $env:OPERATIONS_TOKEN -AgentMode ACTIVE_MODEL
+        run: ./scripts/evaluation/run-evaluations.ps1 -OperationsToken $env:OPERATIONS_TOKEN -AgentMode ACTIVE_MODEL
       - name: Collect service logs
         if: failure()
         run: mkdir -p evaluation-reports && docker compose logs --no-color app > evaluation-reports/app.log

@@ -6,6 +6,8 @@ FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品�
 
 ## 架构
 
+目录入口：[项目结构与维护规则](docs/project-structure.md) · [文档导航](docs/README.md) · [脚本导航](scripts/README.md) · [Web 开发](web/README.md)。
+
 训练记录体验更新：[沿用上次记录与单击完成一组](docs/release/quick-set-recording.md)（2026-09-12，独立记录本地验证与能力边界）。
 
 训练可靠性更新：[自动保存、恢复与离线记录](docs/release/workout-auto-recovery.md)（V19，2026-09-13，含部署顺序与离线边界）。
@@ -111,7 +113,7 @@ Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。Compose
 演示数据仅用于本地 Docker 环境，采用显式脚本而非 Flyway 自动迁移，避免进入生产数据库。先启动 Compose 后执行：
 
 ```powershell
-.\scripts\seed-demo-data.ps1
+.\scripts\development\seed-demo-data.ps1
 ```
 
 然后使用 `demo_athlete` / `FitPilotDemo2026!` 登录。脚本可重复执行，只维护该演示账号的数据；包含已激活的训练计划、5 次已完成训练、趋势指标、个人纪录、通知和一篇待索引的卧推知识库样例。
@@ -240,7 +242,7 @@ docker compose up --build -d
 ## 历史 V5 生产验证
 
 ```powershell
-./scripts/run-production-validation.ps1
+./scripts/production-validation/run-production-validation.ps1
 ```
 
 脚本执行 Maven/Testcontainers、完整 observability 在线联调与真实告警演练、30 分钟混合流量、5 分钟突发流量、运行时资源采集和隔离环境清理，并生成 [P0 生产验收报告](docs/release/p0-production-validation.md)。性能结果见 [V5 验证报告](docs/performance/v5-production-validation.md)，远端门禁见 [V5 发布清单](docs/release/v5-validation.md)。该报告记录的是 V5/Flyway V9 历史性能基线，不替代 V6/V14 功能验收，也不能外推为真实生产容量。

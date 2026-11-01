@@ -27,7 +27,7 @@
 ## 执行与证据
 
 ```powershell
-./scripts/run-architecture-comparison.ps1 -RunId architecture-20260917
+./scripts/performance/run-architecture-comparison.ps1 -RunId architecture-20260917
 ```
 
 输出位于独立的 `target/architecture-comparison/<RunId>/`，已存在目录拒绝覆盖。记录源码逐文件 SHA-256、环境、日志、每个原始样本、三轮结果；非零退出码不能写作成功。正常质量验证另执行 `mvn verify`。
