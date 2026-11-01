@@ -35,6 +35,8 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Load-test account isolation regression
+        run: node --experimental-vm-modules --test load-test/v5-users.test.mjs
       - name: Backend quality gate
         shell: pwsh
         run: ./scripts/run-quality-gate.ps1 -BackendOnly

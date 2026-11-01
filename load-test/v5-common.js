@@ -1,5 +1,9 @@
 import http from 'k6/http';
-import { check, fail } from 'k6';
+import { check } from 'k6';
+import { vu } from 'k6/execution';
+import { userForVu } from './v5-users.js';
+import { planPayload } from './v5-plan.js';
+export { setupEnvironment } from './v5-users.js';
 import { Counter, Rate, Trend } from 'k6/metrics';
 
 export const ordinaryApiDuration = new Trend('ordinary_api_duration', true);
@@ -32,68 +36,8 @@ function accepted(response, expected, name, metric) {
   return ok;
 }
 
-function planPayload(name) {
-  return JSON.stringify({
-    name,
-    description: 'V5 production load test plan',
-    goal: 'STRENGTH',
-    durationWeeks: 4,
-    days: [{
-      dayNumber: 1,
-      name: 'Day 1',
-      exercises: [{
-        exerciseId: 1,
-        sequence: 1,
-        targetSets: 3,
-        targetRepsMin: 5,
-        targetRepsMax: 8,
-        targetRpe: 8,
-        restSeconds: 120,
-      }],
-    }],
-  });
-}
-
-export function setupEnvironment() {
-  const baseUrl = __ENV.BASE_URL || 'http://host.docker.internal:8080';
-  const suffix = `${Date.now()}${Math.floor(Math.random() * 100000)}`;
-  const username = `v5load_${suffix}`;
-  const password = 'FitPilot!V5Load';
-
-  const registration = http.post(`${baseUrl}/api/v1/auth/register`, JSON.stringify({
-    username,
-    email: `${username}@example.invalid`,
-    password,
-  }), { ...jsonHeaders(), tags: { name: 'POST /api/v1/auth/register' } });
-  if (!accepted(registration, [201], 'register')) fail(`registration failed: ${registration.status}`);
-
-  const login = http.post(`${baseUrl}/api/v1/auth/login`, JSON.stringify({ username, password }), {
-    ...jsonHeaders(), tags: { name: 'POST /api/v1/auth/login' },
-  });
-  if (!accepted(login, [200], 'login')) fail(`login failed: ${login.status}`);
-  const token = body(login)?.accessToken;
-  if (!token) fail('login response did not contain an access token');
-
-  const plan = http.post(`${baseUrl}/api/v1/training-plans`, planPayload(`V5 active ${suffix}`), {
-    ...jsonHeaders(token), tags: { name: 'POST /api/v1/training-plans' },
-  });
-  if (!accepted(plan, [201], 'create active plan')) fail(`plan creation failed: ${plan.status}`);
-  const planData = body(plan);
-  const activation = http.post(`${baseUrl}/api/v1/training-plans/${planData.id}/activate`, null, {
-    ...jsonHeaders(token), tags: { name: 'POST /api/v1/training-plans/{id}/activate' },
-  });
-  if (!accepted(activation, [200], 'activate plan')) fail(`plan activation failed: ${activation.status}`);
-
-  return {
-    baseUrl,
-    token,
-    planId: planData.id,
-    planDayId: planData.days[0].id,
-    runId: suffix,
-  };
-}
-
-export function runMixedIteration(data) {
+export function runMixedIteration(environment) {
+  const data = userForVu(environment, vu.idInTest);
   const roll = Math.random();
   if (roll < 0.70) {
     readOperations.add(1);

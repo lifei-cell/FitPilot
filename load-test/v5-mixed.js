@@ -1,6 +1,9 @@
 import { runMixedIteration, setupEnvironment } from './v5-common.js';
 
+const maxVUs = Number(__ENV.MAX_VUS || 100);
+
 export const options = {
+  setupTimeout: '10m',
   scenarios: {
     mixed_traffic: {
       executor: 'constant-arrival-rate',
@@ -8,7 +11,7 @@ export const options = {
       timeUnit: '1s',
       duration: __ENV.DURATION || '30m',
       preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 20),
-      maxVUs: Number(__ENV.MAX_VUS || 100),
+      maxVUs,
       gracefulStop: '30s',
     },
   },
@@ -21,7 +24,7 @@ export const options = {
 };
 
 export function setup() {
-  return setupEnvironment();
+  return setupEnvironment(maxVUs);
 }
 
 export default function (data) {
