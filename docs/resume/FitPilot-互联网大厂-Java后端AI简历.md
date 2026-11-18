@@ -22,7 +22,7 @@
 
 ### FitPilot——AI Native 健身训练平台
 
-**项目周期：** 2026.08—至今<br>
+**项目周期：** [按实际参与起止时间填写]<br>
 **项目角色：** [请按真实情况填写：个人项目 / 项目负责人 / 核心开发]<br>
 **项目地址：** <https://github.com/lifei-cell/FitPilot><br>
 **技术栈：** Java 21、Spring Boot 3.5、PostgreSQL/pgvector、Redis、Caffeine、Kafka、Elasticsearch、React、Docker、Kubernetes、OpenTelemetry
@@ -41,7 +41,7 @@
 
 - **安全 Agent 与训练调节闭环：** 针对 LLM 直接执行写操作存在越权、幻觉参数和不可审计风险（S/T），将模型限制为结构化提议组件，由后端统一执行 JWT 身份继承、Tool 白名单、领域校验、Guardrail、一次性确认和持久化；会话以 PostgreSQL 为真源、Redis 为热缓存，并基于 28 天训练事实生成可解释调整（A）；实现跨设备会话与待确认动作恢复，数据不足或疼痛风险自动阻断，确认后只创建新 DRAFT，主备模型失败回退规则 Workflow 时仍不放宽安全链（R）。
 
-- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；V6/Flyway V18 功能基线通过 79 个后端零跳过测试，后端行覆盖率 84.40%，Web 通过 36 个组件测试和 7 个 Chromium E2E、行覆盖率 71.69%；Netty 安全修复后的 `c55e26d` 已完成精确 SHA 的远端 CI、GHCR `amd64/arm64` 镜像、SBOM 与 Provenance 闭环（R）。
+- **质量、可观测与可信发布：** 针对复杂中间件和 AI 链路容易“功能可用但无法证明可靠”的问题（S/T），建立 Maven、Testcontainers、JaCoCo、ESLint、TypeScript、Vitest、Playwright、Prometheus 告警、SBOM、Gitleaks、Trivy 与镜像 Provenance 门禁（A）；历史 V20 功能基线 `9bd259c` 记录 122 个后端零跳过测试、行覆盖率 85.75%，Web 44 个组件测试和 11 个 Chromium 场景、行覆盖率 76.26%（R）。浏览器场景使用 API 桩，不等同于真实后端联调；当前提交的回归与远端发布结论分别核验。
 
 **补充验证数据：** 历史 V5 本机 Docker Compose 30 分钟混合流量完成 118,980 次 HTTP 请求，业务成功率 99.99%，普通 API P95 10.03ms、Agent P95 30.70ms；该数据用于证明测试环境下的实现与稳定性，不表述为真实生产容量。
 
@@ -62,7 +62,9 @@
 
 ## 面试自我介绍参考（不放入正式简历）
 
-我主要面向 Java 后端和 AI Agent 应用岗位。FitPilot 是我基于 Java 21 和 Spring Boot 3.5 构建的 AI Native 健身训练平台：核心业务通过 Workout 快照、事务状态机和 Owner 校验保证历史数据正确；事件侧使用 Transactional Outbox、Kafka 和 Inbox 实现 At-least-once 下的幂等与最终一致；AI 侧实现了带内容治理和评测门禁的 Hybrid RAG，以及必须经过领域校验、Guardrail 和用户确认才能写入的单 Agent Workflow。项目当前通过 79 个后端零跳过测试和前端 36 个组件测试、7 个浏览器场景；b3d708a 的远端 CI 曾因依赖安全扫描失败，升级 Netty 后修复 revision `c55e26d` 的镜像安全扫描、SBOM 和 Provenance 已按精确 SHA 核验通过。
+FitPilot 是一个 Java 21 和 Spring Boot 3.5 的训练记录与 AI 辅助计划调整项目。核心训练写入通过历史快照、事务内父行锁和数据库回执处理并发与离线重试；完成训练后通过 Outbox、Kafka 和 Inbox 更新个人纪录与分析，接受派生数据短暂延迟。AI 只提出结构化建议，由后端校验身份、领域规则和风险，用户确认后创建新草案。面试时我会重点展开训练一致性、可靠事件和受控 Agent，并区分当前回归、历史实验与真实生产验证。
+
+以上为表达模板；“我设计、我实现”的内容须按本人真实贡献调整。具体数字以底部证据索引为准。
 
 ## 投递前检查（不放入正式简历）
 
@@ -75,8 +77,9 @@
 
 | 结论 | revision / Run | 原始报告 |
 |---|---|---|
-| V6、Flyway V1-V18、79 个后端测试、36 个组件测试、7 个浏览器场景 | `b3d708ac4249331bf74e1541481caca115dc55ff` | [V18 当前功能验收](../release/v18-functional-validation.md) |
-| CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | 修复 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`；CI `34465034299`、Release `34465790273`，精确证据见 `refs/notes/release-evidence` | [远端发布验收](../release/p1-delivery-validation.md) |
+| 2026-11-18 收尾回归及未覆盖范围 | 被测业务源码 `112b2584ed7ab08938bcd1baf16df94fb7e3154b`；本次仅修改文档 | [收尾检查](../release/closeout-2026-11-18.md) |
+| 历史 V20、122 个后端测试、44 个组件测试、11 个浏览器场景 | `9bd259c7f4469826d094da1add6ef4bcad604a25`；不是本次全量复验 | [V20 功能验收](../release/v20-functional-validation.md) |
+| 历史 CI、安全扫描、GHCR 多架构镜像、Digest、SBOM、Provenance | 报告记录修复 revision `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`；CI `34465034299`、Release `34465790273`；本次未重新核验远端，不代表当前 HEAD 发布成功 | [远端发布验收](../release/p1-delivery-validation.md) |
 | 30 分钟混合流量与告警恢复 | Run ID `20260830-091822`，历史 V5/V9 本机基线 | [V5 性能验证](../performance/v5-production-validation.md) |
 | Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f`，仅历史本机演练 | [V6 远端发布验收](../release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
 | 真实 Production Delivery Gate | 无已执行 revision，`SKIPPED` | [V6 远端发布验收](../release/p1-delivery-validation.md#production-delivery-gateskipped) |
