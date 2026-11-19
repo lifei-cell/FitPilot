@@ -1,0 +1,884 @@
+#AOCI-CODE-VOLUME: 1
+
+===/<repository>/===
+.dockerignore[FV3T]: F:排除后端镜像构建上下文中的本地产物、环境文件和前端依赖 | R:code:Dockerfile | A:- | S:-
+.env.example[FC5T]: F:提供本地 Compose 的数据库、凭证、限流、缓存、事件、LLM 和 RAG 环境变量样例 | R:- | A:EMBEDDING_PROVIDER,LLM_ENABLED | S:OpenAI 兼容 embedding 需返回 384 维
+.gitattributes[FQ4T]: F:保留实验原始 JSON 的检出字节以匹配记录的 SHA-256 | R:- | A:docs/performance/evidence/**/*.json | S:-
+.gitignore[FV3T]: F:忽略本地构建、环境、证据输出和机器绑定的 Codex 配置 | R:- | A:.codex/config.toml | S:-
+.gitleaks.toml[FS4T]: F:沿用默认泄露规则并按路径豁免合成 JWT 及证据清单的 SHA-256 | R:- | A:Gitleaks allowlists | S:-
+.gitleaksignore[FS3T]: F:按历史提交、文件、规则和行号登记已知密钥扫描误报 | R:- | A:Gitleaks fingerprints | S:-
+AGENTS.md[SG5S]: F:规定 AOCI 会话加载、证据约束、机器批次和任务收尾流程 | R:- | A:aoci_rules,aoci_overview,aoci_maintain | S:上下文压缩后须重新绑定完整交付；旧收据不能证明模型当前认知
+Dockerfile[OV6T]: F:用两阶段镜像构建后端 JAR，以非 root 用户运行 Java 21 服务 | R:code:pom.xml | A:8080,9091 | S:容器存活检查走独立管理端口的 Actuator
+README.md[SG6M]: F:导航 FitPilot 模块化架构、功能保证、启动、测试与发布证据 | R:code:docs/project-structure.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
+docker-compose.dual-instance.yml[TR5T]: F:以共享 PostgreSQL、Redis 和 Kafka 的两个后端实例重放事件恢复场景 | R:code:docker-compose.yml,code:scripts/operations/run-dual-instance-event-recovery.ps1 | A:app-a,app-b | S:关闭缓存、限流和 AI，缩短 Outbox 轮询与领取超时以隔离实验
+docker-compose.yml[OV7M]: F:启动 FitPilot 本地应用、数据依赖，以及可选观测与故障模拟服务 | R:code:Dockerfile,code:.env.example | A:observability,fault | S:Kafka 禁用自动建主题并分别广播容器内外地址
+pom.xml[FV7S]: F:定义 Java 21 后端依赖、打包、单元/集成测试、覆盖率和 SBOM 门禁 | R:code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:全局行覆盖率至少 60%，选定核心包至少 70%，跳过测试另行阻断
+
+===/<repository>/.github/workflows/===
+ci.yml[TQ7S]: F:在 PR 和主分支运行后端及 Web 质量门禁、制品漏洞扫描和交付配置校验 | R:code:scripts/run-quality-gate.ps1 | A:CI | S:同一引用的新运行会取消旧运行；总是尝试上传验证证据
+deploy.yml[OV7S]: F:手动按后端和 Web 镜像 digest 执行生产交付门禁并收集 Kubernetes 证据 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Production Delivery Gate | S:绑定 production 环境；并发交付串行且不中断执行中的门禁
+model-evaluation.yml[TA5T]: F:定时或手动启动 Compose，运行真实模型与 RAG 验收并归档证据 | R:code:scripts/evaluation/run-evaluations.ps1 | A:Real Model Evaluation | S:先检查操作令牌及主模型必要配置；结束总是清理容器和卷
+release.yml[OV7S]: F:构建 CI 验证过的当前主分支后端与 Web 镜像，发布 digest 清单和来源证明 | R:code:.github/workflows/ci.yml | A:Release Image | S:成功的 CI revision 必须仍与 origin/main 一致才能发布
+
+===/<repository>/.mvn/===
+maven.config[FV4T]: F:把 Maven 下载缓存和镜像配置绑定到仓库内路径 | R:code:.mvn/settings.xml | A:maven.repo.local | S:-
+settings.xml[FV3T]: F:将 Maven 仓库请求统一转发给阿里云公共镜像 | R:- | A:aliyun-public | S:-
+
+===/<repository>/deploy/k8s/base/===
+configmap.yml[FC6T]: F:声明 Kubernetes 后端的依赖地址、模型选择及管理与遥测设置 | R:code:deploy/k8s/base/deployment.yml,code:deploy/k8s/base/migration-job.yml | A:fitpilot-config | S:线上常驻应用关闭 Flyway 和 Swagger；迁移由独立 Job 执行
+deployment.yml[OV6T]: F:部署非 root 后端 Pod 并配置生命周期、探针、资源和临时目录 | R:code:deploy/k8s/base/configmap.yml,code:deploy/k8s/base/service.yml | A:Deployment fitpilot | S:存活和就绪分开走 9091；只读根文件系统用 emptyDir 提供 /tmp
+hpa.yml[OP4T]: F:按后端 Pod CPU 利用率伸缩副本并设置缩容稳定期 | R:code:deploy/k8s/base/deployment.yml | A:HPA fitpilot | S:-
+ingress.yml[ON5T]: F:将同一域名的 API 前缀与页面分别路由给后端和 Web Service | R:code:deploy/k8s/base/service.yml,code:deploy/k8s/base/web-service.yml | A:Ingress fitpilot | S:-
+kustomization.yml[OV5T]: F:组合命名空间中的后端、前端、网络策略及迁移资源 | R:code:deploy/k8s/base/namespace.yml,code:deploy/k8s/base/migration-job.yml | A:Kustomization base | S:-
+migration-job.yml[OD6T]: F:用发布镜像内的 Flyway 入口独立执行数据库迁移 | R:code:deploy/k8s/base/configmap.yml | A:Job fitpilot-migrate | S:通过 PropertiesLauncher 更换主类；Job 不启动常驻 HTTP 服务
+namespace.yml[OV3T]: F:声明交付资源使用的 FitPilot 命名空间 | R:- | A:Namespace fitpilot | S:-
+network-policy.yml[OS5T]: F:限制后端业务与管理端口的入站来源并按用途放行出站 | R:code:deploy/k8s/base/deployment.yml | A:NetworkPolicy fitpilot | S:入口与 Web 访问 8080；观测命名空间访问 9091
+pdb.yml[OR4T]: F:要求后端自愿驱逐期间保留至少一个可用 Pod | R:code:deploy/k8s/base/deployment.yml | A:PodDisruptionBudget fitpilot | S:-
+service-account.yml[OS4T]: F:为应用与迁移提供关闭自动令牌挂载的服务账号 | R:code:deploy/k8s/base/deployment.yml,code:deploy/k8s/base/migration-job.yml | A:ServiceAccount fitpilot | S:-
+service.yml[ON4T]: F:为后端 Pod 暴露分离的业务与管理端口 | R:code:deploy/k8s/base/deployment.yml | A:Service fitpilot | S:-
+web-backend-alias.yml[ON4T]: F:创建名为 app 的后端别名供 Web 代理在集群内解析 | R:code:deploy/k8s/base/deployment.yml,code:web/nginx.conf | A:Service app:8080 | S:-
+web-deployment.yml[OV5T]: F:部署 Web 镜像并设置健康探针、非 root 身份及 Nginx 可写挂载 | R:code:deploy/k8s/base/web-service.yml,code:web/nginx.conf | A:Deployment fitpilot-web | S:-
+web-network-policy.yml[OS5T]: F:限制 Web Pod 仅接收入站控制器流量且向 DNS 和后端出站 | R:code:deploy/k8s/base/web-deployment.yml | A:NetworkPolicy fitpilot-web | S:-
+web-service.yml[ON4T]: F:以 HTTP 80 将集群流量转发到 Web Pod 的命名端口 | R:code:deploy/k8s/base/web-deployment.yml | A:Service fitpilot-web | S:-
+
+===/<repository>/deploy/k8s/drills/===
+backup-restore-job.yml[OR6T]: F:从源库制作逻辑备份，在演练库恢复并比对关键表和 Flyway 版本 | R:- | A:Job fitpilot-backup-restore-drill | S:显式拒绝相同的源与恢复 URL；恢复使用 clean 清理现有对象
+
+===/<repository>/deploy/k8s/overlays/production-migration/===
+kustomization.yml[OV6T]: F:从交付基座裁去常驻网关与应用资源，保留单独迁移所需对象 | R:code:deploy/k8s/base/kustomization.yml,code:deploy/k8s/base/migration-job.yml | A:Kustomization production-migration | S:单独渲染避免迁移时同时触发应用滚动
+
+===/<repository>/deploy/k8s/overlays/production/===
+deployment-patch.yml[OR5T]: F:为生产后端定义双副本与不主动减少可用 Pod 的滚动策略 | R:code:deploy/k8s/base/deployment.yml | A:maxUnavailable=0,maxSurge=1 | S:-
+hpa-patch.yml[OP4T]: F:把生产后端的 HPA 副本范围调整为 2 到 10 | R:code:deploy/k8s/base/hpa.yml | A:minReplicas,maxReplicas | S:-
+ingress-patch.yml[ON4T]: F:为生产叠加层声明 API 与页面的同域分流规则 | R:code:deploy/k8s/base/ingress.yml | A:Ingress fitpilot | S:-
+kustomization.yml[OV6T]: F:渲染持续运行的生产资源并套用后端伸缩、滚动与入口补丁 | R:code:deploy/k8s/base/kustomization.yml,code:deploy/k8s/overlays/production-migration/kustomization.yml | A:生产 Kustomization | S:删除基座的 Flyway Job，迁移须由独立叠加层执行
+
+===/<repository>/deploy/kind/===
+PgTools.Dockerfile[OV3T]: F:固定 Kind 演练数据库工具容器的 pgvector PostgreSQL 17 基础镜像 | R:- | A:- | S:-
+docker-compose.yml[OV5T]: F:为 Kind 交付演练提供仅绑定回环端口的 PostgreSQL 和 Redis | R:code:deploy/kind/init-databases.sql | A:15432,16379 | S:-
+init-databases.sql[FD4T]: F:为隔离交付演练建立源训练库与恢复目标库 | R:code:deploy/kind/docker-compose.yml | A:fitpilot,fitpilot_restore | S:-
+
+===/<repository>/deploy/mock-llm/mappings/===
+chat-completions.json[TA4T]: F:在 WireMock 中返回固定查看训练计划工具意图与用量 | R:- | A:POST /v1/chat/completions | S:-
+
+===/<repository>/deploy/monitoring/alertmanager/===
+alertmanager.yml[OO4T]: F:将告警按名称及级别分组送入本地审计接收器 | R:code:deploy/monitoring/prometheus/prometheus.yml | A:audit | S:-
+
+===/<repository>/deploy/monitoring/grafana/dashboards/===
+agent.json[OO4T]: F:显示 Agent 成功流量比例、延迟 P95、工具错误及规则违规 | R:- | A:fitpilot-agent | S:-
+ai-product-value.json[OO5T]: F:显示会话留存、建议转化、降级、单次成功成本和训练结果变化 | R:- | A:fitpilot-ai-product-value | S:-
+api.json[OO4T]: F:绘制 HTTP 吞吐、P95/P99 和 5xx 比例 | R:- | A:fitpilot-api | S:-
+kafka.json[OO4T]: F:显示 Kafka 消费落后、待发 Outbox 数量和最旧事件年龄 | R:- | A:fitpilot-kafka | S:-
+llm-cost.json[OO4T]: F:按模型与供应商观测调用延迟、用量、美元成本及 Agent 降级 | R:- | A:fitpilot-llm-cost | S:-
+rag.json[OO4T]: F:按检索模式观察 RAG 请求状态和延迟 P95 | R:- | A:fitpilot-rag | S:-
+system.json[OO4T]: F:显示 JVM 堆、Hikari 连接池使用率及缓存命中率 | R:- | A:fitpilot-system | S:-
+
+===/<repository>/deploy/monitoring/grafana/provisioning/dashboards/===
+dashboards.yml[OO3T]: F:从容器挂载目录周期性加载 FitPilot Grafana 面板 | R:- | A:/var/lib/grafana/dashboards | S:-
+
+===/<repository>/deploy/monitoring/grafana/provisioning/datasources/===
+datasources.yml[OO5T]: F:声明 Prometheus、Tempo 与 Loki 数据源并将日志 TraceID 指向 Tempo | R:code:deploy/monitoring/promtail/promtail.yml | A:prometheus,tempo,loki | S:-
+
+===/<repository>/deploy/monitoring/loki/===
+loki.yml[OO4T]: F:配置单实例 Loki 文件存储及 v13 TSDB 每日索引 | R:- | A:3100 | S:-
+
+===/<repository>/deploy/monitoring/otel/===
+collector.yml[OO5T]: F:接收应用 OTLP 追踪，经内存限额与批处理后转发 Tempo | R:code:deploy/monitoring/tempo/tempo.yml | A:4317,4318 | S:-
+
+===/<repository>/deploy/monitoring/prometheus/===
+alerts.yml[OO6T]: F:定义 API、Agent、训练调整、Outbox 与数据库池的 Prometheus 告警 | R:code:deploy/monitoring/prometheus/prometheus.yml | A:fitpilot-production | S:调整效果和部分 Agent 告警先检查样本下限
+prometheus.yml[OO5T]: F:抓取应用独立管理端口与 Prometheus 自身并加载告警规则 | R:code:deploy/monitoring/prometheus/alerts.yml,code:deploy/monitoring/alertmanager/alertmanager.yml | A:app:9091/actuator/prometheus | S:-
+
+===/<repository>/deploy/monitoring/promtail/===
+promtail.yml[OO4T]: F:采集应用 JSON 日志并推送 Loki，保留可检索的 TraceID 字段 | R:code:deploy/monitoring/loki/loki.yml | A:/var/log/fitpilot/*.json | S:-
+
+===/<repository>/deploy/monitoring/tempo/===
+tempo.yml[OO4T]: F:配置 Tempo OTLP 接收与本地追踪/WAL 存储及 720 小时保留 | R:code:deploy/monitoring/otel/collector.yml | A:3200 | S:-
+
+===/<repository>/docs/===
+README.md[SG3T]: F:索引架构、交付、性能、运维与测试文档并说明历史证据的引用规则 | R:code:docs/project-structure.md,code:scripts/README.md | A:- | S:-
+project-structure.md[SG4T]: F:定义 Maven 后端、独立 Web、模块边界、脚本与证据布局 | R:code:docs/README.md,code:scripts/README.md | A:- | S:-
+
+===/<repository>/docs/architecture/===
+v1-performance.md[SP5T]: F:记录 V1 的缓存、Redis 幂等与限流读写治理及键空间 | R:code:docs/release/short-ttl-cache-consistency.md | A:- | S:陈旧窗口从最后一次旧值回填算，不能从事务提交推导强时限
+v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢复契约 | R:code:docs/release/outbox-claim-ownership.md | A:fitness.workout.completed,fitness.personal-record.created | S:-
+v3-rag.md[SA5T]: F:说明带来源许可、父子分块、双路召回和可重建索引的知识检索架构 | R:code:docs/architecture/v4-agent.md | A:- | S:文档必须附 sourceUrl 与 sourceLicense，授权有效性由运营审核
+v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
+v5-production.md[SG5T]: F:描述模型网关、评测、观测与容器交付的 V5 架构 | R:code:docs/architecture/v4-agent.md | A:- | S:身份与授权、确认和持久化归后端，发布证据分本地与真实环境
+v6-ai-product.md[SA5T]: F:记录 V6 持久会话、可解释调整、AI 产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:会话以 PostgreSQL 为真源；仍有有效待确认动作的记录跳过清理
+
+===/<repository>/docs/interview/===
+01-Java-Spring-领域与数据库.md[SB4M]: F:整理模块化、Spring 事务与鉴权、PostgreSQL 不变量和交付的面试资料 | R:code:docs/project-structure.md | A:- | S:-
+02-Redis-Caffeine-性能治理.md[SP4S]: F:串讲 Redis 持久化、两级缓存、重建锁、令牌桶和响应回放的边界 | R:code:docs/architecture/v1-performance.md | A:- | S:-
+03-Kafka-事件一致性.md[SM4S]: F:串讲 Kafka 位点与分区、Outbox/Inbox 重投和死信回放 | R:code:docs/architecture/v2-events.md | A:- | S:-
+04-Elasticsearch-pgvector与RAG.md[SA4S]: F:串讲倒排、向量、HNSW、分块与融合在健身知识检索中的取舍 | R:code:docs/architecture/v3-rag.md | A:- | S:-
+05-Agent-LLM-MCP与产品指标.md[SA4M]: F:串讲受控工作流、确认、历史会话、模型网关和产品指标的证据边界 | R:code:docs/architecture/v4-agent.md,code:docs/architecture/v6-ai-product.md | A:- | S:-
+06-可观测测试与交付.md[SQ4M]: F:整理 Micrometer/OTel、测试金字塔和镜像迁移发布的验证边界 | R:code:docs/architecture/v5-production.md | A:- | S:-
+07-高频追问速查.md[SG3M]: F:按架构、安全、数据库和故障治理汇总项目面试短答及表达禁区 | R:- | A:- | S:-
+08-Java-JVM并发与网络.md[SG3S]: F:串讲 JVM 内存、Java 并发、网络超时与构建验证在项目中的落地 | R:- | A:- | S:-
+09-项目同质化与设计取舍.md[SG4T]: F:对照健身产品公开功能并区分 FitPilot 实现证据和用户价值假设 | R:code:docs/interview/10-设计取舍验证矩阵.md | A:- | S:-
+10-设计取舍验证矩阵.md[SQ4T]: F:定义核心业务、性能、检索和交付取舍的简单对照、指标与保留门槛 | R:code:docs/test-plans/设计取舍验证测试计划-2026-09-17.md | A:- | S:先固定目标、版本与负载再观察结果
+11-项目设计取舍与替代方案.md[SG4S]: F:按业务约束解释单体、数据库、离线、缓存、事件与 AI 的可替代方案 | R:code:docs/interview/10-设计取舍验证矩阵.md | A:- | S:-
+12-为什么需要Kafka两级缓存和混合检索.md[SG4T]: F:用隔离对照解释 Kafka、两级缓存和混合检索的局部收益与负例 | R:code:docs/performance/architecture-comparison-2026-09-17.md | A:- | S:-
+13-中间件选型与设计取舍总结.md[SG4M]: F:整理 PostgreSQL、Redis、Caffeine、Kafka 和检索设施的职责、成本与适用证据 | R:- | A:- | S:-
+14-训练一致性与离线恢复.md[SB4S]: F:解释训练快照与统一父行锁、离线操作 UUID 与数据库回执的取舍和验证 | R:- | A:- | S:响应丢失重试回原结果；真实状态冲突留给用户处理
+15-可靠事件与缓存取舍.md[SR4S]: F:讲解 Outbox 领取权与两级缓存短 TTL 的故障边界和实验负例 | R:code:docs/release/outbox-claim-ownership.md,code:docs/release/short-ttl-cache-consistency.md | A:- | S:-
+16-RAG与受控Agent.md[SA4S]: F:梳理混合检索拒答、引用治理与单 Agent 确认写入的控制边界 | R:code:docs/architecture/v3-rag.md,code:docs/architecture/v4-agent.md | A:- | S:-
+17-质量证据与故障案例.md[SQ4S]: F:汇总质量验证层次、可观测排障及跨设备 E2E 时序故障案例 | R:code:docs/release/closeout-2026-11-18.md | A:- | S:-
+FitPilot-中间件与原理面试手册.md[SG3T]: F:导航按 V6 与 V18 背景整理的中间件专题和面试复习节奏 | R:code:docs/interview/07-高频追问速查.md | A:- | S:-
+README.md[SG4T]: F:串起训练、事件、AI 三条架构主线与最新面试亮点入口 | R:code:docs/release/closeout-2026-11-18.md | A:- | S:历史数字按报告对应 revision 解释
+
+===/<repository>/docs/performance/===
+architecture-comparison-2026-09-17.md[SQ5T]: F:记录事件派生、缓存冷热和默认哈希混合检索三项隔离对照 | R:code:docs/performance/architecture-comparison-protocol.md | A:architecture-20260917-final | S:实验以基线加逐文件散列绑定；异步收益不能用来证明 Kafka 必需
+architecture-comparison-protocol.md[SQ4T]: F:固定事件、缓存、检索比较的场景、预设门槛与证据输出 | R:code:scripts/performance/run-architecture-comparison.ps1 | A:- | S:每次使用隔离 Testcontainers；拒绝覆盖已有 RunId
+outbox-backlog-recovery-2026-09-17.md[SM4T]: F:记录逐条领取改善尾部租约过期的隔离积压与重领实验 | R:code:docs/release/outbox-claim-ownership.md | A:- | S:Kafka 冷启动的 metadata 等待超出该优化边界
+rag-abstention-2026-09-18.md[SA4T]: F:归档余弦阈值和小模型判别两轮拒答失败及回退决定 | R:code:docs/performance/rag-abstention-protocol-2026-09-18.md | A:- | S:-
+rag-abstention-2026-09-19.md[SA5T]: F:记录确定性证据门槛在第二组独立难负例与三路召回中的通过范围 | R:code:docs/performance/rag-abstention-2026-09-18.md | A:ABSTAINED | S:记录使用 LOCAL 向量和合成语料
+rag-abstention-protocol-2026-09-18.md[SQ4T]: F:固定拒答实验校准与留出划分、召回与候选门槛及重新冻结规则 | R:code:docs/performance/rag-abstention-2026-09-19.md | A:- | S:观看留出结果后调整实现须另建冻结集合
+real-embedding-retrieval-2026-09-17.md[SA4T]: F:比较真实 MiniLM 的三路召回，记录场景受益、术语回退和无答案负例 | R:code:docs/performance/real-retrieval-protocol-2026-09-17.md | A:- | S:-
+real-model-event-cache-validation-2026-09-19.md[SQ4T]: F:汇总外部模型预检、双实例事件接管与冷热缓存对照的独立结果 | R:code:docs/performance/evidence/real-model-preflight-20260919/manifest.json | A:- | S:-
+real-retrieval-protocol-2026-09-17.md[SQ4T]: F:预先固定真实嵌入的模型、28 道留出问题、三路排序及效益门槛 | R:code:scripts/evaluation/run-real-retrieval.ps1 | A:- | S:模型与留出集由脚本核对 SHA-256
+v1-benchmark.md[SP4T]: F:记录单实例 Compose 上动作详情热点接口的三档短时负载 | R:code:load-test/run-v1.ps1 | A:GET /api/v1/exercises/1 | S:-
+v5-production-validation.md[SQ4T]: F:概述历史 V5 本地混合/突发流量、告警联调和失败边界 | R:code:docs/release/p0-production-validation.md | A:20260830-091822 | S:-
+workout-write-load-2026-09-17.md[SP4T]: F:解释训练加组去除子行锁的受控前后对比及父锁保护 | R:code:docs/release/workout-write-concurrency.md | A:- | S:-
+
+===/<repository>/docs/performance/evidence/architecture-20260917-final/===
+cache.json[TQ3M]: F:保存三种读路径冷热延迟、缓存命中及模拟远端实例过期的实验数据 | R:- | A:rows,remoteL1ConvergenceMs | S:-
+containers.json[TQ3T]: F:登记架构对照所用 PostgreSQL、Redis、Kafka 与 Elasticsearch 镜像 ID 和 digest | R:- | A:- | S:-
+events.json[TQ3S]: F:保存同步、PG 任务和 Kafka 派生接受及故障结果 | R:- | A:rows,fault | S:故障针对投影处理；不代表 Kafka Broker 隔离演练
+manifest.json[TQ3M]: F:绑定架构对照运行的基线、工作树、网络依赖环境和文件散列 | R:- | A:runId,filesSha256 | S:-
+retrieval.json[TQ3L]: F:保存 14 道诊断查询在 BM25、哈希向量及混合配置下的逐题候选 | R:- | A:profiles,rows | S:-
+validation.json[TQ3T]: F:记录架构对照的实验及后端质量状态和原始证据摘要 | R:- | A:experiment,quality,rawEvidenceSha256 | S:-
+
+===/<repository>/docs/performance/evidence/architecture-20260919-followup/===
+cache-summary.json[TQ3T]: F:汇总复测三种读路径的冷热 P95、回源和 L1 命中 | R:- | A:hotP95Ms,coldP95Ms | S:串行 JVM 调用，无法推导 HTTP 容量
+
+===/<repository>/docs/performance/evidence/dual-instance-events-20260919-r3/===
+manifest.json[TQ3T]: F:固定双容器事件恢复的共享依赖与故障顺序证据 | R:code:docker-compose.dual-instance.yml | A:appBPausedBeforeFault,appAStoppedAfterClaim | S:-
+
+===/<repository>/docs/performance/evidence/outbox-backlog-20260917/===
+manifest.json[TQ3T]: F:固定 Outbox 追赶实验的基线、批大小、环境和源码摘要 | R:code:docs/performance/evidence/outbox-backlog-20260917/results.json | A:batchSize,filesSha256 | S:-
+results.json[TQ3T]: F:保存 Broker 暂停期写入、积压年龄及复投后业务重复行的测量 | R:- | A:scenarios | S:-
+
+===/<repository>/docs/performance/evidence/rag-abstention-20260918-first/===
+manifest.json[TQ3T]: F:绑定首轮拒答实验的重现环境、基线、模型及源码散列 | R:code:docs/performance/evidence/rag-abstention-20260918-first/raw.json | A:runId,baseCommit | S:-
+model-stats.json[TQ3T]: F:记录首轮拒答实验的嵌入请求、token、推理耗时和模型尺寸 | R:- | A:requests,tokens,inferenceMs | S:-
+raw.json[TQ3L]: F:保存 48 道查询三轮的逐例检索结果及余弦门槛配置 | R:- | A:rows,minEvidenceCosine | S:-
+summary.json[TQ3M]: F:按检索策略和场景汇总首轮拒答测试的候选及错误引用风险 | R:code:docs/performance/evidence/rag-abstention-20260918-first/raw.json | A:noAnswerReturnedCandidateRate | S:-
+
+===/<repository>/docs/performance/evidence/rag-abstention-20260918-model-v2/===
+evidence-model-stats.json[TQ3T]: F:记录证据判别模型服务的调用、缓存命中、生成量及推理成本 | R:- | A:cacheHits,inputTokens,outputTokens | S:-
+experiment-tracked.patch[TQ3L]: F:保存证据门槛实验变更，包括评测脚本、统计与检索接入 | R:- | A:- | S:归档补丁用于重现实验
+manifest.json[TQ3T]: F:固定证据判别 V2 实验的基线、改动、模型与留出集散列 | R:code:docs/performance/evidence/rag-abstention-20260918-model-v2/raw.json | A:runId,holdoutSha256 | S:-
+model-stats.json[TQ3T]: F:记录证据门槛 V2 实验的嵌入侧调用、token 和内存 | R:- | A:requests,inferenceMs | S:-
+quality-gate.txt[TQ3L]: F:保留证据判别 V2 后端 Maven 门禁的测试与构建日志 | R:- | A:- | S:-
+raw.json[TQ3L]: F:保存启用强制证据判别的 48 道检索样本及候选结果 | R:- | A:evidenceMode,rows | S:-
+summary.json[TQ3M]: F:汇总强制模型判别条件下各检索策略的来源质量与拒答表现 | R:code:docs/performance/evidence/rag-abstention-20260918-model-v2/raw.json | A:- | S:-
+
+===/<repository>/docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/===
+EvidenceVerifier.java[IA3T]: F:声明检索证据判别器的可用性及查询和文段匹配协议 | R:- | A:available,supports | S:-
+LlmEvidenceVerifier.java[IA4T]: F:通过 LLM 客户端判别检索文段能否直接回答问题 | R:code:docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/EvidenceVerifier.java | A:supports | S:仅接受 SUPPORTED 或 ABSENT，其他结果抛异常
+local_evidence_server.py[TA4T]: F:提供回环 OpenAI 兼容证据判别服务，缓存请求并限制生成长度 | R:- | A:GET /health,POST /v1/chat/completions | S:推理及缓存由锁串行保护
+prepare_evidence_model.py[XA3T]: F:按固定 revision 下载 Qwen 判别模型并核对权重 SHA-256 | R:- | A:target/models/Qwen2.5-1.5B-Instruct | S:-
+
+===/<repository>/docs/performance/evidence/real-model-preflight-20260919/===
+manifest.json[TQ3T]: F:记录外部模型评测预检阻塞、所需配置和未发生 Provider 调用 | R:- | A:BLOCKED_EXTERNAL_PROVIDER | S:-
+
+===/<repository>/docs/performance/evidence/real-retrieval-20260917-final/===
+manifest.json[TQ3T]: F:固定真实 Embedding 实验的源码、运行环境及模型和留出集哈希 | R:code:docs/performance/evidence/real-retrieval-20260917-final/raw.json | A:modelRevision,holdoutSha256 | S:-
+model-stats.json[TQ3T]: F:记录真实 Embedding 服务调用吞吐原始计数、耗时及内存 | R:- | A:requests,tokens,inferenceMs | S:-
+quality-gate.txt[TQ3T]: F:保存真实检索实验前后端构建中 JaCoCo 门禁通过的历史输出 | R:- | A:- | S:-
+raw.json[TQ3L]: F:保存真实 Embedding 三轮 28 道留出题的配置与逐例结果 | R:- | A:profiles,rows | S:-
+summary.json[TQ3M]: F:按 BM25、向量与混合路线汇总真实嵌入留出题命中、排序和无答案候选 | R:code:docs/performance/evidence/real-retrieval-20260917-final/raw.json | A:- | S:-
+
+===/<repository>/docs/performance/evidence/v1-hot-read-20260828/===
+v1-100-qps.json[TQ3S]: F:保存单实例动作详情热点读取约 100 QPS 档的 k6 原始指标 | R:- | A:http_req_duration,http_req_failed | S:-
+v1-1000-qps.json[TQ3S]: F:保存千 QPS 档热点读取的 k6 延迟、请求速率和未调度迭代 | R:- | A:dropped_iterations | S:请求失败率为零仍有 6 次丢弃
+v1-500-qps.json[TQ3S]: F:保存动作详情热点读取约 500 QPS 档的 k6 请求与延迟指标 | R:- | A:http_req_duration,http_req_failed | S:-
+
+===/<repository>/docs/performance/evidence/workout-write-load-20260917/baseline/===
+manifest.json[TQ3M]: F:绑定训练写负载基准组的提交、运行环境和源文件散列 | R:code:docs/performance/evidence/workout-write-load-20260917/baseline/results.json | A:baseCommit,runId | S:-
+results.json[TQ3T]: F:记录优化前训练写负载各场景的测量与数据库状态 | R:- | A:settings,scenarios | S:-
+
+===/<repository>/docs/performance/evidence/workout-write-load-20260917/optimized/===
+manifest.json[TQ3M]: F:绑定移除冗余子行锁实验的工作树、运行条件和源码散列 | R:code:docs/performance/evidence/workout-write-load-20260917/optimized/results.json | A:baseCommit,runId | S:-
+results.json[TQ3T]: F:记录优化后训练写负载各场景的测量与数据库状态 | R:- | A:settings,scenarios | S:-
+
+===/<repository>/docs/release/===
+ai-product-value-metrics-validation.md[SA4T]: F:记录 AI 产品指标 API、聚合、监控与告警在受控样本中的验收 | R:code:docs/architecture/v6-ai-product.md | A:06bc348 | S:观察指标不能替代随机对照
+closeout-2026-11-18.md[SQ4T]: F:记录 2026-11-18 文档收尾及当前本地验证和未覆盖环境 | R:code:docs/interview/README.md | A:112b258 | S:-
+outbox-claim-ownership.md[SM5T]: F:记录 V20 领取 token 修复、续租与旧执行者迟到回写验证 | R:code:src/main/resources/db/migration/V20__add_outbox_claim_token.sql | A:claim_token | S:失败与成功回写都必须校验持有的 token
+p0-production-validation.md[SQ4T]: F:归档 P0 本机流量、资源、链路与告警演练，登记远端交付门禁 | R:code:docs/performance/v5-production-validation.md | A:20260830-091822 | S:-
+p1-ai-product-validation.md[SQ4T]: F:记录 V6 AI 产品功能 revision 的本地后端、Web 与真实 HTTP 冒烟 | R:code:docs/release/p1-delivery-validation.md | A:6a64629 | S:-
+p1-delivery-validation.md[SV5T]: F:记录 V15–V18 的精确提交远端产物证明、历史 Kind 演练与生产门禁 | R:- | A:refs/notes/release-evidence | S:按发布 revision 查 Git Note；避免回填报告导致新 SHA
+quick-set-recording.md[SU4T]: F:说明读取上次组数据与点击完成一组的初始流程和本地验收 | R:code:docs/release/workout-auto-recovery.md | A:- | S:-
+short-ttl-cache-consistency.md[SP5T]: F:记录双层展示缓存提交后失效与短 TTL 下的陈旧区间 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:陈旧时间从最后一次旧值回填计起，L2 失败会延长
+v17-functional-validation.md[SQ4T]: F:记录 V17 本地门禁、能力增量与依赖安全补强 | R:code:docs/release/p1-delivery-validation.md | A:c1c9ede | S:-
+v18-functional-validation.md[SQ4T]: F:记录 V18 本地功能门禁并指向 Netty 后续精确远端证据 | R:code:docs/release/p1-delivery-validation.md | A:b3d708a | S:-
+v20-functional-validation.md[SQ5T]: F:记录 V20 基线的 Maven、迁移和 Web 质量结果及远端证据查询 | R:code:docs/release/p1-delivery-validation.md | A:9bd259c | S:-
+v5-validation.md[SV4T]: F:记录 FitPilot 5.0.0 验收清单与决定跳过的真实生产门禁 | R:code:docs/release/p0-production-validation.md | A:- | S:-
+workout-auto-recovery.md[SR5T]: F:说明训练草稿、离线队列、刷新恢复和数据库回执的功能与验证边界 | R:code:docs/release/workout-recovery-device-validation-2026-09-19.md | A:- | S:-
+workout-recovery-device-validation-2026-09-19.md[SQ4T]: F:记录移动浏览器弱网和跨设备冲突自动化补验及物理真机执行卡 | R:code:docs/release/workout-auto-recovery.md | A:586f2f5 | S:-
+workout-write-concurrency.md[SB5T]: F:说明父行锁把同一训练的动作、组和终态写操作串入统一协议 | R:code:src/main/java/com/fitpilot/workout/application/WorkoutService.java | A:- | S:普通查询加事务仍有读写竞态；唯一约束保留作最后防线
+
+===/<repository>/docs/resume/===
+FitPilot-互联网大厂-Java后端AI简历.md[SG3T]: F:提供 Java 后端及 AI Agent 求职简历模板、项目机制与证据索引 | R:- | A:- | S:-
+FitPilot-简历亮点与详细阐述.md[SG3S]: F:提供 FitPilot 简历项目条目、详细答辩与 V18 证据口径 | R:code:docs/release/v18-functional-validation.md | A:- | S:-
+
+===/<repository>/docs/roadmap/===
+FitPilot-项目亮点与后续开发计划.md[SG4T]: F:汇总训练产品主线、当前实现证据和按收益排列的验证路线 | R:code:docs/performance/real-model-event-cache-validation-2026-09-19.md | A:- | S:-
+fitpilot-business-first-design-constraints-2026-09-17.md[SG4T]: F:从目标用户的训练事实、弱网和可控建议需求推导验证顺序及演进条件 | R:- | A:- | S:-
+interview-improvement-review-2026-09-17.md[SQ4T]: F:静态排序并发、事件、缓存及生产证据的改进项并链接训练协议修复 | R:code:docs/release/workout-write-concurrency.md | A:- | S:-
+interview-optimization-2026-09-13.md[SQ4T]: F:以源码评估 Outbox、缓存、离线回执与交付能力，列出面试优化优先级 | R:code:docs/release/workout-auto-recovery.md | A:- | S:-
+mobile-app-store-launch-2026-09-16.md[SU4T]: F:规划基于现有 React Web 的移动封装、真机验收与应用市场提交 | R:- | A:- | S:-
+public-service-deployment-2026-09-16.md[SV4T]: F:规划首次外网服务的托管依赖、网络、域名与交付证据 | R:code:docs/runbooks/first-public-deploy.md | A:- | S:-
+
+===/<repository>/docs/runbooks/===
+backup-restore.md[SR5T]: F:说明 PostgreSQL 备份、时间点恢复与隔离校验流程 | R:code:deploy/k8s/drills/backup-restore-job.yml | A:RPO≤5分钟,RTO≤60分钟 | S:-
+ecs-2g-preflight.md[SV3T]: F:记录小规格 ECS 的初始配置与重装和容量预检 | R:- | A:- | S:-
+failure-drills.md[SR4T]: F:列出隔离 Compose 故障演练条件及恢复后检查 | R:code:scripts/operations/invoke-failure-drills.ps1 | A:- | S:-
+first-public-deploy.md[SV5T]: F:列出外网部署前的镜像、云资源、生产命名空间和密钥验证步骤 | R:code:docs/runbooks/release-rollback.md | A:- | S:-
+kafka-outbox-backlog.md[SM5T]: F:按 Outbox 年龄、Kafka lag、毒消息及投影耗时分流积压处置 | R:code:docs/release/outbox-claim-ownership.md | A:OUTBOX_BATCH_SIZE | S:V20 发布先停旧 Relay；批配置只限每轮数量
+llm-circuit-breaker.md[SR4T]: F:说明 LLM 主备、可重试状态、熔断和规则降级排障 | R:code:scripts/operations/invoke-failure-drills.ps1 | A:- | S:-
+release-rollback.md[SV5T]: F:规定镜像 digest 发布、独立迁移和双 Deployment 回滚门禁 | R:code:scripts/delivery/run-kubernetes-rollout.ps1 | A:- | S:应用回滚时保留向前兼容的数据库迁移
+secret-rotation.md[SS5T]: F:规定 JWT 双密钥过渡、Operations Token 轮换与泄漏处置 | R:code:scripts/delivery/run-secret-rotation-drill.ps1 | A:- | S:-
+
+===/<repository>/docs/test-plans/===
+设计取舍验证测试计划-2026-09-17.md[SQ5T]: F:按阶段设计业务、异步、缓存和 AI 的对照测试与证据判定 | R:code:docs/interview/10-设计取舍验证矩阵.md | A:- | S:先冻结环境和门槛；局部通过不能代替整体验收
+
+===/<repository>/load-test/===
+README.md[SP4T]: F:导航 V1 热读与 V5 混合/突发压测、账号隔离和复跑入口 | R:code:load-test/run-v5.ps1,code:load-test/v5-users.js | A:- | S:-
+run-v1.ps1[TP4T]: F:用 Docker k6 运行三档热点 GET 并保存各档结果 | R:code:load-test/v1-hot-read.js | A:BaseUrl,Duration | S:-
+run-v5.ps1[TP5T]: F:执行混合及突发 k6 负载并采集 JSON 和日志 | R:code:load-test/v5-mixed.js,code:load-test/v5-burst.js | A:Scenario,RunId | S:即使 k6 阈值失败也先清除报告里的会话凭证
+v1-hot-read.js[TP4T]: F:按固定到达率加载动作详情热点接口并检查 200 与延迟 | R:- | A:GET /api/v1/exercises/1 | S:-
+v5-burst.js[TP4T]: F:用逐级爬升到达率重用共享业务负载模拟突发 | R:code:load-test/v5-common.js | A:START_RATE,PEAK_RATE,MAX_VUS | S:-
+v5-common.js[TP5S]: F:编排 k6 读写和 Agent 混合负载，分别记录业务与 Agent 延迟 | R:code:load-test/v5-users.js,code:load-test/v5-plan.js | A:runMixedIteration | S:-
+v5-mixed.js[TP4T]: F:按持续固定到达率运行相同的混合业务流量与门槛 | R:code:load-test/v5-common.js | A:RATE,DURATION,MAX_VUS | S:-
+v5-plan.js[TB3T]: F:生成共享的四周力量训练计划请求体 | R:- | A:planPayload | S:-
+v5-users.js[TP5T]: F:为最大 VU 池逐个创建独立身份与活动计划并处理初始化限流 | R:code:load-test/v5-plan.js | A:setupEnvironment,userForVu | S:VU 缺少独立数据时立即失败
+v5-users.test.mjs[TP5S]: F:用 Node VM 和状态化 API 桩验证 VU 隔离、重叠训练及 setup 失败 | R:code:load-test/v5-users.js,code:load-test/v5-common.js | A:- | S:-
+
+===/<repository>/scripts/===
+README.md[SG3T]: F:按质量、开发、交付、评测和故障演练索引脚本及环境要求 | R:code:scripts/run-quality-gate.ps1 | A:- | S:-
+run-quality-gate.ps1[TQ6T]: F:统一执行 Maven 与 Web 质量门禁，可分别运行后端或前端 | R:code:pom.xml,code:web/package.json | A:BackendOnly,WebOnly,QUALITY_GATE=PASS | S:两个单端开关互斥；任何子命令失败即阻断
+
+===/<repository>/scripts/delivery/===
+DeliveryGate.Common.psm1[OV6S]: F:共享上下文和 digest 检查、Kustomize 渲染、部署等待与清单应用 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Assert-KubernetesContext,Render-Kustomization,Apply-Manifest | S:正常生产只接受不可变 digest 并核对当前 kube context
+prepare-database-drill.ps1[OS5T]: F:校验演练库 URL 并生成 Kubernetes 临时数据库连接 Secret | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:fitpilot-delivery-drill | S:拒绝源与目标 URL 相同
+run-backup-restore-drill.ps1[OR5T]: F:执行备份恢复 Job 并保存通过标记、日志和失败证据 | R:code:deploy/k8s/drills/backup-restore-job.yml | A:BACKUP_RESTORE_DRILL=PASS | S:-
+run-delivery-gate.ps1[OV6T]: F:编排应用迁移、滚动验收以及可选回滚、恢复、轮换演练 | R:code:scripts/delivery/run-kubernetes-rollout.ps1,code:scripts/delivery/run-secret-rotation-drill.ps1,code:scripts/delivery/run-backup-restore-drill.ps1 | A:DELIVERY_GATE=PASS | S:-
+run-kind-delivery-drill.ps1[TR6S]: F:在固定隔离 Kind 集群准备基线和候选镜像并重跑交付门禁 | R:code:scripts/delivery/run-delivery-gate.ps1,code:deploy/kind/docker-compose.yml | A:KeepCluster | S:固定集群名且已有同名集群即停止，避免清理现有集群
+run-kubernetes-rollout.ps1[OV7S]: F:先完成独立 Flyway Job，再滚动部署并核验两镜像，可演练回滚 | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:KubeContext,AppImage,WebImage | S:回滚演练要求已有部署，失败尝试恢复先前镜像
+run-secret-rotation-drill.ps1[OS6S]: F:轮换 JWT 与操作令牌，用真实请求验证兼容与撤销并记录证据 | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:RevokePreviousJwt | S:失败时回滚原 Secret 并重启应用
+
+===/<repository>/scripts/development/===
+seed-demo-data.ps1[XD4T]: F:从开发 Compose 读取数据库设置，在 PostgreSQL 容器内执行演示种子 | R:code:scripts/development/seed-demo-data.sql | A:ComposeFile | S:-
+seed-demo-data.sql[XD4M]: F:在事务中为固定演示用户维护资料、体测、训练计划与演示训练数据 | R:- | A:demo_athlete | S:作用域限定为演示账号
+
+===/<repository>/scripts/evaluation/===
+local_embedding_server.py[TA5T]: F:通过回环 OpenAI 兼容接口执行本地 ONNX 嵌入并累计模型统计 | R:code:scripts/evaluation/prepare_model.py | A:/health,/v1/embeddings | S:单文本 384 维；attention mask 排除填充后做池化
+prepare_model.py[XA4T]: F:下载固定 MiniLM ONNX 与分词文件并检验权重哈希 | R:- | A:target/models/paraphrase-multilingual-MiniLM-L12-v2 | S:-
+run-evaluations.ps1[TA5T]: F:触发 Agent 与 RAG 运维评测、轮询完成并写出门槛结果 | R:- | A:OperationsToken,AgentMode | S:失败或超时即停止，Agent 工具与成功率门槛为 95%
+run-real-model-quality.ps1[TA5T]: F:从环境读真实模型配置，执行 ACTIVE_MODEL 并保留预检及结果 | R:code:scripts/evaluation/run-evaluations.ps1 | A:EnvFile,ReportDirectory | S:仅规则回退的执行不能产生真实模型评测证据
+run-real-retrieval.ps1[TA6T]: F:校验模型和留出集、启动嵌入服务并执行检索基准与汇总 | R:code:scripts/evaluation/local_embedding_server.py,code:scripts/evaluation/summarize_retrieval.py | A:REAL_RETRIEVAL=PASS | S:要求服务健康且维度为 384；拒绝覆盖 RunId
+summarize_retrieval.py[TA4T]: F:按配置与场景汇总冻结留出检索排名、百分位和分词成本 | R:- | A:raw,summary,--holdout | S:-
+
+===/<repository>/scripts/operations/===
+invoke-failure-drills.ps1[TR5S]: F:在隔离 Compose 验证 Redis、Kafka、Elasticsearch 和可选 LLM 故障恢复 | R:code:docs/runbooks/failure-drills.md | A:IncludeLlm | S:-
+run-dual-instance-event-recovery.ps1[TR6S]: F:在隔离双实例拓扑演练持有领取权的实例停机与另一实例接管 | R:code:docker-compose.dual-instance.yml | A:RunId,TimeoutSeconds | S:独立 Compose 实验结束收集证据并清理卷
+
+===/<repository>/scripts/performance/===
+run-architecture-comparison.ps1[TP5T]: F:执行事件、缓存与检索三个 JVM 对照入口并归档环境和原始结果 | R:code:docs/performance/architecture-comparison-protocol.md | A:COMPARISON=PASS | S:-
+run-outbox-backlog.ps1[TM5T]: F:执行 Outbox 积压处理实验，保存参数、源散列、日志与结果 | R:code:src/test/java/com/fitpilot/infrastructure/events/OutboxBacklogBenchmark.java | A:OUTBOX_BACKLOG=PASS | S:-
+run-workout-write-load.ps1[TP5T]: F:按并发、用户、热训练与重放参数运行训练写基准并保留证据 | R:code:src/test/java/com/fitpilot/performance/WorkoutWriteLoadBenchmark.java | A:WRITE_LOAD=PASS | S:-
+
+===/<repository>/scripts/production-validation/===
+collect-runtime-evidence.ps1[OO4T]: F:定期采集容器资源、Prometheus 摘要和事件状态为 JSONL | R:- | A:OutputDirectory,IntervalSeconds | S:-
+new-validation-report.ps1[OQ4S]: F:将 k6、测试、观测与故障证据状态汇总为可审计报告 | R:- | A:RunId,EvidenceDirectory,OutputPath | S:缺失指标呈现为 N/A
+run-production-validation.ps1[TQ5S]: F:执行本机生产基线验证，编排 Maven、观测及负载并生成报告 | R:code:scripts/production-validation/collect-runtime-evidence.ps1,code:scripts/production-validation/new-validation-report.ps1 | A:P0_REPORT,P0_EVIDENCE | S:-
+test-observability.ps1[TO5T]: F:验证 Compose 观测数据与目标离线告警，重新启动应用核对恢复 | R:code:deploy/monitoring/prometheus/alerts.yml | A:observability-validation.json | S:-
+
+===/<repository>/src/main/java/com/fitpilot/===
+FitPilotApplication.java[EG5T]: F:启动 Spring Boot，注册各业务 Mapper 并开启定时任务 | R:- | A:main | S:关闭 Spring 默认用户服务自动配置
+
+===/<repository>/src/main/java/com/fitpilot/agent/adjustment/===
+TrainingAdjustmentDtos.java[CA4T]: F:定义训练调整的分析证据、提议和历史视图合同 | R:- | A:Evidence,Context,AdjustmentProposal,AdjustmentView | S:-
+TrainingAdjustmentRepository.java[PA6S]: F:汇总训练反馈和组数指标并维护调整提议生命周期 | R:- | A:metrics,create,hasPending | S:待确认检查同时将已过期的关联提议标为 STALE
+TrainingAdjustmentService.java[AA7S]: F:从用户训练事实生成可解释的调整规则，校验草案并确认写入 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java | A:analyze,deterministicPlan,validate,confirm | S:确认时重检来源仍为当前活动版本；替换动作要求证据引用
+
+===/<repository>/src/main/java/com/fitpilot/agent/application/===
+AgentOrchestrator.java[AA7S]: F:编排单条 Agent 消息的路由、读工具、提议、答复与审计 | R:code:src/main/java/com/fitpilot/agent/application/IntentRouter.java,code:src/main/java/com/fitpilot/agent/application/PlanProposalService.java | A:message | S:拒绝和无需动作分别收尾，写入提议只成为待确认动作
+AgentPlanner.java[DA5T]: F:按中英关键词有序匹配意图并返回确定性工具计划 | R:- | A:decide | S:创建与调整先于泛化的训练计划查看
+AgentToolExecutor.java[AA6T]: F:把固定读工具名分派到当前用户的训练、计划和知识读取服务 | R:- | A:execute | S:无 RAG 服务时返回不可用视图
+AgentWorkflowService.java[AA6S]: F:提供 HTTP 与 MCP 共用的会话、消息、偏好与确认门面 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java,code:src/main/java/com/fitpilot/agent/memory/AgentSessionStore.java | A:message,history,confirm | S:所有会话读取与修改都以用户和会话校验为前提
+ConfirmationService.java[AA8T]: F:在事务内消费可确认动作、重验训练计划规则并落地草案 | R:code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:confirm | S:待确认动作以 owner 行锁读取，成功状态与草案创建同事务
+IntentRouter.java[AA6T]: F:记录 Agent 执行起点并用模型决策补充确定性意图回退 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java,code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:begin,decide,recordUsage | S:-
+PendingActionService.java[AA7T]: F:生成和轮换确认令牌，列出当前用户待办并验证可执行性 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:create,rotateToken,requireConfirmable | S:只持久化令牌哈希；确认使用 owner 行锁与常量时间比较
+PlanProposalService.java[AA7S]: F:把创建或调整意图转化为经规则验证的待确认计划提议 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java,code:src/main/java/com/fitpilot/agent/application/PendingActionService.java | A:prepare | S:同一来源计划已有待确认调整时提前结束；规则草案也需校验
+ToolExecutionService.java[AA6T]: F:执行与审计 Agent/MCP 读工具调用，跳过工作流中的写意图 | R:code:src/main/java/com/fitpilot/agent/application/AgentToolExecutor.java | A:executeReadTools,executeMcp | S:-
+TrainingPlanGuardrail.java[DA7T]: F:在通用计划校验外约束生成计划的周期、训练频次、周组数和动作范围 | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanValidationService.java | A:validate | S:提议生成和最终确认共用规则；周组数上限为 120
+
+===/<repository>/src/main/java/com/fitpilot/agent/config/===
+AgentProperties.java[FC4T]: F:绑定 Agent 功能开关、会话缓存、确认令牌与归档保留配置 | R:- | A:fitpilot.agent | S:-
+
+===/<repository>/src/main/java/com/fitpilot/agent/controller/===
+AgentController.java[EA6T]: F:暴露当前用户的 Agent 会话、消息、历史、待确认动作和偏好 API | R:code:src/main/java/com/fitpilot/agent/application/AgentWorkflowService.java | A:/api/v1/agent | S:-
+AgentOperationsController.java[EO5T]: F:暴露运维 Agent 执行指标、产品统计与期望工具标注 | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:/api/v1/operations/agent | S:-
+McpController.java[EA6T]: F:以 MCP 方法头和 JSON-RPC 封装发布工具、资源和提示入口 | R:code:src/main/java/com/fitpilot/agent/application/AgentWorkflowService.java | A:POST /mcp,tools/call,resources/read | S:身份来自 HTTP 认证；计划创建返回待确认结果
+TrainingAdjustmentController.java[EA5T]: F:暴露当前用户的计划调整历史、明细与拒绝操作 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:/api/v1/agent/plan-adjustments | S:-
+
+===/<repository>/src/main/java/com/fitpilot/agent/dto/===
+AgentDtos.java[CA5T]: F:定义 Agent 会话、历史游标、工具结果、确认令牌与 MCP 请求形状 | R:- | A:MessageRequest,MessageView,PendingActionView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/agent/infrastructure/===
+AgentRepository.java[PA7M]: F:持久化 Agent 会话、消息、审计、偏好与待确认动作并执行留存移除 | R:- | A:ownsSession,messageHistory,lockPending | S:待确认动作按 id 与 owner 加锁，清理跳过仍有有效待确认动作的会话
+
+===/<repository>/src/main/java/com/fitpilot/agent/memory/===
+AgentConversationRetentionJob.java[RA4T]: F:定时按 Agent 保留期与批大小删除到期对话 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:fitpilot.agent.retention-cron | S:-
+AgentSessionStore.java[PA7S]: F:以 PostgreSQL 保存 Agent 消息，Redis 缓存近期记录并提供历史分页 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:append,messages,history | S:Redis 不可用回落数据库；完整历史不依赖近端缓存
+
+===/<repository>/src/main/java/com/fitpilot/agent/product/===
+AgentProductMetricsDtos.java[CO4T]: F:定义产品留存、调整漏斗、可靠性和训练结果的快照结构 | R:- | A:Snapshot,TrainingOutcome | S:-
+AgentProductMetricsProperties.java[FC4T]: F:验证 Agent 产品指标观察窗与训练结果观察窗配置 | R:- | A:windowDays,outcomeWindowDays | S:-
+AgentProductMetricsPublisher.java[RO5T]: F:定时生成产品指标快照并向 Micrometer 注册 Gauge | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:refresh | S:Gauge 读取快照，避免抓取时实时查询
+AgentProductMetricsRepository.java[PO6S]: F:按会话首用队列、建议状态、模型版本及对称训练窗口执行 SQL 聚合 | R:- | A:retention,suggestionFunnel | S:留存仅纳入已满七天的首次使用用户
+AgentProductMetricsService.java[AO6T]: F:把数据库实数计数汇成带指标口径的留存、漏斗、成本及前后差值 | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsRepository.java | A:snapshot | S:零分母统一返回零，成本按成功执行数分摊
+
+===/<repository>/src/main/java/com/fitpilot/analytics/application/===
+AnalyticsService.java[AB5T]: F:聚合当前用户周训练、动作进展和体重趋势 | R:code:src/main/java/com/fitpilot/analytics/infrastructure/AnalyticsMapper.java | A:overview,exerciseProgress,bodyWeightTrend | S:-
+
+===/<repository>/src/main/java/com/fitpilot/analytics/controller/===
+AnalyticsController.java[EB4T]: F:用认证用户暴露训练总览、动作进度及体重曲线 | R:code:src/main/java/com/fitpilot/analytics/application/AnalyticsService.java | A:/api/v1/analytics | S:-
+
+===/<repository>/src/main/java/com/fitpilot/analytics/dto/===
+AnalyticsDtos.java[CB3T]: F:定义周训练量、动作进展和体测趋势的分析响应字段 | R:- | A:Overview,ExerciseProgress,BodyWeightPoint | S:-
+
+===/<repository>/src/main/java/com/fitpilot/analytics/infrastructure/===
+AnalyticsMapper.java[PB5T]: F:通过分析投影读取周指标，并从训练表查询每日负重和估算一重复最大值 | R:- | A:workoutCount,exerciseProgress | S:-
+WorkoutAnalyticsProjectionRepository.java[PM6T]: F:用完成训练的事实构造或更新单训练分析投影 | R:- | A:project | S:按 workout_id UPSERT 幂等；找不到已完成训练则失败
+
+===/<repository>/src/main/java/com/fitpilot/auth/application/===
+AuthService.java[AI7T]: F:处理注册、密码登录、刷新与注销，发放访问及刷新令牌 | R:code:src/main/java/com/fitpilot/auth/application/RefreshTokenService.java,code:src/main/java/com/fitpilot/common/security/JwtService.java | A:register,login,refresh,logout | S:刷新仍检查账户激活状态
+RefreshTokenService.java[AI7T]: F:以 Redis 保存散列索引的一次性刷新凭证并支持撤销 | R:- | A:issue,rotate,revoke | S:GETDEL 原子消费旧凭证，过期或复用均拒绝
+
+===/<repository>/src/main/java/com/fitpilot/auth/controller/===
+AuthController.java[EI6T]: F:暴露注册、登录、刷新与注销，并通过受限 Cookie 传送刷新令牌 | R:code:src/main/java/com/fitpilot/auth/application/AuthService.java | A:/api/v1/auth | S:刷新 Cookie 使用 HttpOnly 和 SameSite=Strict，Secure 由配置控制
+
+===/<repository>/src/main/java/com/fitpilot/auth/dto/===
+AuthDtos.java[CI4T]: F:约束注册用户名、邮件和密码并定义登录响应及访问令牌合同 | R:- | A:RegisterRequest,LoginRequest,LoginView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/common/config/===
+MybatisConfig.java[FD4T]: F:注册 MyBatis-Plus 的 PostgreSQL 分页拦截器 | R:- | A:mybatisPlusInterceptor | S:-
+OpenApiConfig.java[FC3T]: F:给 OpenAPI 文档声明 FitPilot 信息与 JWT Bearer 认证方案 | R:- | A:bearerAuth | S:-
+RequestLoggingFilter.java[MO5T]: F:在请求与响应之间传递请求 ID 并写入日志上下文 | R:- | A:X-Request-Id | S:外部 ID 必须匹配字符和长度白名单，结束时清除 MDC
+
+===/<repository>/src/main/java/com/fitpilot/common/exception/===
+BusinessException.java[CG4T]: F:携带统一业务错误码、消息和 HTTP 状态 | R:- | A:BusinessException | S:默认状态为 400
+ErrorCode.java[CG5T]: F:集中定义各领域返回给客户端的数字错误码 | R:- | A:ErrorCode | S:-
+GlobalExceptionHandler.java[EG5T]: F:将业务、校验、授权和未处理异常转换为统一 HTTP 错误响应 | R:code:src/main/java/com/fitpilot/common/exception/ErrorCode.java,code:src/main/java/com/fitpilot/common/response/ApiResponse.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/common/idempotency/===
+IdempotencyRequest.java[CP5T]: F:用 Servlet 请求属性把幂等键和请求指纹传给业务服务 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFilter.java | A:from,ATTRIBUTE | S:-
+
+===/<repository>/src/main/java/com/fitpilot/common/operations/===
+OperationsAuthenticationFilter.java[MI7T]: F:为运维路径验证独立操作令牌并建立 OPERATIONS 身份 | R:code:src/main/java/com/fitpilot/common/security/SecureTokenMatcher.java,code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:X-Operations-Token | S:令牌未配置或无法匹配时拒绝，即使请求携带用户 JWT
+OperationsProperties.java[FI4T]: F:绑定运维 API 的独立访问令牌配置 | R:- | A:fitpilot.operations.token | S:-
+OperationsSecurityConfig.java[FI5T]: F:关闭操作令牌过滤器的容器级自动注册 | R:code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:operationsAuthenticationFilterRegistration | S:过滤器由 Spring Security 链执行
+
+===/<repository>/src/main/java/com/fitpilot/common/response/===
+ApiResponse.java[CG5T]: F:统一定义 JSON 响应的业务码、消息和数据字段 | R:- | A:ApiResponse | S:成功业务码为 0
+PageResult.java[CG4T]: F:统一返回分页项、总数、页号、页长与总页数 | R:- | A:PageResult.of | S:-
+
+===/<repository>/src/main/java/com/fitpilot/common/security/===
+CurrentUser.java[CI4T]: F:从 Spring Security 认证对象取得用户 ID | R:code:src/main/java/com/fitpilot/common/security/JwtAuthenticationFilter.java | A:CurrentUser.id | S:-
+JwtAuthenticationFilter.java[MI6T]: F:校验 Bearer JWT 并将数值 subject 转为请求认证身份 | R:code:src/main/java/com/fitpilot/common/security/JwtService.java | A:Authorization | S:令牌解析或 subject 转换失败时清除认证上下文
+JwtService.java[CI8T]: F:签发带过期时间的访问 JWT 并验证当前与轮换前密钥 | R:code:src/main/java/com/fitpilot/auth/application/AuthService.java | A:issue,parse,expirationSeconds | S:签发只使用当前密钥；验签可接受非空旧密钥；密钥至少 32 UTF-8 字节
+SecureTokenMatcher.java[CI5T]: F:用 UTF-8 字节进行操作凭证的常量时间比较 | R:- | A:matches | S:空预期值关闭认证
+SecurityConfig.java[FI8T]: F:配置无状态端点授权、密码编码与 JWT、运维和幂等过滤顺序 | R:code:src/main/java/com/fitpilot/common/operations/OperationsAuthenticationFilter.java,code:src/main/java/com/fitpilot/common/security/JwtAuthenticationFilter.java | A:securityFilterChain | S:运维路径需专用角色；IdempotencyFilter 在两种身份过滤之后
+
+===/<repository>/src/main/java/com/fitpilot/deployment/===
+FlywayMigrationMain.java[OD5T]: F:从部署环境取数据库配置并独立执行 Flyway 迁移 | R:code:deploy/k8s/base/migration-job.yml | A:main | S:连接变量缺失时退出并校验迁移文件名
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/application/===
+AgentEvaluationRunner.java[TA6T]: F:按规则或活动模型执行 Agent 工具选择样本并记录选择、违规和耗时 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java,code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:run | S:工具列表严格按序比较；每题先确认执行租约
+EvaluationDatasetLoader.java[TA4T]: F:从 classpath 的 UTF-8 JSONL 装载版本化 Agent/RAG 样本和语料 | R:- | A:agent,rag,ragCorpus | S:-
+EvaluationMetricCalculator.java[KA6S]: F:计算检索召回、倒数排名、nDCG、引用有效性和 Agent 评测统计 | R:- | A:scoreRagCase,AgentAccumulator,RagAccumulator | S:检索统计按分类聚合，同时保留总体指标
+EvaluationReportService.java[AA6S]: F:完成 Agent/RAG 评测并根据类别回退与引用门槛选择可接受配置 | R:code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java | A:finishAgent,finishRag,finishRagExperiment | S:引用有效性要求 100%，类别指标落后基线超过 5 个百分点即失败
+EvaluationService.java[AA6S]: F:创建 Agent/RAG 评测运行，冻结动态反馈样本和实验来源再调度 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java,code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java | A:startAgent,startRag,startRagFeedbackExperiment | S:反馈实验要求已批准负样本且包含所有预期来源
+EvaluationTaskScheduler.java[AR7S]: F:在有限线程池中接管、续租和运行评测，超时或丢失租约取消执行 | R:code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java,code:src/main/java/com/fitpilot/evaluation/config/EvaluationConfig.java | A:dispatch,recover | S:持久化 lease 控制领取、心跳、状态写回和恢复
+RagEvaluationRunner.java[TA6S]: F:为检索评测准备隔离语料、遍历样本及配置并清理临时文档 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:run | S:不同运行和配置使用不同外部文档身份和类别
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/config/===
+EvaluationConfig.java[FW4T]: F:配置有界评测线程池及独立心跳调度器 | R:- | A:evaluationExecutor,evaluationHeartbeatScheduler | S:-
+EvaluationProperties.java[FW5T]: F:绑定并验证评测线程上限、队列、心跳、租约、超时和恢复参数 | R:- | A:fitpilot.evaluation | S:-
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/controller/===
+EvaluationOperationsController.java[EA5T]: F:提供运维 Agent/RAG 评测、反馈实验启动和状态查询 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationService.java | A:/api/v1/operations/evaluations | S:-
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/domain/===
+EvaluationCases.java[CA4T]: F:声明 Agent/RAG 评测样本标签、文档版本引用和实验配置 | R:- | A:AgentCase,RagCase,RagExperiment | S:-
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/dto/===
+EvaluationDtos.java[CA4T]: F:约束 Agent 运行模式并定义评测任务状态及指标响应 | R:- | A:AgentRunRequest,RunView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/evaluation/infrastructure/===
+EvaluationRepository.java[PR7M]: F:持久化评测请求、样本结果、worker 租约、终态和最近成功基线 | R:- | A:reserve,start,renewLease,requeueExpiredLeases | S:领取及转运行检查 deadline；终态更新须匹配 RUNNING 和 worker_id
+
+===/<repository>/src/main/java/com/fitpilot/exercise/application/===
+ExerciseService.java[AB5T]: F:规范动作筛选条件，缓存详情并提供直查有效动作的方法 | R:code:src/main/java/com/fitpilot/exercise/repository/ExerciseRepository.java,code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:search,get,findActiveByIds | S:-
+
+===/<repository>/src/main/java/com/fitpilot/exercise/controller/===
+ExerciseController.java[EB4T]: F:发布带分页与条件过滤的动作库列表和单项详情接口 | R:code:src/main/java/com/fitpilot/exercise/application/ExerciseService.java | A:/api/v1/exercises | S:-
+
+===/<repository>/src/main/java/com/fitpilot/exercise/domain/===
+Exercise.java[DB3T]: F:映射动作表的名称、分类、器械、肌群、说明及有效状态 | R:- | A:exercise | S:-
+
+===/<repository>/src/main/java/com/fitpilot/exercise/dto/===
+ExerciseView.java[CB3T]: F:向调用方提供去除持久化状态与时间字段的动作视图 | R:- | A:ExerciseView.from | S:-
+
+===/<repository>/src/main/java/com/fitpilot/exercise/infrastructure/===
+ExerciseMapper.java[PB3T]: F:为动作实体提供 MyBatis-Plus 基础持久化映射 | R:code:src/main/java/com/fitpilot/exercise/domain/Exercise.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/exercise/repository/===
+ExerciseRepository.java[PB5T]: F:查询有效动作并分页匹配名称、器械、类别和肌群 | R:code:src/main/java/com/fitpilot/exercise/infrastructure/ExerciseMapper.java | A:findActive,findActiveByIds,search | S:所有查询限制 status=1
+
+===/<repository>/src/main/java/com/fitpilot/infrastructure/events/===
+DeadLetterEvent.java[CM3T]: F:表示含 Kafka 坐标、原始数据、失败原因及回放状态的死信记录 | R:- | A:DeadLetterEvent | S:-
+DeadLetterRepository.java[PM5T]: F:登记 Kafka 死信载荷和坐标，查询开放记录并更新回放状态 | R:code:src/main/java/com/fitpilot/infrastructure/events/KafkaEventConfig.java | A:save,findOpen,markReplayed | S:-
+DeadLetterService.java[AM6T]: F:回放开放 Kafka 死信或重新排队失败 Outbox | R:code:src/main/java/com/fitpilot/infrastructure/events/DeadLetterRepository.java,code:src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java | A:list,replay,replayOutbox | S:只在 Kafka 发送确认后标记死信已回放
+EventEnvelope.java[CM5T]: F:定义含身份、版本、聚合键、追踪与 JSON 载荷的通用事件信封 | R:- | A:EventEnvelope | S:-
+EventEnvelopeReader.java[IM5T]: F:验证事件 ID、版本和期望类型并转换为强类型事件载荷 | R:code:src/main/java/com/fitpilot/infrastructure/events/EventEnvelope.java | A:read | S:-
+EventOperationsController.java[EM5T]: F:开放运维事件状态、死信查询及两条回放入口 | R:code:src/main/java/com/fitpilot/infrastructure/events/DeadLetterService.java | A:/api/v1/operations/events | S:-
+EventOutboxService.java[AM6T]: F:在业务写路径构造版本化领域事件并插入 Outbox | R:code:src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java | A:append | S:作为调用方事务的一部分写入；发送由 Relay 负责
+EventPayloads.java[CM4T]: F:定义训练完成、个人纪录和计划变化事件的数据合同 | R:- | A:WorkoutCompleted,PersonalRecordCreated,TrainingPlanChanged | S:-
+EventProperties.java[FM4T]: F:绑定事件开关、Relay 批量上限和租约、发送超时与消费者配置 | R:- | A:fitpilot.events | S:-
+EventStatusService.java[AM4T]: F:统计 Outbox 各状态、开放死信和消费回执总数 | R:- | A:status | S:-
+EventTopics.java[CM4T]: F:集中约定训练、纪录和计划事件 Kafka 主题名 | R:- | A:EventTopics | S:-
+EventTypes.java[CM5T]: F:定义领域事件类型并按严格映射解析目标主题 | R:code:src/main/java/com/fitpilot/infrastructure/events/EventTopics.java | A:topicFor | S:-
+KafkaEventConfig.java[FM6T]: F:声明事件主题、重试退避和 Kafka/数据库双死信处理 | R:code:src/main/java/com/fitpilot/infrastructure/events/DeadLetterRepository.java | A:eventErrorHandler | S:关闭事件开关会跳过 Kafka 配置
+OutboxEvent.java[CM4T]: F:承载已领取的 Outbox 记录、重试次数与本次领取 token | R:- | A:OutboxEvent | S:-
+OutboxRelay.java[RM8T]: F:按轮次上限逐条领取、续租、等 Kafka 结果并按领取权回写 | R:code:src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java | A:relay | S:每次仅领一条；已失去 token 的执行者不得推进状态
+OutboxRepository.java[PM8T]: F:实现 Outbox 插入、跳锁接管、续租、发布结果和人工重试 | R:code:src/main/resources/db/migration/V20__add_outbox_claim_token.sql | A:claimBatch,refreshClaim,markSent,markFailed,replayFailed | S:领取分配新 UUID；续租和结果更新须匹配 SENDING 及 token
+PersonalRecordEventConsumer.java[IM4T]: F:把个人纪录 Kafka 事件交给通知消费者的事务 Handler | R:code:src/main/java/com/fitpilot/infrastructure/events/PersonalRecordEventHandler.java | A:notification | S:-
+PersonalRecordEventHandler.java[AM6T]: F:记录个人纪录事件消费权并在同一事务插入用户通知 | R:code:src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java,code:src/main/java/com/fitpilot/notification/infrastructure/NotificationRepository.java | A:notifyUser | S:-
+ProcessedEventRepository.java[PM6T]: F:以事件 ID 与消费者复合键登记 Inbox 去重权 | R:- | A:claim | S:冲突直接忽略，业务 Handler 必须共用同一事务
+WorkoutCompletedEventHandler.java[AM7T]: F:分别事务化消费训练完成事件，投影个人纪录和统计结果 | R:code:src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java,code:src/main/java/com/fitpilot/analytics/infrastructure/WorkoutAnalyticsProjectionRepository.java | A:projectPersonalRecords,projectAnalytics | S:两组各自去重；数据库训练必须已完成且 owner 匹配载荷
+WorkoutEventConsumers.java[IM4T]: F:为训练完成主题配置 PR 与分析的独立消费组 | R:code:src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/infrastructure/performance/===
+ApiRateLimitInterceptor.java[MP6T]: F:按用户或来源地址装配 API 限流范围并返回拒绝与降级标识 | R:code:src/main/java/com/fitpilot/infrastructure/performance/RedisTokenBucketRateLimiter.java | A:X-RateLimit-Degraded | S:无用户认证时使用 Servlet remote address
+CachedBodyHttpServletRequest.java[MP4T]: F:为已读取的 Servlet 消息体提供可重读的流和 Reader | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFilter.java | A:getInputStream,getReader | S:只支持同步读取
+DistributedLockService.java[RP6T]: F:用 Redis 原子占位管理带 token 和 TTL 的缓存重建锁 | R:- | A:tryLock,LockHandle.close | S:仅锁 token 匹配才释放，避免删除后继持有者的锁
+IdempotencyFilter.java[MP8S]: F:为带幂等键的写请求原子占位、识别冲突并回放限额内成功响应 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFingerprint.java,code:src/main/java/com/fitpilot/common/idempotency/IdempotencyRequest.java | A:Idempotency-Key | S:Redis 失败时请求仍带指纹交给服务；相同键异指纹返回冲突
+IdempotencyFingerprint.java[KP6T]: F:规范请求路径与查询并计算绑定身份和正文的 Redis 范围与指纹 | R:- | A:create,canonicalQuery | S:-
+PerformanceConfig.java[FP5T]: F:注册 Caffeine 容量/写后过期策略，并关闭幂等过滤器自动注册 | R:code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:hotDataLocalCache | S:-
+PerformanceController.java[EP4T]: F:以 HTTP 返回两级缓存的本实例统计 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:GET /api/v1/performance/cache-stats | S:-
+PerformanceProperties.java[FP4T]: F:统一绑定缓存、限流、幂等和排行榜运行参数 | R:- | A:fitpilot.performance | S:-
+PerformanceWebConfig.java[FP4T]: F:为所有 v1 API 路由安装性能限流拦截器 | R:code:src/main/java/com/fitpilot/infrastructure/performance/ApiRateLimitInterceptor.java | A:- | S:-
+RedisFailureGuard.java[RO3T]: F:以原子时间门槛节流 Redis 降级告警 | R:- | A:warn | S:每实例至少间隔一分钟
+RedisTokenBucketRateLimiter.java[RP7T]: F:运行 Redis Lua 令牌桶，基础设施故障时换用进程内桶 | R:code:src/main/resources/redis/token_bucket.lua | A:consume | S:降级桶用同步更新保护，实例间限流额度不共享
+TwoLevelCache.java[RP8S]: F:组织 Caffeine、Redis 和数据库回源，处理空值、防击穿及提交后失效 | R:code:src/main/java/com/fitpilot/infrastructure/performance/DistributedLockService.java | A:get,evict,evictAfterCommit | S:锁未取得只有限等待；事务提交删除本机 L1 与共享 L2
+
+===/<repository>/src/main/java/com/fitpilot/llm/application/===
+LlmAuditRetentionJob.java[RS4T]: F:按配置定期删除超过保留窗口的模型调用审计 | R:code:src/main/java/com/fitpilot/llm/infrastructure/LlmInvocationRepository.java | A:cleanup | S:-
+LlmGateway.java[AA8T]: F:为 Agent 意图、计划草案和分析答复提供模型调用与确定性回退 | R:code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java,code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:decide,generatePlan,answer | S:拒绝嵌套身份参数；写意图必须匹配完整的有序工具链
+ModelRouter.java[AA5T]: F:按推理任务选择端点的小型、中型或强模型 | R:- | A:model | S:-
+PromptRegistry.java[FA5T]: F:为意图、草案、问答、检索改写和偏好提取提供版本化提示 | R:- | A:version,system | S:提示将用户输入与检索证据作为不可信数据处理
+
+===/<repository>/src/main/java/com/fitpilot/llm/config/===
+LlmProperties.java[FA5T]: F:绑定模型端点、各任务模型、计价、预算、熔断及提示版本并验证配置 | R:- | A:fitpilot.llm | S:-
+
+===/<repository>/src/main/java/com/fitpilot/llm/controller/===
+LlmOperationsController.java[EO4T]: F:暴露模型网关状态和可按状态与模型过滤的调用审计 | R:code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:/api/v1/operations/llm | S:-
+
+===/<repository>/src/main/java/com/fitpilot/llm/domain/===
+LlmModels.java[CA4T]: F:承载模型任务、工具决策、完成用量以及规则回退结果 | R:- | A:Task,Completion,Result.rule | S:-
+
+===/<repository>/src/main/java/com/fitpilot/llm/dto/===
+LlmDtos.java[CO3T]: F:定义对外模型调用审计的状态、时长、用量与费用字段 | R:- | A:InvocationView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/llm/infrastructure/===
+LlmInvocationRepository.java[PO5T]: F:持久化模型调用元数据并支持分页前置限制和保留期清理 | R:- | A:record,list,deleteOlderThan | S:表中存统计字段，不写提示正文和模型答复
+LlmProviderException.java[IA4T]: F:传递 Provider 错误码、状态、可重试性和等待提示 | R:- | A:LlmProviderException | S:-
+LlmResiliencePolicy.java[RR8S]: F:统一实施请求截止时间、并发隔离、逐端点熔断和退避 | R:code:src/main/java/com/fitpilot/llm/config/LlmProperties.java | A:deadline,acquireBulkhead,acquireCircuit,sleepBeforeRetry | S:半开每端点只许可一个探测；等待不能超过剩余预算
+OpenAiCompatibleClient.java[IA8S]: F:以共享预算串联主备模型、重试和审计，输出用量和降级标记 | R:code:src/main/java/com/fitpilot/llm/infrastructure/LlmResiliencePolicy.java,code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiProviderTransport.java | A:complete,status | S:半开不重试；失败和断路器拒绝都有调用审计
+OpenAiProviderTransport.java[IN7S]: F:构造 OpenAI 兼容 HTTP 请求，解析模型答复、费用和可重试错误 | R:code:src/main/java/com/fitpilot/llm/security/SensitiveDataRedactor.java | A:request | S:外发用户文本先脱敏；请求超时取剩余截止预算和配置的较小值
+
+===/<repository>/src/main/java/com/fitpilot/llm/security/===
+SensitiveDataRedactor.java[CS5T]: F:掩盖模型请求文本中的邮箱、Bearer/JWT 和常见密码字段 | R:- | A:redact | S:-
+
+===/<repository>/src/main/java/com/fitpilot/notification/controller/===
+NotificationController.java[EB5T]: F:提供用户通知列表、未读计数和单项或全部已读操作 | R:code:src/main/java/com/fitpilot/notification/infrastructure/NotificationRepository.java | A:/api/v1/notifications | S:-
+
+===/<repository>/src/main/java/com/fitpilot/notification/dto/===
+NotificationView.java[CB3T]: F:描述通知内容、未读状态及创建时间的响应记录 | R:- | A:NotificationView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/notification/infrastructure/===
+NotificationRepository.java[PM5T]: F:将 PR 事件转为通知并按 owner 读取和标记已读 | R:- | A:insert,findByUser,markRead,unreadCount,markAllRead | S:相同 source_event_id 的重复插入忽略
+
+===/<repository>/src/main/java/com/fitpilot/observability/===
+FitPilotMetrics.java[RO5T]: F:集中记录 Agent、工具、模型、检索和 Outbox 的 Micrometer 指标 | R:- | A:agent,tool,llm,rag,outbox | S:-
+InfrastructureMetrics.java[RO5T]: F:发布缓存统计和定时采样的 Outbox 积压数量及最旧年龄 | R:code:src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java | A:refresh | S:-
+ObservabilityConfig.java[FO3T]: F:启用 Micrometer Observed 注解的 AOP 观测 | R:- | A:observedAspect | S:-
+RepositoryObservationAspect.java[MO5T]: F:统一追踪 Repository 方法、错误和 PostgreSQL 低基数标签 | R:- | A:fitpilot.database | S:观测作用域结束时总是停止
+
+===/<repository>/src/main/java/com/fitpilot/plan/application/===
+TrainingPlanService.java[AB8M]: F:在 owner 约束下创建、版本编辑和激活计划，提供展示读取与训练模板 | R:code:src/main/java/com/fitpilot/plan/repository/TrainingPlanRepository.java,code:src/main/java/com/fitpilot/infrastructure/events/EventOutboxService.java | A:create,update,activate,workoutTemplate | S:草案版本更新后才重建明细；有效版本写前置条件直查，激活后提交时失效缓存
+TrainingPlanValidationService.java[AB4T]: F:提供应用层计划校验入口供计划与 Agent 共用 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlanValidator.java | A:validate | S:-
+
+===/<repository>/src/main/java/com/fitpilot/plan/controller/===
+TrainingPlanController.java[EB5T]: F:发布当前用户草案、计划详情、编辑、活动计划与激活 API | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:/api/v1/training-plans | S:-
+
+===/<repository>/src/main/java/com/fitpilot/plan/domain/===
+TrainingPlan.java[DB4T]: F:映射用户计划描述、周期、状态、版本与起止日期 | R:- | A:training_plan | S:-
+TrainingPlanDay.java[DB3T]: F:映射计划下按日编号组织的日程记录 | R:- | A:training_plan_day | S:-
+TrainingPlanExercise.java[DB4T]: F:映射计划日的动作顺序、目标组数、次数、RPE 和休息时间 | R:- | A:training_plan_exercise | S:-
+TrainingPlanValidator.java[DB5T]: F:验证计划日号、日内动作顺序唯一和次数区间次序 | R:- | A:validate | S:-
+
+===/<repository>/src/main/java/com/fitpilot/plan/dto/===
+TrainingPlanDtos.java[CB5T]: F:定义计划新建、版本编辑和层级详情的字段校验合同 | R:- | A:CreateRequest,UpdateRequest,PlanView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/plan/infrastructure/===
+TrainingPlanDayMapper.java[PB3T]: F:提供训练日程记录的 MyBatis-Plus 数据访问映射 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlanDay.java | A:- | S:-
+TrainingPlanExerciseMapper.java[PB3T]: F:提供计划日动作明细的 MyBatis-Plus 数据访问映射 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlanExercise.java | A:- | S:-
+TrainingPlanMapper.java[PB3T]: F:提供训练计划根对象的 MyBatis-Plus 数据访问映射 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlan.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/plan/repository/===
+TrainingPlanRepository.java[PB6T]: F:维护训练计划及层级明细的归属、排序、活动状态和版本更新 | R:- | A:findOwned,findActive,updateDraft,archiveActive | S:草稿 CAS 同时匹配 owner、状态和版本并加一
+
+===/<repository>/src/main/java/com/fitpilot/pr/application/===
+LeaderboardService.java[AP6S]: F:利用 Redis ZSet 缓存按动作与纪录类型的排行，可回源 SQL | R:code:src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java | A:top,update | S:加载标识单独设置 TTL；缓存失败时查数据库
+PersonalRecordService.java[AB7S]: F:从完整训练组检测新的个人纪录，幂等持久化并更新排行 | R:code:src/main/java/com/fitpilot/pr/domain/PersonalRecordCalculator.java,code:src/main/java/com/fitpilot/pr/repository/PersonalRecordRepository.java | A:calculateAndPersist,current,history | S:仅接受严格提高的成绩；事务提交后再更新 Redis 排行榜
+
+===/<repository>/src/main/java/com/fitpilot/pr/controller/===
+LeaderboardController.java[EB4T]: F:校验有效动作并按记录类型和数量返回公开排名数据 | R:code:src/main/java/com/fitpilot/pr/application/LeaderboardService.java | A:/api/v1/leaderboards/exercises/{exerciseId} | S:-
+PersonalRecordController.java[EB4T]: F:按当前用户读取所有最佳纪录、动作最佳纪录和历史 | R:code:src/main/java/com/fitpilot/pr/application/PersonalRecordService.java | A:/api/v1/personal-records | S:-
+
+===/<repository>/src/main/java/com/fitpilot/pr/domain/===
+PersonalRecord.java[DB4T]: F:映射纪录成绩、类型与关联的训练及组来源 | R:- | A:personal_record | S:-
+PersonalRecordCalculator.java[KB6T]: F:以 Epley 算法估算最大重量并导出重量、训练量与适用次数纪录 | R:- | A:estimatedOneRepMax,candidates | S:未完成或热身组不产生纪录候选
+
+===/<repository>/src/main/java/com/fitpilot/pr/dto/===
+LeaderboardRow.java[CB3T]: F:承载 SQL 排行榜中的用户、用户名和分数 | R:- | A:LeaderboardRow | S:-
+PersonalRecordView.java[CB3T]: F:将个人纪录持久化行映射为 API 视图 | R:- | A:PersonalRecordView.from | S:-
+
+===/<repository>/src/main/java/com/fitpilot/pr/infrastructure/===
+PersonalRecordMapper.java[PB5T]: F:查询各动作与纪录类型最新 PR，并按业务计分公式聚合排行 | R:- | A:selectCurrent,selectLeaderboard | S:个人最佳读按达成时间和 id 打破并列
+
+===/<repository>/src/main/java/com/fitpilot/pr/repository/===
+PersonalRecordRepository.java[PB6T]: F:持久化个人纪录并按 owner 查询当前、历史、训练和时间段计数 | R:code:src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java | A:insertIfAbsent,findCurrent,findHistory | S:同一训练组与纪录类型仅插入一次
+
+===/<repository>/src/main/java/com/fitpilot/rag/application/===
+EvidenceSupportGate.java[KA7S]: F:用查询锚点覆盖、数值和特定事实检查决定文段是否支持作答 | R:code:src/main/java/com/fitpilot/rag/processing/TextAnalyzer.java | A:verify | S:特定事实缺失先拒绝，主题相似度不能越过该检查
+HybridRetrievalService.java[AA8M]: F:融合 BM25 与 pgvector，按父块去重重排，经证据门槛返回引用 | R:code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java,code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java | A:search,searchOffline | S:单路失败可降级，两路均失败返回不可用；离线查询不记录线上审计
+KnowledgeIndexingService.java[AR6T]: F:取得数据库索引状态后重建 Elasticsearch 文档并定时重试 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:indexNow,reindex | S:先以数据库状态取得索引权，再标记成功或失败
+KnowledgeIngestionService.java[AA7S]: F:校验来源、解析并嵌入文档，落库版本后索引并编排删除恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java | A:ingest,reindex,delete,restore | S:过期时间须晚于生效时间；恢复历史内容走新摄取
+RagExperimentCatalog.java[AA4T]: F:枚举离线反馈对照使用的分块、融合权重与重排策略 | R:code:src/main/java/com/fitpilot/rag/domain/RagTuningProfile.java | A:profiles | S:-
+RagFeedbackService.java[AA6T]: F:校验检索反馈归属与引用，从人工审核产生动态评测样本和语料 | R:code:src/main/java/com/fitpilot/rag/infrastructure/RagGovernanceRepository.java | A:submit,review,evaluationCorpus | S:负反馈需原因；审核通过需准确来源
+
+===/<repository>/src/main/java/com/fitpilot/rag/config/===
+RagProperties.java[FA5S]: F:定义 RAG 服务、嵌入、分块、检索和索引配置 | R:- | A:fitpilot.rag | S:数据库向量维度固定 384；子块重叠必须小于子块长度
+
+===/<repository>/src/main/java/com/fitpilot/rag/controller/===
+RagFeedbackController.java[EA4T]: F:让已认证用户为某次检索提交答案或引用反馈 | R:code:src/main/java/com/fitpilot/rag/application/RagFeedbackService.java | A:PUT /api/v1/rag/retrievals/{retrievalId}/feedback | S:-
+RagFeedbackOperationsController.java[EA4T]: F:暴露运维反馈队列、审核与汇总接口 | R:code:src/main/java/com/fitpilot/rag/application/RagFeedbackService.java | A:/api/v1/operations/rag/feedback | S:-
+RagOperationsController.java[EA5T]: F:提供知识文档摄取、清单、索引重试、版本恢复和删除状态 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIngestionService.java | A:/api/v1/operations/rag/documents | S:-
+RagSearchController.java[EA5T]: F:为认证用户公开按问题、候选数和类别发起检索的接口 | R:code:src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java | A:GET /api/v1/rag/search | S:-
+
+===/<repository>/src/main/java/com/fitpilot/rag/domain/===
+KnowledgeModels.java[CA4T]: F:描述带版本来源的文档、父子知识块、命中和上下文 | R:- | A:Document,StoredChunk,IndexChunk,ChunkContext | S:-
+RagTuningProfile.java[DA5T]: F:固定离线检索分块、RRF 和重排参数并验证配置组合 | R:- | A:RagTuningProfile | S:融合权重允许关闭单路，但至少一路权重大于零
+
+===/<repository>/src/main/java/com/fitpilot/rag/dto/===
+RagDtos.java[CA5T]: F:定义知识文档、检索引用、生命周期与反馈的 API 校验和响应 | R:- | A:IngestDocumentRequest,SearchResponse,Citation,FeedbackRequest | S:-
+
+===/<repository>/src/main/java/com/fitpilot/rag/embedding/===
+EmbeddingProvider.java[IA4T]: F:定义将文本转成浮点向量的服务接口与供应商标识 | R:- | A:embed,name | S:-
+LocalHashingEmbeddingProvider.java[KA5T]: F:通过 FNV-1a 对中英文词元做确定性特征哈希并归一化 | R:code:src/main/java/com/fitpilot/rag/processing/TextAnalyzer.java | A:local-hashing-v1 | S:-
+OpenAiCompatibleEmbeddingProvider.java[IA6T]: F:调用 OpenAI 兼容嵌入端点并验证服务响应的向量尺寸 | R:code:src/main/java/com/fitpilot/rag/config/RagProperties.java | A:embed | S:启动要求端点和密钥；响应维度必须匹配配置
+
+===/<repository>/src/main/java/com/fitpilot/rag/infrastructure/===
+ElasticsearchKnowledgeIndex.java[IA7S]: F:维护 Elasticsearch 词法映射，批量替换子块并按过滤条件进行 BM25 查询 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java | A:ensureIndex,replaceDocument,search | S:批量 HTTP 成功仍要检查逐项错误
+KnowledgeRepository.java[PA8M]: F:维护知识文档、版本、子块、索引任务状态与 pgvector 检索 | R:- | A:replace,markIndexing,retryCandidates | S:按外部 ID 锁定已有文档写版本；读取过滤未生效、过期、删除内容
+RagGovernanceRepository.java[PA7M]: F:持久化检索快照、反馈、审核样本、修订和删除任务 | R:- | A:saveRetrieval,upsertFeedback,review | S:同一反馈再提交时使相关既有动态样本失效
+
+===/<repository>/src/main/java/com/fitpilot/rag/processing/===
+DocumentParser.java[KA4T]: F:将 Markdown 归一化并按标题提取内容段，纯文本保留为单段 | R:- | A:parse | S:-
+ParentChildChunker.java[KA5T]: F:按配置或评测参数切分父块与重叠子块并优先使用句边界 | R:- | A:chunk | S:-
+TextAnalyzer.java[KA5T]: F:以 NFKC 分词并组合连续汉字的二元项用于词法和哈希检索 | R:- | A:tokens,lexicalText | S:-
+
+===/<repository>/src/main/java/com/fitpilot/user/application/===
+UserAccountService.java[AI5T]: F:提供认证用账户查询、重复检查和账户创建 | R:code:src/main/java/com/fitpilot/user/repository/UserRepository.java | A:create,findByUsername,findById | S:-
+UserService.java[AB6S]: F:缓存当前用户资料，更新资料及写入和查询体测趋势 | R:code:src/main/java/com/fitpilot/user/repository/BodyMetricRepository.java,code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:getProfile,updateProfile,addMetric | S:资料更新提交后失效；体测日期逆序时拒绝
+
+===/<repository>/src/main/java/com/fitpilot/user/controller/===
+UserController.java[EB5T]: F:提供当前用户资料、资料更新与体测新增及查询入口 | R:code:src/main/java/com/fitpilot/user/application/UserService.java | A:/api/v1/users/me | S:-
+
+===/<repository>/src/main/java/com/fitpilot/user/domain/===
+BodyMetric.java[DB3T]: F:映射用户体重、体脂率、肌量及测量与创建时间 | R:- | A:body_metric | S:-
+User.java[DI4T]: F:映射账户登录名、邮件、密码散列和账户状态 | R:- | A:users | S:-
+UserProfile.java[DB3T]: F:映射用户训练目标、经历、周期偏好与人口统计资料 | R:- | A:user_profile | S:-
+
+===/<repository>/src/main/java/com/fitpilot/user/dto/===
+UserDtos.java[CB4T]: F:约束用户资料与体测的日期、单位范围并定义响应视图 | R:- | A:ProfileUpdateRequest,BodyMetricRequest | S:-
+
+===/<repository>/src/main/java/com/fitpilot/user/infrastructure/===
+BodyMetricMapper.java[PB3T]: F:提供体测记录的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/user/domain/BodyMetric.java | A:- | S:-
+UserMapper.java[PI3T]: F:提供账户实体的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/user/domain/User.java | A:- | S:-
+UserProfileMapper.java[PB3T]: F:提供用户资料实体的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/user/domain/UserProfile.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/user/repository/===
+BodyMetricRepository.java[PB4T]: F:按用户及记录时间新增、分页和查询最近或区间体测 | R:code:src/main/java/com/fitpilot/user/infrastructure/BodyMetricMapper.java | A:findPage,latest,findRange | S:-
+UserRepository.java[PI5T]: F:按账户 ID、用户名或邮箱访问账户并维护配套用户资料 | R:- | A:findByUsername,emailExists,findProfile | S:-
+
+===/<repository>/src/main/java/com/fitpilot/workout/application/===
+RecoverableSetService.java[AR8T]: F:在统一父行锁下处理可恢复组写入及数据库回执重放 | R:code:src/main/java/com/fitpilot/workout/repository/WorkoutReceiptRepository.java,code:src/main/java/com/fitpilot/workout/application/WorkoutService.java | A:add | S:先在 owner 锁内匹配操作 ID、动作与正文；回执与新增组同事务
+WorkoutFeedbackService.java[AB6T]: F:锁定所属已完成训练，新增或更新疼痛、疲劳及备注反馈 | R:code:src/main/java/com/fitpilot/workout/repository/WorkoutRepository.java | A:upsert,find | S:只能对 COMPLETED 训练写反馈；每次训练仅保存一条
+WorkoutService.java[AB9M]: F:事务化开始、追加动作与组、完成和取消训练，读取活动与历史快照 | R:code:src/main/java/com/fitpilot/workout/repository/WorkoutRepository.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java,code:src/main/java/com/fitpilot/infrastructure/events/EventOutboxService.java | A:create,addSet,previousSets,complete,cancel | S:开始时复制活动计划内容；同一次训练的修改先锁 owner 父行，完成与事件原子写入
+
+===/<repository>/src/main/java/com/fitpilot/workout/controller/===
+WorkoutController.java[EB7S]: F:暴露训练开练、历史、动作和组编辑、终态及训练反馈 API | R:code:src/main/java/com/fitpilot/workout/application/WorkoutService.java,code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java | A:/api/v1/workouts,Client-Operation-Id | S:普通幂等元数据用于开练，离线组通过独立操作 UUID
+
+===/<repository>/src/main/java/com/fitpilot/workout/domain/===
+Workout.java[DB4T]: F:映射训练主行、计划来源、状态、时长及开练幂等字段 | R:- | A:workout | S:-
+WorkoutExercise.java[DB4T]: F:映射训练中的动作顺序、名字和训练目标快照 | R:- | A:workout_exercise | S:-
+WorkoutSet.java[DB5T]: F:映射训练组的重量、次数、用力、热身及完成状态 | R:- | A:workout_set | S:clientOperationId 由回执补充而非组表列
+
+===/<repository>/src/main/java/com/fitpilot/workout/dto/===
+WorkoutDtos.java[CB5T]: F:定义训练、训练组及反馈的请求校验与回执视图 | R:- | A:CreateRequest,SetRequest,SetView,CompleteView | S:-
+
+===/<repository>/src/main/java/com/fitpilot/workout/infrastructure/===
+WorkoutExerciseMapper.java[PB3T]: F:提供训练动作快照的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/workout/domain/WorkoutExercise.java | A:- | S:-
+WorkoutMapper.java[PB3T]: F:提供训练主记录的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/workout/domain/Workout.java | A:- | S:-
+WorkoutSetMapper.java[PB3T]: F:提供训练组的 MyBatis-Plus 映射 | R:code:src/main/java/com/fitpilot/workout/domain/WorkoutSet.java | A:- | S:-
+
+===/<repository>/src/main/java/com/fitpilot/workout/repository/===
+WorkoutReceiptRepository.java[PR6T]: F:按训练与操作 UUID 保存并查询可恢复组请求和响应的 JSONB 回执 | R:code:src/main/resources/db/migration/V19__add_workout_set_receipts.sql | A:find,insert | S:-
+WorkoutRepository.java[PB8S]: F:持久化训练快照与历史组，并为开练和既有训练写提供锁与回执补充 | R:- | A:lockCreationForUser,lockOwned,findPreviousWorkingSets | S:开练锁用户，既有训练先锁 owner 父行；历史只取此前同用户最近有有效工作组的训练
+
+===/<repository>/src/main/resources/===
+application-prod.yml[FO4T]: F:在生产 profile 关闭 API 文档并独立暴露健康、信息和指标 | R:- | A:MANAGEMENT_SERVER_PORT | S:-
+application.yml[FG7M]: F:配置 PostgreSQL、Redis、Kafka、Flyway、认证、观测、AI 与性能开关 | R:code:src/main/resources/application-prod.yml | A:application.yml | S:Kafka 使用 record ack 与 read_committed；默认关闭外部 LLM，启用 RAG 证据门槛
+
+===/<repository>/src/main/resources/db/migration/===
+V10__enforce_single_active_workout.sql[FD6T]: F:以部分唯一索引强制每个用户最多一个进行中训练 | R:- | A:uk_workout_one_in_progress | S:-
+V11__use_timezone_for_agent_confirmation.sql[FD4T]: F:按 UTC 解释旧过期时间并迁移确认令牌过期列至带时区类型 | R:- | A:agent_pending_action.expires_at | S:-
+V12__persist_agent_conversations.sql[FD5T]: F:增加会话标题与归档、持久化消息及游标和保留期索引 | R:- | A:agent_message,idx_agent_message_session_cursor | S:-
+V13__add_training_feedback_and_adjustments.sql[FD6T]: F:建立训练反馈与计划调整表并定义待确认提议唯一范围 | R:- | A:workout_feedback,plan_adjustment | S:同用户同来源计划仅允许一份待确认调整
+V14__add_rag_governance_feedback.sql[FD6T]: F:追加知识生命周期与版本，创建删除任务、检索快照、反馈和动态评测结构 | R:- | A:knowledge_document_revision,rag_retrieval,rag_feedback | S:迁移后已有知识文档标记为待重索引
+V15__add_agent_product_metrics_indexes.sql[FD4T]: F:为留存、执行窗口、建议漏斗和已接受调整结果增加 SQL 索引 | R:- | A:- | S:-
+V16__add_workout_business_idempotency.sql[FD6T]: F:为开练保存业务幂等键及请求指纹并在用户范围约束唯一 | R:- | A:uk_workout_user_idempotency | S:键与指纹须同时为空或同时存在
+V17__add_evaluation_lifecycle.sql[FD6T]: F:为 Agent/RAG 评测增添排队、截止、心跳、租约和重启恢复状态 | R:- | A:idx_rag_eval_recovery | S:-
+V18__add_rag_feedback_experiments.sql[FD5T]: F:增加 RAG 实验报告与按配置划分的样本结果约束 | R:- | A:uq_rag_eval_result_profile_case | S:结果键改为运行、配置及样本三元组
+V19__add_workout_set_receipts.sql[FD6T]: F:创建离线训练组请求及原始响应回执表 | R:- | A:workout_set_receipt | S:回执按训练与操作 UUID 标识，脱离训练组编辑或删除
+V1__create_v0_schema.sql[FD7S]: F:建立用户、动作库、计划、训练快照、组和个人纪录的基础关系结构 | R:- | A:uk_training_plan_one_active,uk_pr_source_type | S:活动计划、层级顺序及纪录来源都由数据库唯一约束保护
+V20__add_outbox_claim_token.sql[FD6T]: F:给 Outbox 加入逐次领取权 UUID 列以隔离旧发布者 | R:- | A:outbox_event.claim_token | S:旧 SENDING 行按原领取超时可重领
+V2__seed_exercises.sql[FD3T]: F:填充中英文动作目录的描写、肌群、器械及动作指引 | R:- | A:exercise | S:-
+V3__add_event_driven_infrastructure.sql[FD6T]: F:建立 Outbox、消费去重、死信、训练统计投影和通知 | R:- | A:outbox_event,processed_event,workout_analytics_projection | S:消费去重使用事件加消费者复合键
+V4__add_hybrid_rag.sql[FD6T]: F:启用 pgvector 并建立知识文档、父子块及余弦 HNSW 索引 | R:- | A:knowledge_document,knowledge_chunk | S:向量索引仅覆盖子块
+V5__add_agent_workflow.sql[FD5T]: F:创建 Agent 会话、偏好、执行、读工具审计与待确认状态表 | R:- | A:agent_session,agent_pending_action | S:-
+V6__widen_agent_status_columns.sql[FD3T]: F:将 Agent 执行和工具调用状态列扩大到 32 字符 | R:- | A:agent_execution.status,agent_tool_call.status | S:-
+V7__add_llm_gateway_audit.sql[FD5T]: F:记录模型调用元数据及 Agent 提示版本、降级和费用列 | R:- | A:llm_invocation | S:-
+V8__add_evaluation_runs.sql[FD5T]: F:建立 Agent/RAG 评测运行和逐例结果存储 | R:- | A:agent_eval_run,rag_eval_run | S:允许独立评测用模型调用没有业务 execution_id
+V9__strengthen_rag_evaluation_truth.sql[FD4T]: F:在 RAG 样本结果保存期望来源、实际来源及引用有效状态 | R:- | A:rag_eval_result | S:-
+
+===/<repository>/src/main/resources/eval/===
+agent-v1.jsonl[TA4S]: F:分行定义 150 个 Agent 评测输入与预期工具、意图和禁止项 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java | A:- | S:-
+rag-corpus-v1.jsonl[TA4T]: F:提供评测专用的十份合成训练知识文档与固定来源和许可 | R:- | A:EVALUATION,FITPILOT-EVAL-1.0 | S:-
+rag-v1.jsonl[TA4T]: F:定义 RAG 五十道知识问题及预期术语与来源 | R:code:src/main/resources/eval/rag-corpus-v1.jsonl | A:- | S:-
+
+===/<repository>/src/main/resources/redis/===
+token_bucket.lua[KP6T]: F:在 Redis 原子计算补充、扣减、过期并返回令牌桶判定 | R:code:src/main/java/com/fitpilot/infrastructure/performance/RedisTokenBucketRateLimiter.java | A:allowed,remaining | S:剩余值向下取整；过期至少一秒
+
+===/<repository>/src/test/java/com/fitpilot/===
+FitPilotAgentProductMetricsIT.java[TO5M]: F:以数据库构造用户、建议、执行与结果样本，验收运维响应和 Gauge | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:- | S:-
+FitPilotApiIT.java[TG7L]: F:以真实数据库和 Redis 检验核心 API、认证、缓存、Agent、评测与恢复合同 | R:code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java | A:- | S:明确验证无令牌运维拒绝，组回执在 Redis 丢失、删除和完成后仍能重放
+FitPilotEventFlowIT.java[TM6S]: F:用真实 Kafka、Redis 和 PostgreSQL 验证完成训练投递、投影及重复消费幂等 | R:- | A:relaysWorkoutAndProjectsPrAnalyticsAndNotificationsIdempotently | S:-
+FitPilotLlmFlowIT.java[TA5T]: F:用回环模型桩验证主备切换、规则降级和审计落库 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
+FitPilotRagFlowIT.java[TA6M]: F:用真实 PostgreSQL、pgvector 与 Elasticsearch 验证摄取、检索引用、重索引和删除 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIngestionService.java | A:- | S:-
+FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 不可用时验证 readiness 与并发数据库回源 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
+TrainingAdjustmentServiceTest.java[TA5S]: F:验证高疼痛阻断、减量范围、来源版本复核和动作替换约束 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/agent/application/===
+AgentPlannerTest.java[TA4T]: F:验证规则规划器稳定选中接受数据集的精确工具序列 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java | A:- | S:-
+TrainingPlanGuardrailTest.java[TA4T]: F:验证结构化计划通过及超周期、训练量、RPE 与休息约束拒绝 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/agent/memory/===
+AgentSessionStoreTest.java[TA5T]: F:验证 Agent 消息先入数据库，Redis 写读失败时还能恢复 | R:code:src/main/java/com/fitpilot/agent/memory/AgentSessionStore.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/agent/product/===
+AgentProductMetricsPublisherTest.java[TO4T]: F:验证刷新后最新产品统计通过低基数 Micrometer Gauge 暴露 | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsPublisher.java | A:- | S:-
+AgentProductMetricsServiceTest.java[TO5T]: F:验证留存、建议漏斗、回退、模型成本及训练结果的分母和差值 | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/architecture/===
+ModuleBoundaryArchitectureTest.java[TQ6S]: F:用 ArchUnit 阻止控制器越级访问 Mapper、领域依赖设施与模块循环 | R:- | A:cross_module_calls_must_target_application_services | S:-
+
+===/<repository>/src/test/java/com/fitpilot/common/operations/===
+OperationsAuthenticationFilterTest.java[TI5T]: F:验证缺失令牌时未来运维路径也 403，匹配令牌才赋予操作角色 | R:code:src/main/java/com/fitpilot/common/operations/OperationsAuthenticationFilter.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/common/security/===
+JwtServiceTest.java[TI5T]: F:验证双 JWT 密钥轮换兼容期、新密钥签发与旧密钥撤销 | R:code:src/main/java/com/fitpilot/common/security/JwtService.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/comparison/===
+ArchitectureComparison.java[TQ4S]: F:为缓存、事件和检索对照实验初始化四种隔离依赖并运行选定实验 | R:code:scripts/performance/run-architecture-comparison.ps1 | A:- | S:-
+CacheComparison.java[TP4T]: F:测量数据库直读、Redis 单层、两级缓存的冷热延迟与陈旧收敛 | R:code:src/test/java/com/fitpilot/comparison/ComparisonEvidence.java | A:- | S:-
+ComparisonEvidence.java[TQ3T]: F:为隔离实验记录原始耗时、最近秩百分位和 JSON 归档 | R:- | A:timings,write | S:-
+EventComparison.java[TM4S]: F:比较同事务派生、PG 工作任务与 Kafka 派生及投影失败影响 | R:code:src/test/java/com/fitpilot/comparison/ComparisonEvidence.java | A:- | S:-
+RetrievalComparison.java[TA4T]: F:用诊断题和合成知识测规划配置的检索候选与引用差异 | R:code:src/test/resources/comparison/rag-queries.json | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/evaluation/===
+RagAbstentionAcceptanceIT.java[TA6S]: F:使用独立难负例验证无答案零候选，并回归可回答查询召回 | R:code:src/test/resources/retrieval/hard-negatives-v2.json,code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java | A:- | S:-
+RealEmbeddingRetrievalBenchmark.java[TA5S]: F:用真实 MiniLM 和冻结留出集比较单路和融合的逐题结果 | R:code:scripts/evaluation/run-real-retrieval.ps1,code:src/test/resources/retrieval/holdout-v1.json | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/evaluation/application/===
+EvaluationDatasetTest.java[TA4T]: F:验证 Agent/RAG 数据规模和来源标注及规则工作流正确率门槛 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java | A:- | S:-
+EvaluationMetricCalculatorTest.java[TA4T]: F:验证 RAG 排名、分类指标及不完整引用元数据的判定 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationMetricCalculator.java | A:- | S:-
+EvaluationReportServiceTest.java[TA5T]: F:验证类别指标回归门禁和可接受 RAG 配置的实验报告 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:- | S:-
+EvaluationServiceFeedbackExperimentTest.java[TA5T]: F:验证调度前冻结审核负例、来源文档和配置，并拒绝空审核样本 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationService.java | A:- | S:-
+EvaluationServiceLifecycleTest.java[TR5T]: F:验证执行器队列满时已领取的评测进入拒绝状态 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/infrastructure/events/===
+OutboxBacklogBenchmark.java[TM5M]: F:以真实依赖测 Kafka 停止、租约接管及老积压恢复，核对派生结果 | R:code:scripts/performance/run-outbox-backlog.ps1 | A:- | S:-
+OutboxLeaseIT.java[TM7M]: F:在 PostgreSQL 验证旧领取权失效、跳锁、旧行回收与双执行者延迟返回 | R:code:src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java | A:- | S:-
+OutboxRelayTest.java[TM5T]: F:验证 Outbox Relay 每次领一条、丢失租约跳过发送和线程中断行为 | R:code:src/main/java/com/fitpilot/infrastructure/events/OutboxRelay.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/infrastructure/performance/===
+IdempotencyFilterTest.java[TP5T]: F:验证幂等过滤器不缓存过大响应，拒绝同键不同指纹的在途请求 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFilter.java | A:- | S:-
+IdempotencyFingerprintTest.java[TP4T]: F:验证查询参数归一化、不同身份范围与正文变化的指纹隔离 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFingerprint.java | A:- | S:-
+PerformanceConfigTest.java[TP4T]: F:验证默认本地缓存采用写后过期及 Redis TTL、抖动配置 | R:code:src/main/resources/application.yml | A:- | S:-
+TwoLevelCacheIT.java[TP5T]: F:用真 Redis 验证远端实例的本地旧值在持续读取时仍会过期 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/llm/application/===
+LlmGatewayTest.java[TA5T]: F:验证模型网关接受允许的结构并拒绝身份参数后走规则回退 | R:code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/llm/infrastructure/===
+OpenAiCompatibleClientTest.java[TA6S]: F:用本地 HTTP 桩测试模型重试、备用端点、共享截止时间、限并发和半开 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/observability/===
+FitPilotMetricsTest.java[TO4T]: F:验证 Agent、Tool、LLM、RAG 和 Outbox 统计能写入指标注册表 | R:code:src/main/java/com/fitpilot/observability/FitPilotMetrics.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/performance/===
+WorkoutWriteLoadBenchmark.java[TP5M]: F:对真实隔离数据库施加多用户、同训练写及操作回执重放，输出性能和正确性证据 | R:code:scripts/performance/run-workout-write-load.ps1 | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/plan/application/===
+TrainingPlanFreshnessTest.java[TB5T]: F:验证确认所需活动计划版本只从当前用户的数据库事实校验 | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/plan/domain/===
+TrainingPlanValidatorTest.java[TB4T]: F:验证训练计划禁止重复日号和颠倒的次数区间 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlanValidator.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/pr/domain/===
+PersonalRecordCalculatorTest.java[TB4T]: F:验证 Epley 计算、较低成绩比较及热身组不产生纪录 | R:code:src/main/java/com/fitpilot/pr/domain/PersonalRecordCalculator.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/quality/===
+ZeroSkippedTestsGate.java[TQ5T]: F:检查 Maven 测试 XML，阻断报告缺失、空测试套件和任何跳过 | R:code:pom.xml | A:ZeroSkippedTestsGate.main | S:-
+ZeroSkippedTestsGateTest.java[TQ4T]: F:验证零跳过校验器接受正常套件并拒绝有跳过项 | R:code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/rag/application/===
+EvidenceSupportGateTest.java[TA6S]: F:对冻结样本验证无答案拒答、可回答回归及数值证据检查 | R:code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java,code:src/test/resources/retrieval/hard-negatives-v2.json | A:- | S:先核验 v2 留出文件固定散列
+HybridRetrievalServiceTest.java[TA6S]: F:验证零权重确实关闭检索通道、单路故障、重排权重及线上快照 | R:code:src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java | A:- | S:-
+RagExperimentCatalogTest.java[TA4T]: F:验证离线策略覆盖分块、RRF 权重与三种重排策略 | R:code:src/main/java/com/fitpilot/rag/application/RagExperimentCatalog.java | A:- | S:-
+RagFeedbackServiceTest.java[TA5T]: F:验证反馈 owner、原检索引用及审核正确来源约束 | R:code:src/main/java/com/fitpilot/rag/application/RagFeedbackService.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/rag/embedding/===
+LocalHashingEmbeddingProviderTest.java[TA4T]: F:验证中英文哈希嵌入的确定性、384 维和单位范数 | R:code:src/main/java/com/fitpilot/rag/embedding/LocalHashingEmbeddingProvider.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/rag/processing/===
+ParentChildChunkerTest.java[TA4T]: F:验证 Markdown 分节、子块大小以及稳定顺序编号 | R:code:src/main/java/com/fitpilot/rag/processing/ParentChildChunker.java | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/user/domain/===
+UserDomainModelTest.java[TB2T]: F:检查账户、用户资料和体测实体可由持久化层构造 | R:- | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/workout/application/===
+WorkoutConcurrencyIT.java[TB7M]: F:用真实 PostgreSQL 验证同训练写串行、终态重检和序号唯一 | R:code:src/main/java/com/fitpilot/workout/application/WorkoutService.java | A:- | S:-
+WorkoutServiceTest.java[TB5T]: F:验证完成训练重放返回已存结果且不再更新或计算纪录 | R:code:src/main/java/com/fitpilot/workout/application/WorkoutService.java | A:- | S:-
+
+===/<repository>/src/test/resources/comparison/===
+rag-queries.json[TA3T]: F:提供对照基准的术语、语义与无答案诊断题和预期来源 | R:- | A:- | S:-
+
+===/<repository>/src/test/resources/retrieval/===
+hard-negatives-v1.json[TA4T]: F:冻结第一组同主题但语料缺少答案的 RAG 难负例 | R:code:docs/performance/rag-abstention-protocol-2026-09-18.md | A:- | S:-
+hard-negatives-v2.json[TA5T]: F:提供第二组针对语料缺失事实的独立无答案回归样本 | R:code:src/test/java/com/fitpilot/evaluation/RagAbstentionAcceptanceIT.java | A:- | S:被测试绑定 SHA-256
+holdout-v1.json[TA4T]: F:固定 MiniLM 留出题的类别、预期来源及具体支持文段 | R:code:src/test/java/com/fitpilot/evaluation/RealEmbeddingRetrievalBenchmark.java | A:- | S:-
+
+===/<repository>/web/===
+.dockerignore[FV3T]: F:缩小 Web 镜像上下文，排除依赖、产物、缓存和本地 Wrangler 状态 | R:code:web/Dockerfile | A:- | S:-
+.gitignore[FV3T]: F:让 Git 忽略 Web 的依赖、测试输出、环境和部署运行文件 | R:- | A:- | S:-
+Dockerfile[OV5T]: F:用 Node 构建并由无特权 Nginx 镜像托管前端产物 | R:code:web/nginx.conf,code:web/package.json | A:8080,/healthz | S:-
+README.md[SU3T]: F:记录 Web 启动、相对 API 与组件、测试目录职责 | R:code:web/package.json | A:- | S:-
+eslint.config.js[FQ4T]: F:配置 TypeScript ESLint、React Hooks 与未用变量的检查规则 | R:- | A:- | S:-
+index.html[EU3T]: F:定义中文页面壳、视口、品牌元数据与 React 模块入口 | R:code:web/src/main.tsx | A:#root | S:-
+nginx.conf[ON6T]: F:托管 SPA 静态文件与健康检查，并将 API 转发到后端 | R:code:deploy/k8s/base/web-backend-alias.yml | A:/healthz,/api/,/sw.js | S:应用路由回落 index.html；Service Worker 响应要求重新验证
+package.json[FV6T]: F:声明前端依赖、构建、多类测试及质量门禁脚本 | R:- | A:npm run quality | S:Playwright 门禁顺序执行普通及离线两套配置
+playwright.config.ts[FQ4T]: F:配置普通 Playwright 浏览器场景与隔离预览地址 | R:- | A:e2e,4174 | S:-
+playwright.offline.config.ts[FQ4T]: F:使用生产预览和窄屏单 worker 执行离线恢复浏览器测试 | R:- | A:e2e-offline,4175 | S:-
+tsconfig.json[FV4T]: F:以 ES2022 和 Bundler 模块解引用来严格检查 TS/React 代码 | R:- | A:noEmit,strict | S:-
+vite.config.ts[FV6T]: F:配置 React、托管与开发端代理，构建按内容散列版本化的离线应用壳 | R:code:web/src/main.tsx | A:sw.js | S:只预缓存构建壳与静态资产；所有 API 请求绕过 Worker
+vitest.config.ts[FQ4T]: F:定义 jsdom 单测、MSW 初始化及前端覆盖率门槛 | R:code:web/src/test/setup.ts | A:- | S:四项覆盖率阈值均为 60%
+
+===/<repository>/web/.openai/===
+hosting.json[FV3T]: F:声明 Web 托管项目当前没有 D1 或 R2 绑定 | R:- | A:d1,r2 | S:-
+
+===/<repository>/web/src/===
+App.tsx[EU5T]: F:依认证状态显示登录页或应用壳，按路径懒加载主要业务页面 | R:code:web/src/auth/AuthContext.tsx,code:web/src/components/AppShell.tsx | A:App | S:-
+main.tsx[EU5T]: F:挂载 React、查询客户端及认证上下文，并在生产注册离线壳 Worker | R:code:web/vite.config.ts,code:web/src/App.tsx | A:- | S:-
+styles.css[FU4L]: F:定义应用全局主题、导航、页面组件和宽窄屏自适应样式 | R:code:web/src/main.tsx | A:- | S:-
+vite-env.d.ts[FV2T]: F:向 TypeScript 提供 Vite 客户端及 import.meta.env 声明 | R:- | A:- | S:-
+
+===/<repository>/web/src/api/===
+client.ts[IN7T]: F:封装同源 API、访问令牌、统一错误与共享刷新请求 | R:code:web/src/auth/AuthContext.tsx | A:api,AUTH_EXPIRED_EVENT | S:并发 401 共用刷新请求；每个原请求最多重试一次
+types.ts[CN5M]: F:定义 Web 与后端共享的分页、训练计划、会话、组回执与引用类型 | R:- | A:- | S:-
+
+===/<repository>/web/src/auth/===
+AuthContext.tsx[AI6S]: F:提供登录、注册、注销和认证过期的前端上下文 | R:code:web/src/api/client.ts | A:AuthProvider,useAuth | S:过期时按前一用户清 Agent 存储并清查询缓存
+
+===/<repository>/web/src/components/===
+AppShell.tsx[EU5T]: F:渲染主导航、应用壳与退出入口，并触发前端路径切换 | R:code:web/src/auth/AuthContext.tsx | A:AppShell,navigate | S:-
+Brand.tsx[EU3T]: F:呈现首页品牌链接和可选紧凑图标 | R:- | A:Brand | S:-
+PageParts.tsx[EU3T]: F:复用页面标题、卡片、分区、空态和状态样式组件 | R:- | A:PageHeader,Panel,SectionTitle,Empty,Status | S:-
+
+===/<repository>/web/src/features/agent/===
+AdjustmentInsightCard.tsx[EU4T]: F:显示计划调整规则、训练事实证据与拒绝调整入口 | R:- | A:AdjustmentInsightCard | S:-
+CitationFeedback.tsx[EU4T]: F:呈现检索答案与引用反馈操作及已提交和出错状态 | R:- | A:CitationFeedback | S:-
+ConversationSidebar.tsx[EU4T]: F:展示 Agent 会话列表与创建、选择、重命名、归档和删除操作 | R:- | A:ConversationSidebar | S:-
+PendingPlanCard.tsx[EU6S]: F:预览待确认训练计划及动作名称、警告和确认倒计时 | R:code:web/src/api/client.ts | A:PendingPlanCard | S:过期时停止计时并通知上层，确认交给父级
+pending-plan-card.css[FU3S]: F:定义草案确认卡的布局、警告与过期样式，适配窄屏 | R:code:web/src/features/agent/PendingPlanCard.tsx | A:- | S:-
+
+===/<repository>/web/src/features/agent/storage/===
+pendingActionStorage.ts[PU4T]: F:按用户在会话存储中缓存和清理待确认动作 | R:- | A:loadPendingAction,storePendingAction,clearPendingAction | S:-
+sessionStorage.ts[PU4T]: F:按用户在当前标签页保存最近选中的 Agent 会话 ID | R:- | A:loadAgentSession,storeAgentSession,clearAgentSession | S:-
+
+===/<repository>/web/src/features/plan/===
+ExerciseSearchPicker.tsx[EU4T]: F:延迟动作查询关键词并呈现可选与已选的动作目录结果 | R:code:web/src/api/client.ts | A:ExerciseSearchPicker | S:-
+PlanBuilder.tsx[AU6M]: F:组织计划草稿基本字段、日程与动作编辑，校验后构造提交请求 | R:code:web/src/features/plan/PlanDayEditor.tsx,code:web/src/features/plan/planBuilderModel.ts | A:PlanBuilder | S:-
+PlanDayEditor.tsx[EU4S]: F:渲染训练日标题、备注和各动作目标编辑，并连接动作选择器 | R:code:web/src/features/plan/ExerciseSearchPicker.tsx,code:web/src/features/plan/planBuilderModel.ts | A:PlanDayEditor | S:-
+PlanDetailPanel.tsx[EU5S]: F:查询计划并显示详情，允许进入草案编辑和保存后的列表刷新 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/planBuilderModel.ts | A:PlanDetailPanel | S:更新请求携带已读计划版本
+plan-builder.css[FU3M]: F:定义草案元数据、训练日、动作字段与搜索选择的响应式表单布局 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDayEditor.tsx | A:- | S:-
+plan-detail-panel.css[FU3S]: F:定义计划详情的标题、状态、训练日及窄屏动作卡布局 | R:code:web/src/features/plan/PlanDetailPanel.tsx | A:- | S:-
+planBuilderModel.ts[DU5S]: F:管理稳定草稿键，从计划重建内容，校验并转换成有序写入载荷 | R:- | A:initialPlanDraft,planToDraft,validatePlanDraft,toPlanCreateInput | S:-
+
+===/<repository>/web/src/features/workout/===
+QuickSetForm.tsx[EU6S]: F:读取上次工作组并呈现快速输入，在修改与提交时按动作保存草稿 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:QuickSetForm | S:建议值只是预填；同一提交正文沿用尝试 UUID
+WorkoutFeedbackForm.tsx[EU4T]: F:采集完成训练时的疲劳、疼痛和备注，支持跳过 | R:- | A:WorkoutFeedbackForm | S:-
+WorkoutSetEditor.tsx[EU5S]: F:编辑已记录组的重量、次数、强度及标记，提供删除二次确认 | R:- | A:WorkoutSetEditor | S:-
+syncWorkoutQueue.ts[AR7T]: F:按 owner 串行补交待同步组，回读服务端快照后移除本地操作 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:syncWorkoutQueue,WorkoutSyncConflict | S:使用持久化操作 UUID；可用时跨标签加锁，业务冲突暂停并保留数据
+useWorkoutRecovery.ts[AR7S]: F:把在线活动训练、本机快照、草稿和待同步组整合为恢复及完成状态 | R:code:web/src/features/workout/syncWorkoutQueue.ts,code:web/src/features/workout/workoutRecoveryStore.ts | A:useWorkoutRecovery | S:未同步、未提交草稿或离线时阻止完成；冲突停止自动同步
+workout-set-editor.css[FU3S]: F:定义训练组行、快速操作和编辑区样式及窄屏布局 | R:code:web/src/features/workout/WorkoutSetEditor.tsx | A:- | S:-
+workoutRecoveryStore.ts[PR7S]: F:以带版本的本地键保存 owner 私有训练快照、操作队列和组草稿 | R:- | A:snapshot,saveDraft,enqueue,acknowledge,withPending | S:读取通过 schema 校验；待同步记录由操作 UUID 与服务端回执匹配
+
+===/<repository>/web/src/pages/===
+AuthPage.tsx[EU4S]: F:展示注册和登录表单，提交认证并反馈忙碌和错误状态 | R:code:web/src/auth/AuthContext.tsx | A:AuthPage | S:-
+CoachPage.tsx[EU7M]: F:管理 AI 教练会话、历史分页、消息、确认草案、计划调整和引用反馈 | R:code:web/src/features/agent/PendingPlanCard.tsx,code:web/src/features/agent/storage/sessionStorage.ts | A:CoachPage | S:恢复待执行动作时向服务端重新申请确认令牌
+DashboardPage.tsx[EU5S]: F:显示周训练数据、活动计划及继续训练快捷入口 | R:- | A:DashboardPage | S:-
+ExercisesPage.tsx[EU4T]: F:搜索动作目录并显示选定动作的详情、肌群和说明 | R:- | A:ExercisesPage | S:-
+NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项和批量已读 | R:- | A:NotificationsPage | S:-
+PlansPage.tsx[EU5S]: F:展示计划列表，编排新建、详情以及激活操作与查询刷新 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx | A:PlansPage | S:-
+ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
+ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
+WorkoutsPage.tsx[EU7M]: F:编排开始训练、组编辑、恢复队列、终态、反馈和调整邀请的页面交互 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx | A:WorkoutsPage | S:离线草稿及待同步操作通过恢复钩子守住完成条件
+
+===/<repository>/web/src/test/===
+render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-
+server.ts[TQ3T]: F:导出通过 MSW 拦截测试 HTTP 的 Node Server | R:- | A:server | S:-
+setup.ts[TQ4T]: F:配置 DOM 断言、MSW 生命周期、同源 fetch 转换及用例清理 | R:code:web/src/test/server.ts | A:- | S:-
