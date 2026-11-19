@@ -2,14 +2,24 @@ package com.fitpilot;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
+import com.fitpilot.rag.domain.KnowledgeModels.SearchHit;
+import com.fitpilot.rag.domain.KnowledgeModels.StoredChunk;
+import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
+import com.fitpilot.rag.infrastructure.KnowledgeRepository;
+import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
@@ -18,9 +28,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FitPilotRagFlowIT {
     private static final String OPERATIONS_TOKEN = "rag-integration-operations-token";
+    private static final String VERSION_TEST_CATEGORY = "version-fence";
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
@@ -66,6 +84,11 @@ class FitPilotRagFlowIT {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
+    @Autowired KnowledgeRepository knowledge;
+    @Autowired RagGovernanceRepository governance;
+    @Autowired ElasticsearchKnowledgeIndex lexical;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired PlatformTransactionManager transactions;
 
     @Test
     void ingestsSearchesReindexesAndDeletesKnowledgeWithCitations() throws Exception {
@@ -182,6 +205,109 @@ class FitPilotRagFlowIT {
             assertThat(deletion.path("data").path("lifecycleStatus").asText()).isEqualTo("DELETED");
             assertThat(deletion.path("data").path("taskStatus").asText()).isEqualTo("SUCCEEDED");
         });
+    }
+
+    @Test
+    void lateVersionCannotOverwriteNewChunksOrRestoreRemovedSlots() throws Exception {
+        IndexClaim first = claimVersion("version-fence:replace", "retiredfixture", 3);
+        UUID legacyChunk = addLegacyChunk(first.document());
+        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10))
+                .extracting(SearchHit::chunkId).containsExactly(legacyChunk);
+        lexical.publish(first);
+        assertThat(knowledge.markIndexed(first)).isTrue();
+        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
+
+        IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
+        IndexClaim current = claimVersion("version-fence:replace", "currentfixture", 1);
+        assertThat(current.slotCount()).isEqualTo(3);
+        assertThat(stale.chunks()).hasSize(3).allMatch(chunk -> chunk.version() == 1);
+        assertThat(knowledge.claimIndexing(first.document(), true)).isEmpty();
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(knowledge.markFailed(stale, new IllegalStateException("late failure"))).isFalse();
+        assertThat(knowledge.findDocument(current.document().id()).orElseThrow().indexStatus()).isEqualTo("INDEXING");
+
+        lexical.publish(current);
+        assertThat(knowledge.markIndexed(current)).isTrue();
+        assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(lexical.search("retiredfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
+        assertThat(lexical.search("currentfixture", VERSION_TEST_CATEGORY, 10))
+                .extracting(SearchHit::chunkId).containsExactly(current.chunks().getFirst().chunkId());
+    }
+
+    @Test
+    void abandonedClaimCannotFinishEvenWhenTheDocumentVersionIsUnchanged() {
+        IndexClaim abandoned = claimVersion("version-fence:reclaim", "reclaimfixture", 1);
+        IndexClaim recovered = new TransactionTemplate(transactions).execute(status -> {
+            jdbc.update("UPDATE knowledge_document SET updated_at=now()-interval '6 minutes' WHERE id=?",
+                    abandoned.document().id());
+            return knowledge.claimIndexing(abandoned.document(), false).orElseThrow();
+        });
+
+        assertThat(recovered.token()).isNotEqualTo(abandoned.token());
+        assertThat(knowledge.markIndexed(abandoned)).isFalse();
+        assertThat(knowledge.markFailed(abandoned, new IllegalStateException("lost claim"))).isFalse();
+        lexical.publish(recovered);
+        assertThat(knowledge.markIndexed(recovered)).isTrue();
+    }
+
+    @Test
+    void delayedIndexAndDeletionAreFencedAcrossDeletionAndRestore() {
+        IndexClaim first = claimVersion("version-fence:restore", "deletedfixture", 2);
+        lexical.publish(first);
+        assertThat(knowledge.markIndexed(first)).isTrue();
+        IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
+        RagGovernanceRepository.DeletionTask deletion = new TransactionTemplate(transactions).execute(status -> {
+            assertThat(knowledge.requestDelete(first.document().id())).isTrue();
+            return governance.claimDeletionTasks(1).getFirst();
+        });
+
+        assertThat(deletion.document()).isEqualTo(first.document());
+        lexical.deleteDocument(deletion.document(), deletion.slotCount());
+        assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(lexical.search("deletedfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
+
+        IndexClaim restored = claimVersion("version-fence:restore", "restoredfixture", 1);
+        lexical.publish(restored);
+        assertThat(knowledge.markIndexed(restored)).isTrue();
+        assertThatThrownBy(() -> lexical.deleteDocument(deletion.document(), deletion.slotCount()))
+                .hasMessageContaining("item errors");
+        assertThat(governance.deletionSucceeded(deletion)).isFalse();
+        assertThat(governance.deletionFailed(deletion, new IllegalStateException("late deletion"))).isFalse();
+        assertThat(knowledge.findDocument(restored.document().id()).orElseThrow().indexStatus()).isEqualTo("INDEXED");
+        assertThat(lexical.search("restoredfixture", VERSION_TEST_CATEGORY, 10))
+                .extracting(SearchHit::chunkId).containsExactly(restored.chunks().getFirst().chunkId());
+    }
+
+    private IndexClaim claimVersion(String externalId, String text, int childCount) {
+        var write = new KnowledgeRepository.DocumentWrite(UUID.randomUUID(), externalId, text, VERSION_TEST_CATEGORY,
+                "https://example.org/synthetic", "CC-BY-4.0", "TEXT", "0".repeat(64), text, Map.of(), null,
+                "COMMUNITY", null, null);
+        UUID parent = UUID.randomUUID();
+        var chunks = new ArrayList<StoredChunk>();
+        chunks.add(new StoredChunk(parent, null, "PARENT", 0, null, text, text, null));
+        for (int ordinal = 0; ordinal < childCount; ordinal++) {
+            chunks.add(new StoredChunk(UUID.randomUUID(), parent, "CHILD", ordinal, null, text, text, null));
+        }
+        return new TransactionTemplate(transactions).execute(status ->
+                knowledge.claimIndexing(knowledge.replace(write, chunks), false).orElseThrow());
+    }
+
+    private UUID addLegacyChunk(DocumentVersion document) throws Exception {
+        lexical.ensureIndex();
+        UUID id = UUID.randomUUID();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://" + ELASTICSEARCH.getHttpHostAddress()
+                        + "/fitpilot-rag-it/_doc/" + id + "?refresh=wait_for"))
+                .timeout(Duration.ofSeconds(10)).header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(Map.of(
+                        "documentId", document.id().toString(), "documentVersion", document.version(),
+                        "category", VERSION_TEST_CATEGORY, "lexicalText", "legacyfixture", "lifecycleStatus", "ACTIVE"))))
+                .build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            assertThat(client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(201);
+        }
+        return id;
     }
 
     private String registerAndLogin(String username) throws Exception {

@@ -83,14 +83,14 @@ public class KnowledgeIngestionService {
                 request.content(), request.metadata() == null ? Map.of() : Map.copyOf(request.metadata()),
                 blankToNull(request.publisher()), request.trustLevel() == null ? "COMMUNITY" : request.trustLevel(),
                 request.effectiveFrom(), request.expiresAt());
-        UUID documentId = repository.replace(write, chunks);
-        indexing.indexNow(documentId);
-        return view(documentId);
+        KnowledgeModels.DocumentVersion written = repository.replace(write, chunks);
+        indexing.indexNow(written);
+        return view(written.id());
     }
 
     public RagDtos.DocumentView reindex(UUID id) {
-        require(id);
-        if (!indexing.reindex(id)) {
+        KnowledgeModels.Document original = require(id);
+        if (!indexing.reindex(new KnowledgeModels.DocumentVersion(id, original.version()))) {
             KnowledgeModels.Document document = require(id);
             throw new BusinessException(ErrorCode.KNOWLEDGE_INDEX_FAILED,
                     document.indexError() == null ? "knowledge indexing failed" : document.indexError(),
