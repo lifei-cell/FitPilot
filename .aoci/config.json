@@ -345,6 +345,23 @@
   "automation": {
     "mode": "auto"
   },
+  "database_sources": [
+    {
+      "source_id": "fitpilot",
+      "engine": "postgresql",
+      "database": "fitpilot",
+      "namespaces": [
+        "public"
+      ],
+      "exclude_tables": [
+        "flyway_schema_history"
+      ],
+      "credential_env": "FITPILOT_AOCI_PG_DSN",
+      "connect_timeout_seconds": 10,
+      "query_timeout_seconds": 30,
+      "enabled": true
+    }
+  ],
   "ai": {
     "enabled": false,
     "provider": "openai-compatible",

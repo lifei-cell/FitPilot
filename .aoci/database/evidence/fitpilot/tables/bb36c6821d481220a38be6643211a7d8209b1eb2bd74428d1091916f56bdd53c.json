@@ -1,0 +1,197 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/agent_eval_run",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "agent_eval_run",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "dataset_version",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "mode",
+      "native_type": "character varying(30)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "model",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "prompt_version",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "status",
+      "native_type": "character varying(24)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "total_cases",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 8,
+      "name": "passed_cases",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 9,
+      "name": "metrics",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'{}'::jsonb"
+    },
+    {
+      "ordinal": 10,
+      "name": "error_message",
+      "native_type": "character varying(500)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 11,
+      "name": "started_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 12,
+      "name": "completed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 13,
+      "name": "queued_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 14,
+      "name": "deadline_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 15,
+      "name": "heartbeat_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 16,
+      "name": "lease_expires_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 17,
+      "name": "worker_id",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 18,
+      "name": "attempt_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 19,
+      "name": "request_payload",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'{}'::jsonb"
+    }
+  ],
+  "primary_key": {
+    "name": "agent_eval_run_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [],
+  "checks": [
+    {
+      "name": "chk_agent_eval_status",
+      "expression": "CHECK (status::text = ANY (ARRAY['QUEUED'::character varying, 'RUNNING'::character varying, 'SUCCEEDED'::character varying, 'FAILED'::character varying, 'REJECTED'::character varying, 'TIMED_OUT'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "agent_eval_run_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_eval_recovery",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "status"
+        },
+        {
+          "position": 2,
+          "column": "lease_expires_at"
+        },
+        {
+          "position": 3,
+          "column": "deadline_at"
+        }
+      ]
+    }
+  ]
+}

@@ -1,2 +1,8 @@
 # Preserve raw experiment evidence bytes so recorded SHA-256 survives checkout line-ending settings.
 docs/performance/evidence/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# AOCI verifies volume and database evidence bytes across checkouts.
+/aoci.txt text eol=lf
+/aoci.*.txt text eol=lf
+/.aoci/*.json text eol=lf
+/.aoci/database/evidence/**/*.json text eol=lf

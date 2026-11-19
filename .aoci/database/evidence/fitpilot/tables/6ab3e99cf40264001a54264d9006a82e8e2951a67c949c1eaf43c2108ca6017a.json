@@ -1,0 +1,219 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/agent_execution",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "agent_execution",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "session_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "intent",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "selected_tools",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'[]'::jsonb"
+    },
+    {
+      "ordinal": 6,
+      "name": "expected_tools",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": true
+    },
+    {
+      "ordinal": 7,
+      "name": "status",
+      "native_type": "character varying(32)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "model",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "input_tokens",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 10,
+      "name": "output_tokens",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 11,
+      "name": "latency_ms",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": true
+    },
+    {
+      "ordinal": 12,
+      "name": "rule_violation_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 13,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 14,
+      "name": "completed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 15,
+      "name": "prompt_version",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 16,
+      "name": "degraded",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false,
+      "default_expression": "false"
+    },
+    {
+      "ordinal": 17,
+      "name": "cost_usd",
+      "native_type": "numeric(14,8)",
+      "canonical_type": "numeric",
+      "nullable": false,
+      "default_expression": "0"
+    }
+  ],
+  "primary_key": {
+    "name": "agent_execution_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "agent_execution_session_id_fkey",
+      "columns": [
+        "session_id"
+      ],
+      "referenced_object": "database://fitpilot/public/agent_session",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "agent_execution_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "agent_execution_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_execution_owner",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "created_at"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_execution_product_window",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "created_at"
+        },
+        {
+          "position": 2,
+          "column": "status"
+        },
+        {
+          "position": 3,
+          "column": "model"
+        }
+      ]
+    }
+  ]
+}

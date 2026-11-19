@@ -1,0 +1,183 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/llm_invocation",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "llm_invocation",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "execution_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": true
+    },
+    {
+      "ordinal": 3,
+      "name": "provider",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "model",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "task_type",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "prompt_version",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "status",
+      "native_type": "character varying(32)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "input_tokens",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 9,
+      "name": "output_tokens",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 10,
+      "name": "cost_usd",
+      "native_type": "numeric(14,8)",
+      "canonical_type": "numeric",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 11,
+      "name": "latency_ms",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 12,
+      "name": "http_status",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 13,
+      "name": "error_code",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 14,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    }
+  ],
+  "primary_key": {
+    "name": "llm_invocation_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "llm_invocation_execution_id_fkey",
+      "columns": [
+        "execution_id"
+      ],
+      "referenced_object": "database://fitpilot/public/agent_execution",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_llm_invocation_execution",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "execution_id"
+        },
+        {
+          "position": 2,
+          "column": "created_at"
+        }
+      ]
+    },
+    {
+      "name": "idx_llm_invocation_operations",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "created_at"
+        },
+        {
+          "position": 2,
+          "column": "status"
+        },
+        {
+          "position": 3,
+          "column": "model"
+        }
+      ]
+    },
+    {
+      "name": "llm_invocation_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

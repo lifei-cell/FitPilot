@@ -1,0 +1,135 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/workout_feedback",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "workout_feedback",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "workout_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "fatigue_score",
+      "native_type": "smallint",
+      "canonical_type": "smallint",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "pain_score",
+      "native_type": "smallint",
+      "canonical_type": "smallint",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "notes",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "created_at",
+      "native_type": "timestamp with time zone",
+      "canonical_type": "timestamp with time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 7,
+      "name": "updated_at",
+      "native_type": "timestamp with time zone",
+      "canonical_type": "timestamp with time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "workout_feedback_pkey",
+    "columns": [
+      "workout_id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "workout_feedback_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "workout_feedback_workout_id_fkey",
+      "columns": [
+        "workout_id"
+      ],
+      "referenced_object": "database://fitpilot/public/workout",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [
+    {
+      "name": "workout_feedback_fatigue_score_check",
+      "expression": "CHECK (fatigue_score \u003e= 1 AND fatigue_score \u003c= 10)"
+    },
+    {
+      "name": "workout_feedback_pain_score_check",
+      "expression": "CHECK (pain_score \u003e= 0 AND pain_score \u003c= 10)"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_workout_feedback_owner_time",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "updated_at"
+        }
+      ]
+    },
+    {
+      "name": "workout_feedback_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "workout_id"
+        }
+      ]
+    }
+  ]
+}

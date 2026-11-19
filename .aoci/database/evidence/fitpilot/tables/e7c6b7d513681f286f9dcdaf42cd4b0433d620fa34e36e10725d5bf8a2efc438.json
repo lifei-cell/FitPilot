@@ -1,0 +1,222 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/workout",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "workout",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('workout_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "training_plan_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": true
+    },
+    {
+      "ordinal": 4,
+      "name": "training_plan_day_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": true
+    },
+    {
+      "ordinal": 5,
+      "name": "name",
+      "native_type": "character varying(100)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "status",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "started_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "completed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 9,
+      "name": "duration_seconds",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 10,
+      "name": "notes",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": true
+    },
+    {
+      "ordinal": 11,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 12,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 13,
+      "name": "idempotency_key",
+      "native_type": "character varying(128)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 14,
+      "name": "request_fingerprint",
+      "native_type": "character(64)",
+      "canonical_type": "character",
+      "nullable": true
+    }
+  ],
+  "primary_key": {
+    "name": "workout_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "workout_training_plan_day_id_fkey",
+      "columns": [
+        "training_plan_day_id"
+      ],
+      "referenced_object": "database://fitpilot/public/training_plan_day",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "set null"
+    },
+    {
+      "name": "workout_training_plan_id_fkey",
+      "columns": [
+        "training_plan_id"
+      ],
+      "referenced_object": "database://fitpilot/public/training_plan",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "set null"
+    },
+    {
+      "name": "workout_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [
+    {
+      "name": "ck_workout_idempotency_pair",
+      "expression": "CHECK (idempotency_key IS NULL AND request_fingerprint IS NULL OR idempotency_key IS NOT NULL AND request_fingerprint IS NOT NULL)"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_workout_user_time",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "started_at"
+        }
+      ]
+    },
+    {
+      "name": "uk_workout_one_in_progress",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        }
+      ],
+      "predicate": "status::text = 'IN_PROGRESS'::text"
+    },
+    {
+      "name": "uk_workout_user_idempotency",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "idempotency_key"
+        }
+      ],
+      "predicate": "idempotency_key IS NOT NULL"
+    },
+    {
+      "name": "workout_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

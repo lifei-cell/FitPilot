@@ -3,7 +3,7 @@
 ===/<repository>/===
 .dockerignore[FV3T]: F:排除后端镜像构建上下文中的本地产物、环境文件和前端依赖 | R:code:Dockerfile | A:- | S:-
 .env.example[FC5T]: F:提供本地 Compose 的数据库、凭证、限流、缓存、事件、LLM 和 RAG 环境变量样例 | R:- | A:EMBEDDING_PROVIDER,LLM_ENABLED | S:OpenAI 兼容 embedding 需返回 384 维
-.gitattributes[FQ4T]: F:保留实验原始 JSON 的检出字节以匹配记录的 SHA-256 | R:- | A:docs/performance/evidence/**/*.json | S:-
+.gitattributes[FQ5T]: F:固定实验原始证据和 AOCI 资产的跨平台检出字节 | R:- | A:docs/performance/evidence/**/*.json,aoci.txt,aoci.*.txt,.aoci/database/evidence/**/*.json | S:AOCI 按实际文件字节校验卷及证据摘要，Windows 自动转 CRLF 会使校验失败
 .gitignore[FV3T]: F:忽略本地构建、环境、证据输出和机器绑定的 Codex 配置 | R:- | A:.codex/config.toml | S:-
 .gitleaks.toml[FS4T]: F:沿用默认泄露规则并按路径豁免合成 JWT 及证据清单的 SHA-256 | R:- | A:Gitleaks allowlists | S:-
 .gitleaksignore[FS3T]: F:按历史提交、文件、规则和行号登记已知密钥扫描误报 | R:- | A:Gitleaks fingerprints | S:-

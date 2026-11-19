@@ -1,0 +1,163 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/training_plan_exercise",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "training_plan_exercise",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('training_plan_exercise_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "training_plan_day_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "exercise_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "sequence",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "target_sets",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "target_reps_min",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 7,
+      "name": "target_reps_max",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 8,
+      "name": "target_rpe",
+      "native_type": "numeric(3,1)",
+      "canonical_type": "numeric",
+      "nullable": true
+    },
+    {
+      "ordinal": 9,
+      "name": "rest_seconds",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 10,
+      "name": "notes",
+      "native_type": "character varying(255)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 11,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "training_plan_exercise_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "uk_training_plan_exercise_sequence",
+      "columns": [
+        "training_plan_day_id",
+        "sequence"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "training_plan_exercise_exercise_id_fkey",
+      "columns": [
+        "exercise_id"
+      ],
+      "referenced_object": "database://fitpilot/public/exercise",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "no action"
+    },
+    {
+      "name": "training_plan_exercise_training_plan_day_id_fkey",
+      "columns": [
+        "training_plan_day_id"
+      ],
+      "referenced_object": "database://fitpilot/public/training_plan_day",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "training_plan_exercise_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "uk_training_plan_exercise_sequence",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "training_plan_day_id"
+        },
+        {
+          "position": 2,
+          "column": "sequence"
+        }
+      ]
+    }
+  ]
+}

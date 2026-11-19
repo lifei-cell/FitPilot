@@ -1,0 +1,206 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/rag_eval_result",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "rag_eval_result",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('rag_eval_result_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "run_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "case_id",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "query_hash",
+      "native_type": "character varying(64)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "recall_at_5",
+      "native_type": "numeric(8,6)",
+      "canonical_type": "numeric",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "reciprocal_rank",
+      "native_type": "numeric(8,6)",
+      "canonical_type": "numeric",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "ndcg",
+      "native_type": "numeric(8,6)",
+      "canonical_type": "numeric",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "context_precision",
+      "native_type": "numeric(8,6)",
+      "canonical_type": "numeric",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "context_recall",
+      "native_type": "numeric(8,6)",
+      "canonical_type": "numeric",
+      "nullable": false
+    },
+    {
+      "ordinal": 10,
+      "name": "latency_ms",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 11,
+      "name": "expected_source_urls",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'[]'::jsonb"
+    },
+    {
+      "ordinal": 12,
+      "name": "actual_source_urls",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'[]'::jsonb"
+    },
+    {
+      "ordinal": 13,
+      "name": "citation_valid",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false,
+      "default_expression": "false"
+    },
+    {
+      "ordinal": 14,
+      "name": "experiment_profile",
+      "native_type": "character varying(40)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'baseline'::character varying"
+    }
+  ],
+  "primary_key": {
+    "name": "rag_eval_result_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "uq_rag_eval_result_profile_case",
+      "columns": [
+        "run_id",
+        "experiment_profile",
+        "case_id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "rag_eval_result_run_id_fkey",
+      "columns": [
+        "run_id"
+      ],
+      "referenced_object": "database://fitpilot/public/rag_eval_run",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_rag_eval_result_run",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "run_id"
+        }
+      ]
+    },
+    {
+      "name": "idx_rag_eval_result_run_profile",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "run_id"
+        },
+        {
+          "position": 2,
+          "column": "experiment_profile"
+        }
+      ]
+    },
+    {
+      "name": "rag_eval_result_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "uq_rag_eval_result_profile_case",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "run_id"
+        },
+        {
+          "position": 2,
+          "column": "experiment_profile"
+        },
+        {
+          "position": 3,
+          "column": "case_id"
+        }
+      ]
+    }
+  ]
+}

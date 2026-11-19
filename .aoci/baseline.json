@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-19T07:34:58Z",
+  "updated_at": "2026-11-19T11:49:21Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -17,9 +17,9 @@
     },
     ".gitattributes": {
       "role": "index",
-      "sha256": "43ce712e89c0447b382774257e5e0f4786b7e4a96b2980c1cb9c757febcd7a9c",
-      "size": 207,
-      "normalized_sha256": "43ce712e89c0447b382774257e5e0f4786b7e4a96b2980c1cb9c757febcd7a9c"
+      "sha256": "2da0249c5ff9fac8bf6636f7a450375f1fd3caba36c0011148ec4eae83fdc49e",
+      "size": 396,
+      "normalized_sha256": "2da0249c5ff9fac8bf6636f7a450375f1fd3caba36c0011148ec4eae83fdc49e"
     },
     ".github/workflows/ci.yml": {
       "role": "index",
@@ -95,9 +95,15 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "32831ed761fb449e5cf511f7f6553b3f0b76490fe9e8d411cd9e913723503e06",
-      "size": 121874,
-      "normalized_sha256": "32831ed761fb449e5cf511f7f6553b3f0b76490fe9e8d411cd9e913723503e06"
+      "sha256": "1f56ff2d9a4743ca40b7bf27adbfd1c9b23cf99619b2231c22b4c945fc1a9d57",
+      "size": 122019,
+      "normalized_sha256": "1f56ff2d9a4743ca40b7bf27adbfd1c9b23cf99619b2231c22b4c945fc1a9d57"
+    },
+    "aoci.database.txt": {
+      "role": "index",
+      "sha256": "a72991ec02f7b89c49139b2decc6464c94008ec83467119da9880a9e16d1f7fa",
+      "size": 13864,
+      "normalized_sha256": "a72991ec02f7b89c49139b2decc6464c94008ec83467119da9880a9e16d1f7fa"
     },
     "aoci.meta.txt": {
       "role": "index",
@@ -107,9 +113,9 @@
     },
     "aoci.txt": {
       "role": "index",
-      "sha256": "456592c202a3a3e11a81c792b2ea532956376a696c7ab7175695bfed246767d1",
-      "size": 297,
-      "normalized_sha256": "456592c202a3a3e11a81c792b2ea532956376a696c7ab7175695bfed246767d1"
+      "sha256": "04b9c5552b7a24a142e9cd1347294f6f85d3861cbc278cc4d5c8307cdb8f6563",
+      "size": 403,
+      "normalized_sha256": "04b9c5552b7a24a142e9cd1347294f6f85d3861cbc278cc4d5c8307cdb8f6563"
     },
     "deploy/k8s/base/configmap.yml": {
       "role": "index",
@@ -3521,5 +3527,269 @@
       ]
     },
     "apply_authorization_mode": "auto"
+  },
+  "database_cognition": {
+    "version": "database-cognition-binding/v1",
+    "entries": [
+      {
+        "object_ref": "database://fitpilot/public/agent_eval_result",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "42a89f8cd383837dcec17a09d8832cc7fe57a0ef6da62c3abe085e4f022617c6",
+        "entry_sha256": "8b70d7b4ddb69e9f30d1e6d2eb3027b56b952657929df8343854ea8ccd67d1cb"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_eval_run",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "bb36c6821d481220a38be6643211a7d8209b1eb2bd74428d1091916f56bdd53c",
+        "entry_sha256": "6f2bcc10310632a50d254ac75c687f94615ebae1db6c9045dbbbf48e1a881a31"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_execution",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6ab3e99cf40264001a54264d9006a82e8e2951a67c949c1eaf43c2108ca6017a",
+        "entry_sha256": "19123a167225c9486351f1459ef42645a3df3588f7331d25a7ca0bd2c1f2730c"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_memory",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "611ba3028848b5dafe80afec2df1569bfaa62633c8f7e9e7577f0183d5532971",
+        "entry_sha256": "8023a15d206775d45bb2b01a14c87e228f983ff7cda0da5d613aea4b82f49eb6"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_message",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6fe58ebc9b03f4f765b10def811239596f8c3a5260f6c8c6bf1e5a7b0587198a",
+        "entry_sha256": "26a6e8960ba5e6c03f188dd3508fd9534e16f4a67834636bfa262273e20e3d41"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_pending_action",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "da8083ae62169b658a07388b223cdd373cf222762c4acf6cde34e4f666eece89",
+        "entry_sha256": "d7d7793d6e4523e9d2cb62ec8404882ac9442b6e0ee55f53ce4fa34e169fcfef"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_session",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "0c13ab9d8369f882a42ba0d4132796e406dc351990ef806ab6541f86891d0197",
+        "entry_sha256": "3e73a788838831eed3651f073f50b0c8695fccc681c58b1fca7f90bc4cdcb1fe"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_tool_call",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "62d42a0b7112690a30c176a2229d13a9ba118f77e36b7581cea2932bc5973999",
+        "entry_sha256": "736a8eda1c2755f48788404d481cbac74ffac9f762ad7ed465cf6dc9773abdd2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/body_metric",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "b779413d8e6db3743b09a8b36eb4354507b53cb2771c8f31b247982e6b50a06e",
+        "entry_sha256": "9387185416fa198cc4a63c4ee5228cae4864f5f353600d594916a6cf8fcc9d06"
+      },
+      {
+        "object_ref": "database://fitpilot/public/dead_letter_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6eb6ebda2c3943a71bc10e1cdbbaf8004f04085269122ac5f1ecee0e045d5fdd",
+        "entry_sha256": "e8bdd73fe82ac7d72ed406477fad28b0ff1d5261a574ce4d4ceaaf32b2aa4b89"
+      },
+      {
+        "object_ref": "database://fitpilot/public/exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6a9242f059639b3c45d9c53f954de785a4ce101ad5d4698e0a5e7fca9b13b484",
+        "entry_sha256": "594067732d2e6124965ab7aed1941476adfe7d370d988138d6a607af9cc89196"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_chunk",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "057e28199793554b7c18e4f4919ba4713d2701ac9b099a7a1cdff881161b24ac",
+        "entry_sha256": "703b183e3e73a3d4f6aee6641aa3f2c1824a9d91bc9f0337079c21382659bef7"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_document",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "b7a99469cfbeba6261ae2d1803cda2f3fa649d142c098301745467b21d18e42f",
+        "entry_sha256": "d10f3efd8593d0bbbbebb086c4f7c36d58f74e716dbbff9ed6acb56ef78eacf9"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_document_revision",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "d67eca8d940674d091da25ce950bc77d900fcecc45fa57d3da4a6987544321ce",
+        "entry_sha256": "964dded41c92f1f177e529b8a8e825d4202dfeb73b780af06c8529826db5adc2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/llm_invocation",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "529c89ef958a0565fdc2a39447b271e8cde17c1175b2aa4f1ebde53a4e4617f9",
+        "entry_sha256": "7d2f672a0ecff97966310501d55aa2ba98e592f20f9bdc1776bfe61de36b15de"
+      },
+      {
+        "object_ref": "database://fitpilot/public/outbox_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "5ed0d26e3b2bde942a2655c69613ed6c85e6f0cbc44652f078c64cb14bbe5b81",
+        "entry_sha256": "51bb11efccbcae8fda34967786a46adbcdb71376ac75c2749c136feec6ec3a4b"
+      },
+      {
+        "object_ref": "database://fitpilot/public/personal_record",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "8eebfa65624cb6c334c439a4fc42708bc0eae104e803983b6d89dd0aabd05b90",
+        "entry_sha256": "d986110e921f8c9b456d2db367c5174f2bd7872b127f12ceb41f950bda57c19e"
+      },
+      {
+        "object_ref": "database://fitpilot/public/plan_adjustment",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "4989dc925963f5f84e06f446899454914c42377bd3075d5c6eacadd603c5853c",
+        "entry_sha256": "2c988ebadbfd328e2597f7b5516e56f96845b04338de8ae6669d1a689d385507"
+      },
+      {
+        "object_ref": "database://fitpilot/public/processed_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c0792f372893ee0c4ec5708655f2007df8ac77e2ea1022e3ccce8de77b7f5aa9",
+        "entry_sha256": "cf1771bdc1e69d0d07edda2675b80f40a2218d8e7828fae1047820e6ba64f5d1"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_deletion_task",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c4de7e60f652d6fd65bfa61e4661c3237f43e1dc9b06ca1a7616c1e4f1d37b70",
+        "entry_sha256": "c5e0e1f6766d0dc2f27bb28e69b554b99478b0797e6dc7f5dfee28b58c81ae61"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_dynamic_eval_case",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "810270597bf392fc02b09ef043720afb0d96c1662d7992931d6f5453524fb096",
+        "entry_sha256": "d5ef3ddc6977bfaa4638244ea4f7f8e3a4d29dc963c1e19bea8e41977f05be03"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_eval_result",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "5e26fc7d2409cf7f502af594474b1d4fd99f1f3cfda62c36413e97b238eabe7f",
+        "entry_sha256": "10475ebfef1b8bb88437d119f7335ce9f5786c1101b12ce021fdb49ce4d9a333"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_eval_run",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "60690ef2749965e2f2c95ba181b8841ab3fa5a044b131286610471d2576d94b8",
+        "entry_sha256": "e94fc2ff6b801fbbc3d9e5ceabc95be432ca6533515d2704643e030a929179e7"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_feedback",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "1605826cf54862bd4cc2e932fa7cd8013cc23142cbbae91271ad62b4f431fc90",
+        "entry_sha256": "1e78d20f5f652862e8feed8ffce1e51b08894289233843077ff6bc8f07b34497"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_retrieval",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "bacd71dd51b0c6f22fa8dbc0a7102427b3006fb4cc8c634c71c174ea33ab7922",
+        "entry_sha256": "4e39049617dbdebad2c2f13c84312d6f1bc35cbf9d3751625d03fc026dab33d6"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "5a081f792a94475277cb49b38bb4b46602adfa40c2d7f6e4961013a610f04fa2",
+        "entry_sha256": "21c795e36f3aa3d0aa82b658a47ba8fc465937fd8ae68b8d78061406fb0a67cf"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan_day",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "23f499bb209e95401da6782cbfc607b3a20fcc37990c12e5fcb40db3af166d19",
+        "entry_sha256": "d7b9887ae4f68a98a3d25b6ba3921777d4fbaf0c15ba8368017f395fcc4cd9c1"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan_exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "8e17497b55c7f84c42370792e534d48575d1372d40aa63fd5ae08f8cc512044b",
+        "entry_sha256": "efd93e6e038fe902fdf0b9fc804adb6c6b676249e132e7a106ad2f748c6b2567"
+      },
+      {
+        "object_ref": "database://fitpilot/public/user_notification",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "7023aeab7a6bb6412f27f9da8c29b9add7a7b1caf09475100364c9fa987c5310",
+        "entry_sha256": "d7b669b7b5b8f257e477af269cf0c68fb32d64a062fc5a343e8081981e00cfae"
+      },
+      {
+        "object_ref": "database://fitpilot/public/user_profile",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "fc77e285a29c39f95e0ce2324d40429891c1a55d6028116719e0ff69ead79a01",
+        "entry_sha256": "290407a5ec94d6cdc765097c00b523ef159dfd43f591928d93ca04b0bf81c5a2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/users",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "2c1c08145d26324249facae56f8a5d5e5b20d1ef000f1bb69c581ace21cdbf14",
+        "entry_sha256": "a5cd4cb69e85d16a13909986d9d4afa87b02c3664f61f2a782ab85f010bd94ee"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "e7c6b7d513681f286f9dcdaf42cd4b0433d620fa34e36e10725d5bf8a2efc438",
+        "entry_sha256": "7ff0c13fab2165b0f8a1047fe0e93e852a75d7578ca418ce7ba7cfeb5d4ae1c2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_analytics_projection",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "11afa4daa3b5f0da524d6ed40348b0f144051200702b4b83c813ad364695c18a",
+        "entry_sha256": "09842dcc4d01fa7ac5ba0fa57a4c6e1de54b87b97c5e5c84df867f09dd922103"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "acc2d4e70b40f69fc3439f2269c5b448cfb74134fcc35d838b44894145a2d294",
+        "entry_sha256": "ec5848ead4834f1566eb215be9e274ee677b47dab323d60f435d131e6a6cd6d5"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_feedback",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "51e132f75fadfb26e8546eb41b00b798ed00419e4b16560d03cb14508c129923",
+        "entry_sha256": "cf3c6b206e29f9dd1f24c18e71d718224d6d799050b3521f2325abc17a8d0a13"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_set",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c84c47f857241bc18eea4453ced6ff1a8e4b05d73d5a9001470943dfcc920706",
+        "entry_sha256": "104b89e572adac8573e82555d86db81b44112941073b1aee4729736f7c3bad3e"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_set_receipt",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "ded3e2b1bf38c7a6bf1566a4c969a1140915af174bf9a281cba1b388bc37ae6f",
+        "entry_sha256": "821052ffa75da2b2d8eb4a3b6dbcebf9ea3e8644244a3a86097fce490c5c8ef2"
+      }
+    ]
   }
 }

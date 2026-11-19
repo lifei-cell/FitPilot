@@ -1,0 +1,161 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/agent_eval_result",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "agent_eval_result",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('agent_eval_result_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "run_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "case_id",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "query_hash",
+      "native_type": "character varying(64)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "expected_tools",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "actual_tools",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "tool_selection_correct",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "task_success",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "constraint_violation",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false
+    },
+    {
+      "ordinal": 10,
+      "name": "hallucination",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false
+    },
+    {
+      "ordinal": 11,
+      "name": "latency_ms",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    }
+  ],
+  "primary_key": {
+    "name": "agent_eval_result_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "agent_eval_result_run_id_case_id_key",
+      "columns": [
+        "run_id",
+        "case_id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "agent_eval_result_run_id_fkey",
+      "columns": [
+        "run_id"
+      ],
+      "referenced_object": "database://fitpilot/public/agent_eval_run",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "agent_eval_result_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "agent_eval_result_run_id_case_id_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "run_id"
+        },
+        {
+          "position": 2,
+          "column": "case_id"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_eval_result_run",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "run_id"
+        }
+      ]
+    }
+  ]
+}

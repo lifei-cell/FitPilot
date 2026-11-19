@@ -1,0 +1,206 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/knowledge_chunk",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "knowledge_chunk",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "document_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "parent_chunk_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": true
+    },
+    {
+      "ordinal": 4,
+      "name": "chunk_type",
+      "native_type": "character varying(10)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "ordinal",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "heading",
+      "native_type": "character varying(300)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 7,
+      "name": "content",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "lexical_text",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "embedding",
+      "native_type": "vector(384)",
+      "canonical_type": "user-defined",
+      "nullable": true
+    },
+    {
+      "ordinal": 10,
+      "name": "char_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 11,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "knowledge_chunk_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "knowledge_chunk_document_id_chunk_type_ordinal_key",
+      "columns": [
+        "document_id",
+        "chunk_type",
+        "ordinal"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "knowledge_chunk_document_id_fkey",
+      "columns": [
+        "document_id"
+      ],
+      "referenced_object": "database://fitpilot/public/knowledge_document",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "knowledge_chunk_parent_chunk_id_fkey",
+      "columns": [
+        "parent_chunk_id"
+      ],
+      "referenced_object": "database://fitpilot/public/knowledge_chunk",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [
+    {
+      "name": "knowledge_chunk_chunk_type_check",
+      "expression": "CHECK (chunk_type::text = ANY (ARRAY['PARENT'::character varying, 'CHILD'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_knowledge_chunk_document",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "document_id"
+        }
+      ]
+    },
+    {
+      "name": "idx_knowledge_chunk_embedding_hnsw",
+      "unique": false,
+      "method": "hnsw",
+      "elements": [
+        {
+          "position": 1,
+          "column": "embedding"
+        }
+      ],
+      "predicate": "chunk_type::text = 'CHILD'::text"
+    },
+    {
+      "name": "idx_knowledge_chunk_parent",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "parent_chunk_id"
+        }
+      ],
+      "predicate": "parent_chunk_id IS NOT NULL"
+    },
+    {
+      "name": "knowledge_chunk_document_id_chunk_type_ordinal_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "document_id"
+        },
+        {
+          "position": 2,
+          "column": "chunk_type"
+        },
+        {
+          "position": 3,
+          "column": "ordinal"
+        }
+      ]
+    },
+    {
+      "name": "knowledge_chunk_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/agent_session",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "agent_session",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "status",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'ACTIVE'::character varying"
+    },
+    {
+      "ordinal": 4,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "title",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'新对话'::character varying"
+    },
+    {
+      "ordinal": 7,
+      "name": "last_message_at",
+      "native_type": "timestamp with time zone",
+      "canonical_type": "timestamp with time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 8,
+      "name": "archived_at",
+      "native_type": "timestamp with time zone",
+      "canonical_type": "timestamp with time zone",
+      "nullable": true
+    }
+  ],
+  "primary_key": {
+    "name": "agent_session_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "agent_session_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [
+    {
+      "name": "ck_agent_session_status",
+      "expression": "CHECK (status::text = ANY (ARRAY['ACTIVE'::character varying, 'ARCHIVED'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "agent_session_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_session_owner",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "updated_at"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_session_retention",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "updated_at"
+        }
+      ],
+      "predicate": "status::text = ANY (ARRAY['ACTIVE'::character varying, 'ARCHIVED'::character varying]::text[])"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/users",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "users",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('users_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "username",
+      "native_type": "character varying(50)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "email",
+      "native_type": "character varying(100)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 4,
+      "name": "password_hash",
+      "native_type": "character varying(255)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "status",
+      "native_type": "smallint",
+      "canonical_type": "smallint",
+      "nullable": false,
+      "default_expression": "1"
+    },
+    {
+      "ordinal": 6,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 7,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "users_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "users_email_key",
+      "columns": [
+        "email"
+      ]
+    },
+    {
+      "name": "users_username_key",
+      "columns": [
+        "username"
+      ]
+    }
+  ],
+  "foreign_keys": [],
+  "checks": [
+    {
+      "name": "users_status_check",
+      "expression": "CHECK (status = ANY (ARRAY[0, 1, 2]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "users_email_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "email"
+        }
+      ]
+    },
+    {
+      "name": "users_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "users_username_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "username"
+        }
+      ]
+    }
+  ]
+}

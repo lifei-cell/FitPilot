@@ -1,0 +1,145 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/agent_pending_action",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "agent_pending_action",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "execution_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "tool_name",
+      "native_type": "character varying(100)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "payload",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "confirmation_hash",
+      "native_type": "character varying(64)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "status",
+      "native_type": "character varying(24)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "expires_at",
+      "native_type": "timestamp with time zone",
+      "canonical_type": "timestamp with time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 10,
+      "name": "executed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "primary_key": {
+    "name": "agent_pending_action_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "agent_pending_action_execution_id_fkey",
+      "columns": [
+        "execution_id"
+      ],
+      "referenced_object": "database://fitpilot/public/agent_execution",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "agent_pending_action_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "agent_pending_action_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "idx_agent_pending_owner",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "created_at"
+        }
+      ]
+    }
+  ]
+}

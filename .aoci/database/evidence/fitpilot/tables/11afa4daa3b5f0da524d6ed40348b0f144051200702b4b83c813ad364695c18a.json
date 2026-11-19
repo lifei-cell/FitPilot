@@ -1,0 +1,127 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/workout_analytics_projection",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "workout_analytics_projection",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "workout_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "completed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "duration_seconds",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "training_volume",
+      "native_type": "numeric(16,2)",
+      "canonical_type": "numeric",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 6,
+      "name": "completed_set_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 7,
+      "name": "projected_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "workout_analytics_projection_pkey",
+    "columns": [
+      "workout_id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [
+    {
+      "name": "workout_analytics_projection_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "workout_analytics_projection_workout_id_fkey",
+      "columns": [
+        "workout_id"
+      ],
+      "referenced_object": "database://fitpilot/public/workout",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_workout_analytics_user_time",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "completed_at"
+        }
+      ]
+    },
+    {
+      "name": "workout_analytics_projection_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "workout_id"
+        }
+      ]
+    }
+  ]
+}

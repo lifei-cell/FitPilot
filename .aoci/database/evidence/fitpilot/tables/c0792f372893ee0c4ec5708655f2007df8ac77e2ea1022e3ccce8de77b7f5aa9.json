@@ -1,0 +1,73 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/processed_event",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "processed_event",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "event_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "consumer",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "processed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "processed_event_pkey",
+    "columns": [
+      "event_id",
+      "consumer"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_processed_event_time",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "processed_at"
+        }
+      ]
+    },
+    {
+      "name": "processed_event_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "event_id"
+        },
+        {
+          "position": 2,
+          "column": "consumer"
+        }
+      ]
+    }
+  ]
+}
