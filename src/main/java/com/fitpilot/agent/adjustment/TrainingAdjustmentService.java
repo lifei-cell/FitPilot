@@ -149,26 +149,11 @@ public class TrainingAdjustmentService {
                 analysis.source().version(), analysis.rule(), analysis.evidence(), analysis.reasons(), plan);
     }
 
-    public void record(long userId, TrainingAdjustmentDtos.AdjustmentProposal proposal, UUID pendingActionId,
-                       String model, boolean degraded, String promptVersion) {
-        repository.create(proposal, userId, pendingActionId, model, degraded, promptVersion);
-    }
     public boolean hasPending(long userId, long sourcePlanId) { return repository.hasPending(userId, sourcePlanId); }
 
     public void recordDecision(long userId, Analysis analysis) {
         repository.createDecision(UUID.randomUUID(), userId, analysis.source().id(), analysis.source().version(),
                 analysis.rule(), analysis.evidence(), analysis.reasons());
-    }
-
-    public TrainingPlanDtos.PlanView confirm(long userId, TrainingAdjustmentDtos.AdjustmentProposal proposal) {
-        if (!plans.isCurrentActiveVersion(userId, proposal.sourcePlanId(), proposal.sourcePlanVersion())) {
-            repository.stale(proposal.adjustmentId());
-            throw new BusinessException(ErrorCode.PLAN_ADJUSTMENT_STALE,
-                    "active plan changed; regenerate the adjustment", HttpStatus.CONFLICT);
-        }
-        TrainingPlanDtos.PlanView draft = plans.create(userId, proposal.plan());
-        repository.accept(proposal.adjustmentId(), draft.id());
-        return draft;
     }
 
     public PageResult<TrainingAdjustmentDtos.AdjustmentView> list(long userId, long page, long size) {
@@ -179,13 +164,6 @@ public class TrainingAdjustmentService {
         if (value == null) throw new BusinessException(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,
                 "adjustment not found", HttpStatus.NOT_FOUND);
         return value;
-    }
-
-    public void reject(long userId, UUID adjustmentId) {
-        if (!repository.reject(adjustmentId, userId)) {
-            throw new BusinessException(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,
-                    "adjustment already processed or not found", HttpStatus.CONFLICT);
-        }
     }
 
     private int weeklySets(TrainingPlanDtos.PlanView plan) {

@@ -17,6 +17,13 @@ import java.util.*;
 
 @Repository
 public class AgentRepository {
+    private static final String VALID_PENDING_ADJUSTMENT = """
+            (p.tool_name <> 'adjust_training_plan' OR EXISTS (
+                SELECT 1 FROM plan_adjustment a
+                WHERE a.pending_action_id=p.id AND a.user_id=p.user_id AND a.status='AWAITING_CONFIRMATION'
+            ))
+            """;
+
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     public AgentRepository(JdbcTemplate jdbc, ObjectMapper json) { this.jdbc = jdbc; this.json = json; }
@@ -136,8 +143,9 @@ public class AgentRepository {
                 SELECT p.id,e.session_id,p.tool_name,p.status,p.expires_at,p.payload::text
                 FROM agent_pending_action p JOIN agent_execution e ON e.id=p.execution_id
                 WHERE p.user_id=? AND e.session_id=? AND p.status='AWAITING_CONFIRMATION'
+                  AND %s
                 ORDER BY p.created_at DESC
-                """, (rs, row) -> {
+                """.formatted(VALID_PENDING_ADJUSTMENT), (rs, row) -> {
                     String tool = rs.getString(3);
                     Object preview = "adjust_training_plan".equals(tool)
                             ? read(rs.getString(6), TrainingAdjustmentDtos.AdjustmentProposal.class).plan()
@@ -151,10 +159,12 @@ public class AgentRepository {
 
     public boolean rotatePendingToken(UUID id, long userId, String hash, Instant expiresAt) {
         return jdbc.update("""
-                UPDATE agent_pending_action SET confirmation_hash=?,expires_at=?
-                WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'
-                """, hash, java.time.OffsetDateTime.ofInstant(expiresAt, ZoneOffset.UTC), id, userId) == 1;
+                UPDATE agent_pending_action p SET confirmation_hash=?,expires_at=?
+                WHERE p.id=? AND p.user_id=? AND p.status='AWAITING_CONFIRMATION' AND %s
+                """.formatted(VALID_PENDING_ADJUSTMENT),
+                hash, java.time.OffsetDateTime.ofInstant(expiresAt, ZoneOffset.UTC), id, userId) == 1;
     }
+
     public void startExecution(UUID id, long userId, UUID sessionId, String intent, List<String> tools, LocalDateTime now) {
         jdbc.update("INSERT INTO agent_execution(id,user_id,session_id,intent,selected_tools,status,model,created_at) VALUES (?,?,?,?,?::jsonb,'RUNNING','RULE_WORKFLOW',?)",
                 id, userId, sessionId, intent, write(tools), now);
@@ -188,9 +198,11 @@ public class AgentRepository {
                 rs -> rs.next() ? Optional.of(new Pending((UUID) rs.getObject(1), rs.getString(2), rs.getString(3),
                         rs.getString(4), rs.getString(5), rs.getObject(6, java.time.OffsetDateTime.class).toInstant())) : Optional.empty(), id, userId);
     }
-    public void markExecuted(UUID id) { jdbc.update("UPDATE agent_pending_action SET status='EXECUTED',executed_at=now() WHERE id=?", id); }
-    public void markRejected(UUID id, long userId) {
-        jdbc.update("UPDATE agent_pending_action SET status='REJECTED',executed_at=now() WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'", id, userId);
+    public boolean decidePending(UUID id, long userId, PendingDecision decision) {
+        return jdbc.update("""
+                UPDATE agent_pending_action SET status=?,executed_at=now()
+                WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'
+                """, decision.name(), id, userId) == 1;
     }
     public void upsertMemory(long userId, String key, Object value) {
         jdbc.update("INSERT INTO agent_memory(user_id,memory_key,memory_value,updated_at) VALUES (?,?,?::jsonb,now()) ON CONFLICT(user_id,memory_key) DO UPDATE SET memory_value=excluded.memory_value,updated_at=now()",
@@ -215,6 +227,8 @@ public class AgentRepository {
     public <T> T read(String value, Class<T> type) { try { return json.readValue(value, type); } catch (Exception e) { throw new IllegalStateException(e); } }
     private String write(Object value) { try { return json.writeValueAsString(value == null ? Map.of() : value); } catch (Exception e) { throw new IllegalArgumentException(e); } }
     private double round(double value) { return Math.round(value * 10000d) / 10000d; }
+    public enum PendingDecision { EXECUTED, REJECTED, STALE }
+
     public record Pending(UUID executionId, String tool, String payload, String confirmationHash, String status, Instant expiresAt) {}
 
     private AgentDtos.ConversationMessage message(java.sql.ResultSet rs) throws java.sql.SQLException {

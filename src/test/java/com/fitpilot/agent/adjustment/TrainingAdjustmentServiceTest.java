@@ -1,6 +1,5 @@
 package com.fitpilot.agent.adjustment;
 
-import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.exercise.application.ExerciseService;
@@ -12,7 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class TrainingAdjustmentServiceTest {
@@ -45,32 +43,6 @@ class TrainingAdjustmentServiceTest {
         assertThat(analysis.rule()).isEqualTo("DELOAD");
         assertThat(service.validate(analysis, proposal, false)).isEmpty();
         assertThat(proposal.name()).contains("AI 调整草案");
-    }
-
-    @Test
-    void rejectsConfirmationWhenActivePlanVersionChanged() {
-        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(false);
-        var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
-                "PROGRESS", evidence(), List.of("平台期"), createRequest());
-
-        assertThatThrownBy(() -> service.confirm(7, proposal)).isInstanceOf(BusinessException.class)
-                .hasMessageContaining("active plan changed");
-        verify(repository).stale(proposal.adjustmentId());
-        verify(plans).isCurrentActiveVersion(7, 42, 1);
-        verify(plans, never()).active(anyLong());
-        verify(plans, never()).create(anyLong(), any());
-    }
-
-    @Test
-    void acceptsConfirmationAfterDatabaseVersionCheck() {
-        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(true);
-        var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
-                "PROGRESS", evidence(), List.of("平台期"), createRequest());
-        when(plans.create(7, proposal.plan())).thenReturn(plan(1));
-
-        assertThat(service.confirm(7, proposal)).isEqualTo(plan(1));
-        verify(repository).accept(proposal.adjustmentId(), 42);
-        verify(plans, never()).active(anyLong());
     }
 
     @Test
@@ -109,17 +81,6 @@ class TrainingAdjustmentServiceTest {
                                         3, 8, 12, BigDecimal.valueOf(7.5), 90, null)).toList())).toList();
         return new TrainingPlanDtos.PlanView(42, "力量计划", null, "STRENGTH", 8, 3, "ACTIVE", version,
                 LocalDate.now().minusWeeks(4), null, days);
-    }
-
-    private TrainingAdjustmentDtos.Evidence evidence() {
-        return new TrainingAdjustmentDtos.Evidence(28, 8, .9, 70, 72, .97, 7.5, 6, 5, 1,
-                10000, 10000, 0, 0);
-    }
-
-    private TrainingPlanDtos.CreateRequest createRequest() {
-        return new TrainingPlanDtos.CreateRequest("草案", null, "STRENGTH", 8, List.of(
-                new TrainingPlanDtos.DayRequest(1, "训练", null, List.of(
-                        new TrainingPlanDtos.ExerciseRequest(1L, 1, 3, 8, 12, BigDecimal.valueOf(7), 90, null)))));
     }
 
     private ExerciseView exercise(long id, String muscle) {

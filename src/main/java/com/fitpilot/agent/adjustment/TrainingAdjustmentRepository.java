@@ -48,35 +48,43 @@ public class TrainingAdjustmentRepository {
         return new Metrics(completed, completedSets, targets, rpe, feedbacks, fatigue, pain, currentVolume, previousVolume, prs);
     }
 
-    public void create(TrainingAdjustmentDtos.AdjustmentProposal proposal, long userId, UUID pendingActionId,
-                       String model, boolean degraded, String promptVersion) {
-        jdbc.update("""
-                UPDATE plan_adjustment a SET status='STALE',decided_at=CURRENT_TIMESTAMP
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND EXISTS (SELECT 1 FROM agent_pending_action p WHERE p.id=a.pending_action_id AND p.expires_at<CURRENT_TIMESTAMP)
-                """, userId, proposal.sourcePlanId());
-        jdbc.update("""
+    public boolean create(TrainingAdjustmentDtos.AdjustmentProposal proposal, long userId, UUID pendingActionId,
+                          String model, boolean degraded, String promptVersion) {
+        return jdbc.update("""
                 INSERT INTO plan_adjustment(id,user_id,source_plan_id,source_plan_version,evidence,reasons,proposal,
                   rule,status,pending_action_id,model,prompt_version,degraded)
                 VALUES (?,?,?,?,?::jsonb,?::jsonb,?::jsonb,?,'AWAITING_CONFIRMATION',?,?,?,?)
+                ON CONFLICT (user_id,source_plan_id) WHERE status='AWAITING_CONFIRMATION' DO NOTHING
                 """, proposal.adjustmentId(), userId, proposal.sourcePlanId(), proposal.sourcePlanVersion(),
                 write(proposal.evidence()), write(proposal.reasons()), write(proposal.plan()), proposal.rule(),
-                pendingActionId, model, promptVersion, degraded);
+                pendingActionId, model, promptVersion, degraded) == 1;
     }
 
     public boolean hasPending(long userId, long sourcePlanId) {
-        jdbc.update("""
-                UPDATE plan_adjustment a SET status='STALE',decided_at=CURRENT_TIMESTAMP
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND EXISTS (SELECT 1 FROM agent_pending_action p WHERE p.id=a.pending_action_id AND p.expires_at<CURRENT_TIMESTAMP)
-                """, userId, sourcePlanId);
-        Long value = jdbc.queryForObject("""
-                SELECT count(*) FROM plan_adjustment a JOIN agent_pending_action p ON p.id=a.pending_action_id
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND p.status='AWAITING_CONFIRMATION' AND p.expires_at>=CURRENT_TIMESTAMP
-                """,
-                Long.class, userId, sourcePlanId);
-        return value != null && value > 0;
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (
+                    SELECT 1 FROM plan_adjustment a JOIN agent_pending_action p
+                      ON p.id=a.pending_action_id AND p.user_id=a.user_id
+                    WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
+                      AND p.tool_name='adjust_training_plan' AND p.status='AWAITING_CONFIRMATION'
+                      AND p.expires_at>=CURRENT_TIMESTAMP
+                )
+                """, Boolean.class, userId, sourcePlanId));
+    }
+
+    public PendingProposal findPendingForSource(long userId, long sourcePlanId) {
+        return jdbc.query("""
+                SELECT id,pending_action_id FROM plan_adjustment
+                WHERE user_id=? AND source_plan_id=? AND status='AWAITING_CONFIRMATION'
+                """, rs -> rs.next() ? new PendingProposal(rs.getObject(1, UUID.class),
+                rs.getObject(2, UUID.class)) : null, userId, sourcePlanId);
+    }
+
+    public UUID findPendingAction(long userId, UUID adjustmentId) {
+        return jdbc.query("""
+                SELECT pending_action_id FROM plan_adjustment
+                WHERE user_id=? AND id=? AND status='AWAITING_CONFIRMATION'
+                """, rs -> rs.next() ? rs.getObject(1, UUID.class) : null, userId, adjustmentId);
     }
 
     public void createDecision(UUID id, long userId, long sourcePlanId, int sourceVersion, String rule,
@@ -105,21 +113,11 @@ public class TrainingAdjustmentRepository {
                 """, rs -> rs.next() ? view(rs) : null, id, userId);
     }
 
-    public boolean reject(UUID id, long userId) {
-        int changed = jdbc.update("UPDATE plan_adjustment SET status='REJECTED',decided_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'", id, userId);
-        if (changed == 1) jdbc.update("""
-                UPDATE agent_pending_action SET status='REJECTED',executed_at=CURRENT_TIMESTAMP
-                WHERE id=(SELECT pending_action_id FROM plan_adjustment WHERE id=?) AND user_id=?
-                """, id, userId);
-        return changed == 1;
-    }
-
-    public void accept(UUID adjustmentId, long draftPlanId) {
-        jdbc.update("UPDATE plan_adjustment SET status='ACCEPTED',draft_plan_id=?,decided_at=CURRENT_TIMESTAMP WHERE id=?", draftPlanId, adjustmentId);
-    }
-
-    public void stale(UUID adjustmentId) {
-        jdbc.update("UPDATE plan_adjustment SET status='STALE',decided_at=CURRENT_TIMESTAMP WHERE id=?", adjustmentId);
+    public boolean decide(long userId, UUID adjustmentId, Decision decision, Long draftPlanId) {
+        return jdbc.update("""
+                UPDATE plan_adjustment SET status=?,draft_plan_id=?,decided_at=CURRENT_TIMESTAMP
+                WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'
+                """, decision.name(), draftPlanId, adjustmentId, userId) == 1;
     }
 
     private TrainingAdjustmentDtos.AdjustmentView view(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -153,6 +151,10 @@ public class TrainingAdjustmentRepository {
     private <T> T read(String value, TypeReference<T> type) {
         try { return json.readValue(value, type); } catch (Exception e) { throw new IllegalStateException(e); }
     }
+
+    public enum Decision { ACCEPTED, REJECTED, STALE }
+
+    public record PendingProposal(UUID id, UUID actionId) {}
 
     public record Metrics(long completedWorkouts, long completedSets, long targetSets, double averageRpe,
                           long feedbackCount, double averageFatigue, int latestPain, double currentVolume,

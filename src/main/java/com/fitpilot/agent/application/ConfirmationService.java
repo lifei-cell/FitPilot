@@ -1,8 +1,8 @@
 package com.fitpilot.agent.application;
 
 import com.fitpilot.agent.adjustment.TrainingAdjustmentDtos;
-import com.fitpilot.agent.adjustment.TrainingAdjustmentService;
 import com.fitpilot.agent.infrastructure.AgentRepository;
+import com.fitpilot.agent.infrastructure.AgentRepository.PendingDecision;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.plan.application.TrainingPlanService;
@@ -20,11 +20,11 @@ public class ConfirmationService {
     private final PendingActionService pendingActions;
     private final TrainingPlanGuardrail guardrail;
     private final TrainingPlanService plans;
-    private final TrainingAdjustmentService adjustments;
+    private final TrainingAdjustmentWorkflow adjustments;
 
     public ConfirmationService(AgentRepository repository, PendingActionService pendingActions,
                                TrainingPlanGuardrail guardrail, TrainingPlanService plans,
-                               TrainingAdjustmentService adjustments) {
+                               TrainingAdjustmentWorkflow adjustments) {
         this.repository = repository;
         this.pendingActions = pendingActions;
         this.guardrail = guardrail;
@@ -32,25 +32,25 @@ public class ConfirmationService {
         this.adjustments = adjustments;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = TrainingAdjustmentWorkflow.SourceChanged.class)
     public Object confirm(long userId, UUID actionId, String token) {
         AgentRepository.Pending pending = pendingActions.requireConfirmable(userId, actionId, token);
-        if ("adjust_training_plan".equals(pending.tool())) {
+        if (TrainingAdjustmentWorkflow.TOOL.equals(pending.tool())) {
             TrainingAdjustmentDtos.AdjustmentProposal proposal = repository.read(
                     pending.payload(), TrainingAdjustmentDtos.AdjustmentProposal.class);
             validate(proposal.plan());
-            return execute(pending, actionId, proposal, () -> adjustments.confirm(userId, proposal));
+            return execute(userId, pending, actionId, proposal, () -> adjustments.confirm(userId, actionId, proposal));
         }
         TrainingPlanDtos.CreateRequest proposal = repository.read(
                 pending.payload(), TrainingPlanDtos.CreateRequest.class);
         validate(proposal);
-        return execute(pending, actionId, proposal, () -> plans.create(userId, proposal));
+        return execute(userId, pending, actionId, proposal, () -> plans.create(userId, proposal));
     }
 
-    private Object execute(AgentRepository.Pending pending, UUID actionId, Object proposal, Action action) {
+    private Object execute(long userId, AgentRepository.Pending pending, UUID actionId, Object proposal, Action action) {
         long started = System.nanoTime();
         Object result = action.execute();
-        repository.markExecuted(actionId);
+        pendingActions.decide(userId, actionId, PendingDecision.EXECUTED);
         repository.toolCall(pending.executionId(), pending.tool(), proposal, result,
                 "SUCCEEDED", elapsed(started));
         return result;

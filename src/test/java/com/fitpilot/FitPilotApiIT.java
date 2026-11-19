@@ -8,6 +8,7 @@ import com.fitpilot.infrastructure.performance.DistributedLockService;
 import com.fitpilot.infrastructure.performance.RedisTokenBucketRateLimiter;
 import com.fitpilot.infrastructure.performance.TwoLevelCache;
 import com.fitpilot.evaluation.application.EvaluationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -53,6 +55,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers(disabledWithoutDocker = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FitPilotApiIT {
+    private static final AtomicInteger AUTH_CLIENT_IDS = new AtomicInteger();
+
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
             DockerImageName.parse("pgvector/pgvector:pg17").asCompatibleSubstituteFor("postgres"));
@@ -82,6 +86,12 @@ class FitPilotApiIT {
     @Autowired StringRedisTemplate redis;
     @Autowired EvaluationService evaluationService;
     @Autowired @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMappings;
+    private String authClientIp;
+
+    @BeforeEach
+    void assignAuthClientIp() {
+        authClientIp = "2001:db8::" + Integer.toHexString(AUTH_CLIENT_IDS.incrementAndGet());
+    }
 
     @Test
     void everyOperationsRouteIsDeniedBeforeControllerInvocationWithoutToken() throws Exception {
@@ -113,7 +123,7 @@ class FitPilotApiIT {
     @Test
     void completeUserPlanWorkoutPrAndAnalyticsFlow() throws Exception {
         register("flow_user");
-        mvc.perform(post("/api/v1/auth/register").contentType("application/json")
+        mvc.perform(authRequest("register").contentType("application/json")
                         .content(json.writeValueAsBytes(Map.of("username", "flow_user", "email", "other@example.com", "password", "password123"))))
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value(10002));
         String token = login("flow_user");
@@ -222,13 +232,13 @@ class FitPilotApiIT {
     void webContractsSupportRefreshPlanEditingSingleWorkoutAndNotifications() throws Exception {
         JsonNode user = register("web_contract_user");
         long userId = user.path("data").path("id").asLong();
-        var login = mvc.perform(post("/api/v1/auth/login").contentType("application/json")
+        var login = mvc.perform(authRequest("login").contentType("application/json")
                         .content(json.writeValueAsBytes(Map.of("username", "web_contract_user", "password", "password123"))))
                 .andExpect(status().isOk()).andExpect(cookie().httpOnly("fitpilot_refresh", true)).andReturn();
         var refreshCookie = login.getResponse().getCookie("fitpilot_refresh");
         assertThat(refreshCookie).isNotNull();
         String token = json.readTree(login.getResponse().getContentAsByteArray()).path("data").path("accessToken").asText();
-        var refreshed = mvc.perform(post("/api/v1/auth/refresh").cookie(refreshCookie))
+        var refreshed = mvc.perform(authRequest("refresh").cookie(refreshCookie))
                 .andExpect(status().isOk()).andExpect(cookie().httpOnly("fitpilot_refresh", true)).andReturn();
         assertThat(json.readTree(refreshed.getResponse().getContentAsByteArray()).path("data").path("accessToken").asText())
                 .isNotBlank();
@@ -287,7 +297,7 @@ class FitPilotApiIT {
         mvc.perform(get("/api/v1/notifications/unread-count").header("Authorization", bearer(token)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.count").value(0));
 
-        mvc.perform(post("/api/v1/auth/logout").cookie(refreshed.getResponse().getCookie("fitpilot_refresh")))
+        mvc.perform(authRequest("logout").cookie(refreshed.getResponse().getCookie("fitpilot_refresh")))
                 .andExpect(status().isOk()).andExpect(cookie().maxAge("fitpilot_refresh", 0));
     }
 
@@ -476,6 +486,8 @@ class FitPilotApiIT {
         assertThat(jdbc.queryForObject("SELECT id FROM training_plan WHERE user_id=? AND status='ACTIVE'",Long.class,userId)).isEqualTo(planId);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM training_plan WHERE user_id=? AND status='DRAFT'",Long.class,userId)).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT status FROM plan_adjustment WHERE user_id=?",String.class,userId)).isEqualTo("ACCEPTED");
+        assertThat(jdbc.queryForObject("SELECT status FROM agent_pending_action WHERE id=? AND user_id=?",
+                String.class, UUID.fromString(actionId), userId)).isEqualTo("EXECUTED");
     }
 
     @Test
@@ -628,18 +640,25 @@ class FitPilotApiIT {
     }
 
     private JsonNode register(String username) throws Exception {
-        return call(post("/api/v1/auth/register").contentType("application/json")
+        return call(authRequest("register").contentType("application/json")
                 .content(json.writeValueAsBytes(Map.of("username", username, "email", username + "@example.com",
                         "password", "password123"))), 201);
     }
 
     private String login(String username) throws Exception {
-        JsonNode response = call(post("/api/v1/auth/login").contentType("application/json")
+        JsonNode response = call(authRequest("login").contentType("application/json")
                 .content(json.writeValueAsBytes(Map.of("username", username, "password", "password123"))), 200);
         return response.path("data").path("accessToken").asText();
     }
 
-    private JsonNode call(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request, int expectedStatus)
+    private MockHttpServletRequestBuilder authRequest(String action) {
+        return post("/api/v1/auth/" + action).with(request -> {
+            request.setRemoteAddr(authClientIp);
+            return request;
+        });
+    }
+
+    private JsonNode call(MockHttpServletRequestBuilder request, int expectedStatus)
             throws Exception {
         String body = mvc.perform(request).andExpect(status().is(expectedStatus)).andReturn().getResponse().getContentAsString();
         return json.readTree(body);

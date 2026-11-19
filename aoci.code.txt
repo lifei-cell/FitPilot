@@ -303,20 +303,21 @@ FitPilotApplication.java[EG5T]: F:启动 Spring Boot，注册各业务 Mapper �
 
 ===/<repository>/src/main/java/com/fitpilot/agent/adjustment/===
 TrainingAdjustmentDtos.java[CA4T]: F:定义训练调整的分析证据、提议和历史视图合同 | R:- | A:Evidence,Context,AdjustmentProposal,AdjustmentView | S:-
-TrainingAdjustmentRepository.java[PA6S]: F:汇总训练反馈和组数指标并维护调整提议生命周期 | R:- | A:metrics,create,hasPending | S:待确认检查同时将已过期的关联提议标为 STALE
-TrainingAdjustmentService.java[AA7S]: F:从用户训练事实生成可解释的调整规则，校验草案并确认写入 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java | A:analyze,deterministicPlan,validate,confirm | S:确认时重检来源仍为当前活动版本；替换动作要求证据引用
+TrainingAdjustmentRepository.java[PA7S]: F:汇总训练反馈和组数，查询并持久化计划调整提议及其决定 | R:code:src/main/resources/db/migration/V13__add_training_feedback_and_adjustments.sql | A:metrics,create,hasPending,findPendingForSource,findPendingAction,decide | S:插入只忽略同用户同来源计划的待确认唯一冲突。决定更新匹配用户与待确认状态，由调用者先锁关联动作
+TrainingAdjustmentService.java[AA7S]: F:依据训练事实判定调整规则，构造规则草案、校验负荷并提供调整历史 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:analyze,context,deterministicPlan,validate,proposal,list | S:改换动作需有效引用且匹配原动作主要肌群。最近七天最高疼痛分达到四分时进入安全暂停
 
 ===/<repository>/src/main/java/com/fitpilot/agent/application/===
 AgentOrchestrator.java[AA7S]: F:编排单条 Agent 消息的路由、读工具、提议、答复与审计 | R:code:src/main/java/com/fitpilot/agent/application/IntentRouter.java,code:src/main/java/com/fitpilot/agent/application/PlanProposalService.java | A:message | S:拒绝和无需动作分别收尾，写入提议只成为待确认动作
 AgentPlanner.java[DA5T]: F:按中英关键词有序匹配意图并返回确定性工具计划 | R:- | A:decide | S:创建与调整先于泛化的训练计划查看
 AgentToolExecutor.java[AA6T]: F:把固定读工具名分派到当前用户的训练、计划和知识读取服务 | R:- | A:execute | S:无 RAG 服务时返回不可用视图
 AgentWorkflowService.java[AA6S]: F:提供 HTTP 与 MCP 共用的会话、消息、偏好与确认门面 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java,code:src/main/java/com/fitpilot/agent/memory/AgentSessionStore.java | A:message,history,confirm | S:所有会话读取与修改都以用户和会话校验为前提
-ConfirmationService.java[AA8T]: F:在事务内消费可确认动作、重验训练计划规则并落地草案 | R:code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:confirm | S:待确认动作以 owner 行锁读取，成功状态与草案创建同事务
+ConfirmationService.java[AA8T]: F:锁定并验证用户待确认动作，重验计划规则，创建草稿并记录执行结果 | R:code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:confirm | S:成功时草案、动作终态和审计同事务。仅来源计划变更异常允许提交双方失效状态后返回冲突
 IntentRouter.java[AA6T]: F:记录 Agent 执行起点并用模型决策补充确定性意图回退 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java,code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:begin,decide,recordUsage | S:-
-PendingActionService.java[AA7T]: F:生成和轮换确认令牌，列出当前用户待办并验证可执行性 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:create,rotateToken,requireConfirmable | S:只持久化令牌哈希；确认使用 owner 行锁与常量时间比较
-PlanProposalService.java[AA7S]: F:把创建或调整意图转化为经规则验证的待确认计划提议 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java,code:src/main/java/com/fitpilot/agent/application/PendingActionService.java | A:prepare | S:同一来源计划已有待确认调整时提前结束；规则草案也需校验
+PendingActionService.java[AA7S]: F:签发和轮换确认令牌，列出用户待办并授权及推进动作终态 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:create,list,rotateToken,requireConfirmable,decide | S:只持久化令牌哈希。确认使用归属行锁和常量时间比较，终态更新丢失待确认状态时返回冲突
+PlanProposalService.java[AA7S]: F:用模型或规则构造创建与调整计划草案，经安全校验后交给待确认流程 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:prepare | S:调整预检查只用于避免重复模型调用。并发落库冲突在事务外转为已有待确认调整的提示
 ToolExecutionService.java[AA6T]: F:执行与审计 Agent/MCP 读工具调用，跳过工作流中的写意图 | R:code:src/main/java/com/fitpilot/agent/application/AgentToolExecutor.java | A:executeReadTools,executeMcp | S:-
 TrainingPlanGuardrail.java[DA7T]: F:在通用计划校验外约束生成计划的周期、训练频次、周组数和动作范围 | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanValidationService.java | A:validate | S:提议生成和最终确认共用规则；周组数上限为 120
+TrainingAdjustmentWorkflow.java[AA8S]: F:事务化创建调整提议与待确认动作，协调拒绝、确认和过期替换 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java,code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/ConfirmationService.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:create,reject,confirm,AlreadyPending | S:提议和动作连同待确认审计一起写入，唯一冲突回滚。先锁用户动作再决定提议，确认必须匹配同一条待确认关联且来源仍是当前活动版本
 
 ===/<repository>/src/main/java/com/fitpilot/agent/config/===
 AgentProperties.java[FC4T]: F:绑定 Agent 功能开关、会话缓存、确认令牌与归档保留配置 | R:- | A:fitpilot.agent | S:-
@@ -325,13 +326,13 @@ AgentProperties.java[FC4T]: F:绑定 Agent 功能开关、会话缓存、确认�
 AgentController.java[EA6T]: F:暴露当前用户的 Agent 会话、消息、历史、待确认动作和偏好 API | R:code:src/main/java/com/fitpilot/agent/application/AgentWorkflowService.java | A:/api/v1/agent | S:-
 AgentOperationsController.java[EO5T]: F:暴露运维 Agent 执行指标、产品统计与期望工具标注 | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:/api/v1/operations/agent | S:-
 McpController.java[EA6T]: F:以 MCP 方法头和 JSON-RPC 封装发布工具、资源和提示入口 | R:code:src/main/java/com/fitpilot/agent/application/AgentWorkflowService.java | A:POST /mcp,tools/call,resources/read | S:身份来自 HTTP 认证；计划创建返回待确认结果
-TrainingAdjustmentController.java[EA5T]: F:暴露当前用户的计划调整历史、明细与拒绝操作 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:/api/v1/agent/plan-adjustments | S:-
+TrainingAdjustmentController.java[EA5T]: F:用认证用户查询调整历史和明细，并调用事务工作流拒绝调整 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java | A:/api/v1/agent/plan-adjustments | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/agent/dto/===
 AgentDtos.java[CA5T]: F:定义 Agent 会话、历史游标、工具结果、确认令牌与 MCP 请求形状 | R:- | A:MessageRequest,MessageView,PendingActionView | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/agent/infrastructure/===
-AgentRepository.java[PA7M]: F:持久化 Agent 会话、消息、审计、偏好与待确认动作并执行留存移除 | R:- | A:ownsSession,messageHistory,lockPending | S:待确认动作按 id 与 owner 加锁，清理跳过仍有有效待确认动作的会话
+AgentRepository.java[PA7M]: F:持久化 Agent 会话、消息、审计、偏好和待确认动作，并执行会话留存移除 | R:code:src/main/resources/db/migration/V13__add_training_feedback_and_adjustments.sql | A:ownsSession,messageHistory,pendingActions,rotatePendingToken,lockPending,decidePending | S:动作终态仅从同用户待确认态更新。调整动作列表和换令牌均要求同用户待确认提议，避免恢复历史孤立动作
 
 ===/<repository>/src/main/java/com/fitpilot/agent/memory/===
 AgentConversationRetentionJob.java[RA4T]: F:定时按 Agent 保留期与批大小删除到期对话 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:fitpilot.agent.retention-cron | S:-
@@ -692,18 +693,19 @@ token_bucket.lua[KP6T]: F:在 Redis 原子计算补充、扣减、过期并返�
 
 ===/<repository>/src/test/java/com/fitpilot/===
 FitPilotAgentProductMetricsIT.java[TO5M]: F:以数据库构造用户、建议、执行与结果样本，验收运维响应和 Gauge | R:code:src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java | A:- | S:-
-FitPilotApiIT.java[TG7L]: F:以真实数据库和 Redis 检验核心 API、认证、缓存、Agent、评测与恢复合同 | R:code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java | A:- | S:明确验证无令牌运维拒绝，组回执在 Redis 丢失、删除和完成后仍能重放
+FitPilotApiIT.java[TG7L]: F:用真实 PostgreSQL 和 Redis 验证核心 API、认证、缓存、Agent 确认、评测与训练恢复 | R:code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java | A:- | S:认证用例以独立模拟来源隔离限流桶，固定来源专测429。组回执在 Redis 丢失、删除和完成后仍能重放
 FitPilotEventFlowIT.java[TM6S]: F:用真实 Kafka、Redis 和 PostgreSQL 验证完成训练投递、投影及重复消费幂等 | R:- | A:relaysWorkoutAndProjectsPrAnalyticsAndNotificationsIdempotently | S:-
 FitPilotLlmFlowIT.java[TA5T]: F:用回环模型桩验证主备切换、规则降级和审计落库 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
 FitPilotRagFlowIT.java[TA6M]: F:用真实 PostgreSQL、pgvector 与 Elasticsearch 验证摄取、检索引用、重索引和删除 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIngestionService.java | A:- | S:-
 FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 不可用时验证 readiness 与并发数据库回源 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
-TrainingAdjustmentServiceTest.java[TA5S]: F:验证高疼痛阻断、减量范围、来源版本复核和动作替换约束 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:-
+TrainingAdjustmentServiceTest.java[TA5T]: F:检验疼痛阻断、减量约束和动作替换的引用与肌群规则 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/agent/application/===
 AgentPlannerTest.java[TA4T]: F:验证规则规划器稳定选中接受数据集的精确工具序列 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java | A:- | S:-
 TrainingPlanGuardrailTest.java[TA4T]: F:验证结构化计划通过及超周期、训练量、RPE 与休息约束拒绝 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:- | S:-
+TrainingAdjustmentWorkflowIT.java[TA7M]: F:用真实 PostgreSQL 验证竞争创建的事务回滚、确认与拒绝互斥、成对失效和孤立动作拦截 | R:code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/application/ConfirmationService.java | A:- | S:使用 pg_blocking_pids 证明后发事务已等待，分别覆盖确认和拒绝先获得锁的顺序
 
 ===/<repository>/src/test/java/com/fitpilot/agent/memory/===
 AgentSessionStoreTest.java[TA5T]: F:验证 Agent 消息先入数据库，Redis 写读失败时还能恢复 | R:code:src/main/java/com/fitpilot/agent/memory/AgentSessionStore.java | A:- | S:-
