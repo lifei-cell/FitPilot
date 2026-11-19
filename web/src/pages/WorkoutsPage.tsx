@@ -28,7 +28,7 @@ export function WorkoutsPage() {
   const client = useQueryClient();
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackWorkoutId, setFeedbackWorkoutId] = useState<number | null>(null);
   const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
   const recovery = useWorkoutRecovery();
   const { active } = recovery;
@@ -36,7 +36,7 @@ export function WorkoutsPage() {
     queryKey: ["active-plan"],
     queryFn: () => api<Plan>("/training-plans/active/current"),
     retry: false,
-    enabled: !active.data,
+    enabled: !active.data || recovery.isClosed,
   });
   const history = useQuery({
     queryKey: ["workout-history"],
@@ -72,7 +72,7 @@ export function WorkoutsPage() {
     }) => api(`/workouts/${id}/${action}`, { method: "POST", body: feedback ? JSON.stringify({ feedback }) : undefined }),
     onSuccess: (_, variables) => {
       recovery.finished(variables.id);
-      setShowFeedback(false);
+      setFeedbackWorkoutId(null);
       if (variables.action === "complete") setShowAdjustmentPrompt(true);
       refresh();
     },
@@ -108,12 +108,18 @@ export function WorkoutsPage() {
         title="训练执行"
         description="专注当前一组，系统负责保存上下文。"
       />
-      {active.data && <Panel>
-        <p role="status">{recovery.pending.length ? `已保存到本机 · ${recovery.pending.length} 组待同步`
-          : recovery.online ? "训练记录已同步；填写中的内容自动保存到本机" : "离线模式 · 可继续记录，联网后自动同步"}</p>
+      {(active.data || recovery.otherPendingCount > 0) && <Panel>
+        {active.data && <p role="status">{recovery.pendingCount ? `已保存到本机 · ${recovery.pendingCount} 组待同步`
+          : recovery.online ? "训练记录已同步；填写中的内容自动保存到本机" : "离线模式 · 可继续记录，联网后自动同步"}</p>}
+        {recovery.otherPendingCount > 0 && <p>其他训练有 {recovery.otherPendingCount} 组待同步。</p>}
+        {recovery.conflicts.length > 0 && <ul role="alert" className="form-error">
+          {recovery.conflicts.map(({ workoutId, message }) => (
+            <li key={workoutId}>训练 #{workoutId} 同步暂停：{message}。记录仍在本机，可重试或导出。</li>
+          ))}
+        </ul>}
         {recovery.syncing && <p>正在同步…</p>}
         {recovery.isClosed && <p>这次训练已在服务器结束，本机待同步记录仍保留，请核对。</p>}
-        {recovery.pending.length > 0 && <p>所有组同步成功后，即可完成或取消训练。</p>}
+        {recovery.pendingCount > 0 && !recovery.isClosed && <p>当前训练的组同步成功后，即可完成或取消训练。</p>}
         {recovery.hasDraft && <p>还有填写中的一组，请先记录或清空输入，再完成训练。</p>}
         <button className="secondary-button" disabled={!recovery.online || recovery.syncing}
           onClick={() => void recovery.sync()}>重试同步</button>
@@ -121,7 +127,7 @@ export function WorkoutsPage() {
       </Panel>}
       {recovery.error && <p role="alert" className="form-error">{recovery.error}</p>}
       {error && <p className="form-error error-banner">{error}</p>}
-      {active.data ? (
+      {active.data && !recovery.isClosed ? (
         <Panel className="workout-live">
           <div className="live-head">
             <div>
@@ -138,7 +144,7 @@ export function WorkoutsPage() {
             <div className="action-row">
               <button
                 className="secondary-button danger"
-                disabled={recording || finish.isPending || !recovery.canFinish || Boolean(recovery.isClosed)}
+                disabled={recording || finish.isPending || !recovery.canFinish}
                 onClick={() =>
                   finish.mutate({ id: active.data!.id, action: "cancel" })
                 }
@@ -148,17 +154,18 @@ export function WorkoutsPage() {
               </button>
               <button
                 className="primary-button compact"
-                disabled={recording || finish.isPending || !recovery.canFinish || Boolean(recovery.isClosed)}
-                onClick={() => setShowFeedback(true)}
+                disabled={recording || finish.isPending || !recovery.canFinish}
+                onClick={() => setFeedbackWorkoutId(active.data!.id)}
               >
                 <CheckCircle2 size={17} />
                 完成训练
               </button>
             </div>
           </div>
-          {showFeedback ? <WorkoutFeedbackForm busy={finish.isPending || recording || !recovery.canFinish || Boolean(recovery.isClosed)}
-            onSubmit={(feedback) => finish.mutate({ id: active.data!.id, action: "complete", feedback })}
-            onSkip={() => finish.mutate({ id: active.data!.id, action: "complete" })} /> : null}
+          {feedbackWorkoutId === active.data.id ? <WorkoutFeedbackForm key={feedbackWorkoutId}
+            busy={finish.isPending || recording || !recovery.canFinish}
+            onSubmit={(feedback) => finish.mutate({ id: feedbackWorkoutId, action: "complete", feedback })}
+            onSkip={() => finish.mutate({ id: feedbackWorkoutId, action: "complete" })} /> : null}
           <div className="exercise-stack">
             {active.data.exercises.map((exercise, index) => (
               <article className="exercise-live" key={exercise.id}>
@@ -183,7 +190,7 @@ export function WorkoutsPage() {
                         key={set.id}
                         set={set}
                         busy={
-                          !recovery.canFinish || Boolean(recovery.isClosed) || recording || (updateSet.isPending &&
+                          !recovery.canFinish || recording || (updateSet.isPending &&
                             updateSet.variables?.setId === set.id) ||
                           (deleteSet.isPending &&
                             deleteSet.variables?.setId === set.id)
@@ -205,7 +212,7 @@ export function WorkoutsPage() {
                     ))}
                   </div>
                   <QuickSetForm workoutId={active.data!.id} exercise={exercise}
-                    busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending || Boolean(recovery.isClosed)}
+                    busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending}
                     onSave={async (payload, idempotencyKey) => {
                       setRecording(true);
                       try {

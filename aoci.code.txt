@@ -862,10 +862,10 @@ planBuilderModel.ts[DU5S]: F:管理稳定草稿键，从计划重建内容，校
 QuickSetForm.tsx[EU6S]: F:读取上次工作组并呈现快速输入，在修改与提交时按动作保存草稿 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:QuickSetForm | S:建议值只是预填；同一提交正文沿用尝试 UUID
 WorkoutFeedbackForm.tsx[EU4T]: F:采集完成训练时的疲劳、疼痛和备注，支持跳过 | R:- | A:WorkoutFeedbackForm | S:-
 WorkoutSetEditor.tsx[EU5S]: F:编辑已记录组的重量、次数、强度及标记，提供删除二次确认 | R:- | A:WorkoutSetEditor | S:-
-syncWorkoutQueue.ts[AR7T]: F:按 owner 串行补交待同步组，回读服务端快照后移除本地操作 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:syncWorkoutQueue,WorkoutSyncConflict | S:使用持久化操作 UUID；可用时跨标签加锁，业务冲突暂停并保留数据
-useWorkoutRecovery.ts[AR7S]: F:把在线活动训练、本机快照、草稿和待同步组整合为恢复及完成状态 | R:code:web/src/features/workout/syncWorkoutQueue.ts,code:web/src/features/workout/workoutRecoveryStore.ts | A:useWorkoutRecovery | S:未同步、未提交草稿或离线时阻止完成；冲突停止自动同步
+syncWorkoutQueue.ts[AR7T]: F:串行补交训练组，回读服务端事实后确认本地操作 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:syncWorkoutQueue | S:业务冲突按训练暂停以保持组顺序；自动跳过已暂停训练，手动失败后本轮跳过；回读只更新同训练快照
+useWorkoutRecovery.ts[AR7S]: F:组合活动训练、本机快照和恢复队列，提供同步与完成状态 | R:code:web/src/features/workout/syncWorkoutQueue.ts,code:web/src/features/workout/workoutRecoveryStore.ts | A:useWorkoutRecovery | S:服务端活动训练优先；完成只检查当前训练的待同步组和草稿，离线或读存储失败时阻止
 workout-set-editor.css[FU3S]: F:定义训练组行、快速操作和编辑区样式及窄屏布局 | R:code:web/src/features/workout/WorkoutSetEditor.tsx | A:- | S:-
-workoutRecoveryStore.ts[PR7S]: F:以带版本的本地键保存 owner 私有训练快照、操作队列和组草稿 | R:- | A:snapshot,saveDraft,enqueue,acknowledge,withPending | S:读取通过 schema 校验；待同步记录由操作 UUID 与服务端回执匹配
+workoutRecoveryStore.ts[PR7S]: F:在账户范围内保存活动快照、不可变操作、训练组草稿与冲突状态 | R:- | A:snapshot,enqueue,acknowledge,syncConflict,recordSyncConflict,exportRecovery | S:冲突按训练单独存储；成功回执移除对应操作及该训练的冲突标记
 
 ===/<repository>/web/src/pages/===
 AuthPage.tsx[EU4S]: F:展示注册和登录表单，提交认证并反馈忙碌和错误状态 | R:code:web/src/auth/AuthContext.tsx | A:AuthPage | S:-
@@ -876,7 +876,7 @@ NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项�
 PlansPage.tsx[EU5S]: F:展示计划列表，编排新建、详情以及激活操作与查询刷新 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx | A:PlansPage | S:-
 ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
 ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
-WorkoutsPage.tsx[EU7M]: F:编排开始训练、组编辑、恢复队列、终态、反馈和调整邀请的页面交互 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx | A:WorkoutsPage | S:离线草稿及待同步操作通过恢复钩子守住完成条件
+WorkoutsPage.tsx[EU7M]: F:编排开练、组编辑、终态提交及反馈，并显示各训练的同步冲突 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx | A:WorkoutsPage | S:旧训练结束后仍可导出其本机记录并开始新训练；反馈表单绑定打开时的训练 ID
 
 ===/<repository>/web/src/test/===
 render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-

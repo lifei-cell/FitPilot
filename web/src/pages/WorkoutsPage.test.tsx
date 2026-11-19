@@ -6,7 +6,7 @@ import type { Plan, Workout, WorkoutSetInput } from "../api/types";
 import { renderWithQueryClient } from "../test/render";
 import { server } from "../test/server";
 import { WorkoutsPage } from "./WorkoutsPage";
-import { snapshot } from "../features/workout/workoutRecoveryStore";
+import { enqueue, operations, saveDraft, saveSnapshot, snapshot } from "../features/workout/workoutRecoveryStore";
 
 const plan: Plan = {
   id: 1,
@@ -105,5 +105,60 @@ describe("WorkoutsPage", () => {
       feedback: { fatigueScore: 5, painScore: 0 },
     }));
     expect(await screen.findByText("训练已记录")).toBeInTheDocument();
+  });
+
+  it("syncs and completes the active workout while retaining another workout's conflict", async () => {
+    sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature");
+    const previousId = "00000000-0000-4000-8000-000000000001";
+    const currentId = "00000000-0000-4000-8000-000000000002";
+    const payload = { weightKg: 60, reps: 10, isWarmup: false, isFailure: false };
+    const previous: Workout = { id: 6, name: "旧训练", status: "IN_PROGRESS",
+      startedAt: "2026-09-12T08:00:00Z", exercises: [] };
+    let current: Workout | null = { ...previous, id: 7, name: "当前训练",
+      exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1, sets: [] }] };
+    saveSnapshot("99", previous);
+    enqueue("99", 6, 61, previousId, payload);
+    saveDraft("99", 6, 61, { id: crypto.randomUUID(), weight: "55", reps: "", rpe: "" });
+    enqueue("99", 7, 71, currentId, payload);
+
+    const sent: string[] = [];
+    server.use(
+      http.get("/api/v1/workouts/active/current", () => current
+        ? HttpResponse.json({ code: 0, data: current })
+        : HttpResponse.json({ code: 40001, message: "no active workout" }, { status: 404 })),
+      http.get("/api/v1/workouts/7", () => HttpResponse.json({ code: 0, data: current })),
+      http.get("/api/v1/workouts/7/exercises/71/previous-sets", () => HttpResponse.json({ code: 0, data: [] })),
+      http.get("/api/v1/workouts", () => HttpResponse.json({ code: 0, data: { items: [] } })),
+      http.get("/api/v1/training-plans/active/current", () => HttpResponse.json({ code: 0, data: plan })),
+      http.post("/api/v1/workouts/6/exercises/61/sets", ({ request }) => {
+        sent.push(request.headers.get("Client-Operation-Id")!);
+        return HttpResponse.json({ code: 40002, message: "训练已结束" }, { status: 409 });
+      }),
+      http.post("/api/v1/workouts/7/exercises/71/sets", ({ request }) => {
+        sent.push(request.headers.get("Client-Operation-Id")!);
+        const set = { ...payload, id: 701, setNumber: 1, clientOperationId: currentId };
+        current!.exercises[0].sets = [set];
+        return HttpResponse.json({ code: 0, data: set });
+      }),
+      http.post("/api/v1/workouts/7/complete", () => {
+        current = null;
+        return HttpResponse.json({ code: 0, data: { workoutId: 7 } });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<WorkoutsPage />);
+
+    expect(await screen.findByRole("heading", { name: "当前训练" })).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("训练 #6 同步暂停");
+    const complete = screen.getByRole("button", { name: "完成训练" });
+    await waitFor(() => expect(complete).toBeEnabled());
+    expect(sent).toEqual([previousId, currentId]);
+    expect(operations("99").map(({ id }) => id)).toEqual([previousId]);
+
+    await user.click(complete);
+    await user.click(screen.getByRole("button", { name: "提交并完成" }));
+    expect(await screen.findByText("训练已记录")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出本机记录" })).toBeInTheDocument();
+    expect(operations("99").map(({ id }) => id)).toEqual([previousId]);
   });
 });

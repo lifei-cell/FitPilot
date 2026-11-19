@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { accessTokenSubject, api, ApiError } from "../../api/client";
 import type { Workout, WorkoutSetInput } from "../../api/types";
-import { clearSnapshot, drafts, enqueue, operations, RECOVERY_CHANGED, saveSnapshot, snapshot, withPending } from "./workoutRecoveryStore";
-import { syncWorkoutQueue, WorkoutSyncConflict } from "./syncWorkoutQueue";
+import { clearSnapshot, drafts, enqueue, operations, RECOVERY_CHANGED, saveSnapshot, snapshot, syncConflict, withPending } from "./workoutRecoveryStore";
+import { syncWorkoutQueue } from "./syncWorkoutQueue";
 
 export function useWorkoutRecovery() {
   const owner = accessTokenSubject();
@@ -12,13 +12,14 @@ export function useWorkoutRecovery() {
   const [error, setError] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
-  const blocked = useRef(false);
   let cached: Workout | null = null;
   let pending: ReturnType<typeof operations> = [];
   let storageError = "";
-  let hasDraft = false;
   try {
-    if (owner) { cached = snapshot(owner); pending = operations(owner); hasDraft = Boolean(cached && drafts(owner, cached.id).length); }
+    if (owner) {
+      cached = snapshot(owner);
+      pending = operations(owner);
+    }
   } catch (failure) { storageError = (failure as Error).message; }
 
   const active = useQuery({
@@ -27,10 +28,7 @@ export function useWorkoutRecovery() {
       try {
         const result = await api<Workout>("/workouts/active/current");
         if (owner && accessTokenSubject() === owner) {
-          const local = snapshot(owner);
-          // Never replace a different workout which still has unsent records.
-          if (!local || local.id === result.id || (!operations(owner, local.id).length && !drafts(owner, local.id).length)) saveSnapshot(owner, result);
-          else saveSnapshot(owner, await api<Workout>(`/workouts/${local.id}`));
+          saveSnapshot(owner, result);
         }
         return result;
       } catch (failure) {
@@ -38,7 +36,12 @@ export function useWorkoutRecovery() {
           const local = snapshot(owner);
           if (local) {
             if (!operations(owner, local.id).length && !drafts(owner, local.id).length) clearSnapshot(owner, local.id);
-            else saveSnapshot(owner, await api<Workout>(`/workouts/${local.id}`));
+            else {
+              const previous = await api<Workout>(`/workouts/${local.id}`);
+              if (accessTokenSubject() === owner && snapshot(owner)?.id === local.id) {
+                saveSnapshot(owner, previous);
+              }
+            }
           }
         }
         throw failure;
@@ -49,15 +52,12 @@ export function useWorkoutRecovery() {
 
   const sync = useCallback(async (manual = true) => {
     if (!owner || accessTokenSubject() !== owner || !navigator.onLine) return;
-    if (!manual && blocked.current) return;
     try {
       if (!operations(owner).length) return;
       setSyncing(true);
-      await syncWorkoutQueue(owner);
-      blocked.current = false;
+      await syncWorkoutQueue(owner, manual);
       setError("");
     } catch (failure) {
-      blocked.current = failure instanceof WorkoutSyncConflict;
       setError(failure instanceof ApiError && failure.status === 401
         ? "登录已过期，请重新登录原账户；本机记录已保留。"
         : failure instanceof Error ? failure.message : "暂时无法同步，本机记录已保留。");
@@ -103,20 +103,34 @@ export function useWorkoutRecovery() {
     };
   }, [sync]);
 
-  const base = cached ?? (active.error instanceof ApiError && active.error.status === 404 ? undefined : active.data);
-  const workout = base ? withPending(base, pending.filter((op) => op.workoutId === base.id)) : undefined;
+  const current = active.error instanceof ApiError && active.error.status === 404 ? undefined : active.data;
+  const base = current && current.id !== cached?.id ? current : cached ?? current;
+  const workoutPending = base ? pending.filter((op) => op.workoutId === base.id) : [];
+  const workout = base ? withPending(base, workoutPending) : undefined;
+  const conflicts: { workoutId: number; message: string }[] = [];
+  let hasDraft = false;
+  try {
+    if (owner) {
+      hasDraft = Boolean(base && drafts(owner, base.id).length);
+      for (const workoutId of new Set(pending.map((operation) => operation.workoutId))) {
+        const message = syncConflict(owner, workoutId);
+        if (message !== null) conflicts.push({ workoutId, message });
+      }
+    }
+  } catch (failure) { storageError ||= (failure as Error).message; }
   async function saveSet(workoutId: number, exerciseId: number, payload: WorkoutSetInput, operationId: string) {
     if (!owner || accessTokenSubject() !== owner) throw new Error("请先登录，再保存训练记录。");
     if (!snapshot(owner) && active.data) saveSnapshot(owner, active.data);
     enqueue(owner, workoutId, exerciseId, operationId, payload);
-    void sync();
+    void sync(false);
   }
   function finished(workoutId: number) {
     if (owner) clearSnapshot(owner, workoutId);
     client.removeQueries({ queryKey: ["previous-sets", workoutId] });
     void client.resetQueries({ queryKey: ["active-workout"] });
   }
-  return { active: { ...active, data: workout }, owner, pending, online, syncing, sync, saveSet, finished,
-    error: storageError || error, hasDraft, canFinish: online && pending.length === 0 && !syncing && !hasDraft,
+  return { active: { ...active, data: workout }, owner, online, syncing, sync, saveSet, finished, conflicts,
+    pendingCount: workoutPending.length, otherPendingCount: pending.length - workoutPending.length,
+    error: storageError || error, hasDraft, canFinish: online && workoutPending.length === 0 && !hasDraft && !storageError,
     isClosed: base && base.status !== "IN_PROGRESS" };
 }

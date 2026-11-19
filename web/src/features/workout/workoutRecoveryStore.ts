@@ -53,6 +53,12 @@ export function operations(owner: string, workoutId?: number): SetOperation[] {
   }
   return result.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
 }
+export function syncConflict(owner: string, workoutId: number): string | null {
+  return read(key(owner, `conflict:${workoutId}`), z.string());
+}
+export function recordSyncConflict(owner: string, workoutId: number, message: string) {
+  write(key(owner, `conflict:${workoutId}`), message);
+}
 export function readDraft(owner: string, workoutId: number, exerciseId: number): SetDraft | null {
   const draft = read(key(owner, `draft:${workoutId}:${exerciseId}`), draftSchema);
   return draft && !localStorage.getItem(key(owner, `set:${draft.id}`)) ? draft : null;
@@ -101,6 +107,7 @@ export function enqueue(owner: string, workoutId: number, exerciseId: number, id
 export function acknowledge(owner: string, operation: SetOperation) {
   clearDraft(owner, operation.workoutId, operation.exerciseId, operation.id);
   localStorage.removeItem(key(owner, `set:${operation.id}`));
+  localStorage.removeItem(key(owner, `conflict:${operation.workoutId}`));
   changed();
 }
 

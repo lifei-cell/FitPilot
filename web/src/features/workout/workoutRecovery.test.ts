@@ -3,7 +3,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "../../test/server";
 import { storeToken } from "../../api/client";
 import type { Workout } from "../../api/types";
-import { enqueue, operations, readDraft, saveDraft, saveSnapshot, snapshot, withPending } from "./workoutRecoveryStore";
+import { enqueue, operations, readDraft, saveDraft, saveSnapshot, snapshot, syncConflict, withPending } from "./workoutRecoveryStore";
 import { syncWorkoutQueue } from "./syncWorkoutQueue";
 
 const workout: Workout = { id: 7, name: "卧推", status: "IN_PROGRESS", startedAt: "2026-09-12T08:00:00Z",
@@ -68,10 +68,53 @@ describe("workout recovery", () => {
       requests++;
       return HttpResponse.json({ code: 30003, message: "训练已结束" }, { status: 409 });
     }));
-    await expect(syncWorkoutQueue("99")).rejects.toThrow(/同步暂停/);
+    await syncWorkoutQueue("99");
+    expect(syncConflict("99", 7)).toBe("训练已结束");
     expect(operations("99")).toHaveLength(1);
     storeToken("header.eyJzdWIiOiIxMDAifQ.signature");
     await syncWorkoutQueue("99");
     expect(requests).toBe(1);
+  });
+
+  it("preserves order within a blocked workout and drains other workouts", async () => {
+    login();
+    saveSnapshot("99", workout);
+    const activeId = "00000000-0000-4000-8000-000000000003";
+    const oldIds = ["00000000-0000-4000-8000-000000000001", "00000000-0000-4000-8000-000000000002"];
+    for (const id of oldIds) enqueue("99", 6, 61, id, payload);
+    enqueue("99", 7, 71, activeId, payload);
+
+    const sent: string[] = [];
+    let conflict = true;
+    server.use(
+      http.post("/api/v1/workouts/:id/exercises/:exercise/sets", ({ params, request }) => {
+        sent.push(request.headers.get("Client-Operation-Id")!);
+        if (params.id === "6" && conflict) {
+          return HttpResponse.json({ code: 40002, message: "训练已结束" }, { status: 409 });
+        }
+        return HttpResponse.json({ code: 0, data: { id: 701 } });
+      }),
+      http.get("/api/v1/workouts/:id", ({ params }) =>
+        HttpResponse.json({ code: 0, data: { ...workout, id: Number(params.id) } })),
+    );
+
+    await syncWorkoutQueue("99");
+    expect(sent).toEqual([oldIds[0], activeId]);
+    expect(operations("99").map(({ id }) => id)).toEqual(oldIds);
+    expect(syncConflict("99", 6)).toBe("训练已结束");
+    expect(syncConflict("100", 6)).toBeNull();
+
+    await syncWorkoutQueue("99");
+    expect(sent).toHaveLength(2);
+    await syncWorkoutQueue("99", true);
+    expect(sent).toEqual([oldIds[0], activeId, oldIds[0]]);
+    expect(operations("99")).toHaveLength(2);
+
+    conflict = false;
+    await syncWorkoutQueue("99", true);
+    expect(sent.slice(-2)).toEqual(oldIds);
+    expect(operations("99")).toEqual([]);
+    expect(syncConflict("99", 6)).toBeNull();
+    expect(snapshot("99")?.id).toBe(7);
   });
 });
