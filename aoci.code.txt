@@ -549,7 +549,7 @@ TrainingPlanRepository.java[PB6T]: F:维护训练计划及层级明细的归属�
 
 ===/<repository>/src/main/java/com/fitpilot/pr/application/===
 LeaderboardService.java[AP6S]: F:利用 Redis ZSet 缓存按动作与纪录类型的排行，可回源 SQL | R:code:src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java | A:top,update | S:加载标识单独设置 TTL；缓存失败时查数据库
-PersonalRecordService.java[AB7S]: F:从完整训练组检测新的个人纪录，幂等持久化并更新排行 | R:code:src/main/java/com/fitpilot/pr/domain/PersonalRecordCalculator.java,code:src/main/java/com/fitpilot/pr/repository/PersonalRecordRepository.java | A:calculateAndPersist,current,history | S:仅接受严格提高的成绩；事务提交后再更新 Redis 排行榜
+PersonalRecordService.java[AB7S]: F:从完成训练中筛选提高的成绩，写入个人纪录并登记破纪录事件 | R:code:src/main/java/com/fitpilot/pr/domain/PersonalRecordCalculator.java,code:src/main/java/com/fitpilot/pr/repository/PersonalRecordRepository.java | A:calculateAndPersist,current,history | S:先锁定用户投影再查最高分。历史、事件同事务提交，重复或未提高的成绩不发事件，提交后失效榜单缓存
 
 ===/<repository>/src/main/java/com/fitpilot/pr/controller/===
 LeaderboardController.java[EB4T]: F:校验有效动作并按记录类型和数量返回公开排名数据 | R:code:src/main/java/com/fitpilot/pr/application/LeaderboardService.java | A:/api/v1/leaderboards/exercises/{exerciseId} | S:-
@@ -561,13 +561,13 @@ PersonalRecordCalculator.java[KB6T]: F:以 Epley 算法估算最大重量并导�
 
 ===/<repository>/src/main/java/com/fitpilot/pr/dto/===
 LeaderboardRow.java[CB3T]: F:承载 SQL 排行榜中的用户、用户名和分数 | R:- | A:LeaderboardRow | S:-
-PersonalRecordView.java[CB3T]: F:将个人纪录持久化行映射为 API 视图 | R:- | A:PersonalRecordView.from | S:-
+PersonalRecordView.java[CB3T]: F:将个人纪录持久化行映射为 API 视图 | R:- | A:PersonalRecordView.from | S:历史纪录的原训练及训练组外键可空
 
 ===/<repository>/src/main/java/com/fitpilot/pr/infrastructure/===
-PersonalRecordMapper.java[PB5T]: F:查询各动作与纪录类型最新 PR，并按业务计分公式聚合排行 | R:- | A:selectCurrent,selectLeaderboard | S:个人最佳读按达成时间和 id 打破并列
+PersonalRecordMapper.java[PB5T]: F:按同一分类计分公式查询个人最佳和跨用户排行榜 | R:- | A:selectCurrent,selectLeaderboard | S:个人最佳按分值优先，达成时间和行标识用于破平。当前查询刷新 MyBatis 缓存，保证可见同事务的 JDBC 写入
 
 ===/<repository>/src/main/java/com/fitpilot/pr/repository/===
-PersonalRecordRepository.java[PB6T]: F:持久化个人纪录并按 owner 查询当前、历史、训练和时间段计数 | R:code:src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java | A:insertIfAbsent,findCurrent,findHistory | S:同一训练组与纪录类型仅插入一次
+PersonalRecordRepository.java[PB6T]: F:提供个人纪录投影锁、来源去重写入及最佳和历史查询 | R:code:src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java | A:lockProjection,insertIfAbsent,findCurrent,findHistory | S:用户级 PostgreSQL advisory 锁随事务释放。同训练组同纪录类型只插入一次，历史按达成时间倒序
 
 ===/<repository>/src/main/java/com/fitpilot/rag/application/===
 EvidenceSupportGate.java[KA7S]: F:用查询锚点覆盖、数值和特定事实检查决定文段是否支持作答 | R:code:src/main/java/com/fitpilot/rag/processing/TextAnalyzer.java | A:verify | S:特定事实缺失先拒绝，主题相似度不能越过该检查
@@ -885,3 +885,6 @@ WorkoutsPage.tsx[EU7M]: F:编排开练、组编辑、终态提交及反馈，并
 render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-
 server.ts[TQ3T]: F:导出通过 MSW 拦截测试 HTTP 的 Node Server | R:- | A:server | S:-
 setup.ts[TQ4T]: F:配置 DOM 断言、MSW 生命周期、同源 fetch 转换及用例清理 | R:code:web/src/test/server.ts | A:- | S:-
+
+===/<repository>/src/test/java/com/fitpilot/pr/application/===
+PersonalRecordProjectionIT.java[TB6S]: F:用真实 PostgreSQL 验证乱序、重复和并发消费的个人最佳及破纪录事件 | R:code:src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java,code:src/main/java/com/fitpilot/pr/application/PersonalRecordService.java | A:- | S:以 pg_blocking_pids 核实同用户竞争投影确实阻塞，覆盖原始训练引用缺失的历史纪录

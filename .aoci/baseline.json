@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-19T11:49:21Z",
+  "updated_at": "2026-11-20T02:54:21Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "1f56ff2d9a4743ca40b7bf27adbfd1c9b23cf99619b2231c22b4c945fc1a9d57",
-      "size": 122019,
-      "normalized_sha256": "1f56ff2d9a4743ca40b7bf27adbfd1c9b23cf99619b2231c22b4c945fc1a9d57"
+      "sha256": "db9d1a9165c318d91292a6980c6f358644d2a0e941b29ef812d88646acd5822c",
+      "size": 122787,
+      "normalized_sha256": "db9d1a9165c318d91292a6980c6f358644d2a0e941b29ef812d88646acd5822c"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -2105,9 +2105,9 @@
     },
     "src/main/java/com/fitpilot/pr/application/PersonalRecordService.java": {
       "role": "index",
-      "sha256": "ebe66685efbff3a9c320b6a225c9ce2539c7b4672b070b919bf39391dfbebfbc",
-      "size": 6060,
-      "normalized_sha256": "ebe66685efbff3a9c320b6a225c9ce2539c7b4672b070b919bf39391dfbebfbc"
+      "sha256": "f369323e0efa67f1280fb74627465482e46e83e6e58b76cb8e297a23a46fdc44",
+      "size": 6301,
+      "normalized_sha256": "f369323e0efa67f1280fb74627465482e46e83e6e58b76cb8e297a23a46fdc44"
     },
     "src/main/java/com/fitpilot/pr/controller/LeaderboardController.java": {
       "role": "index",
@@ -2141,21 +2141,21 @@
     },
     "src/main/java/com/fitpilot/pr/dto/PersonalRecordView.java": {
       "role": "index",
-      "sha256": "2c67a5291f5cf8c38b35246cf773455f3f83e33e2f92d4a98482a097cf3fc3e9",
+      "sha256": "86e6ead1b0e7dad806ff19c2ea9a9b4eacce075d6fc40e6c39adb498d786d7ec",
       "size": 661,
-      "normalized_sha256": "2c67a5291f5cf8c38b35246cf773455f3f83e33e2f92d4a98482a097cf3fc3e9"
+      "normalized_sha256": "86e6ead1b0e7dad806ff19c2ea9a9b4eacce075d6fc40e6c39adb498d786d7ec"
     },
     "src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java": {
       "role": "index",
-      "sha256": "8c75577306528accbc8a1e19eb667f5583b69e760ada1f7c9e812d6cdd16a87b",
-      "size": 1245,
-      "normalized_sha256": "8c75577306528accbc8a1e19eb667f5583b69e760ada1f7c9e812d6cdd16a87b"
+      "sha256": "d7e483a0f6aa5fceca815c617f22deb9ae8da3b35eb605e4c8917f91c31c63b4",
+      "size": 1532,
+      "normalized_sha256": "d7e483a0f6aa5fceca815c617f22deb9ae8da3b35eb605e4c8917f91c31c63b4"
     },
     "src/main/java/com/fitpilot/pr/repository/PersonalRecordRepository.java": {
       "role": "index",
-      "sha256": "cbdb721da0ea1a30455a2bb2515e8800c5a20a2d7f3be3cd48aadce62259aa5c",
-      "size": 3520,
-      "normalized_sha256": "cbdb721da0ea1a30455a2bb2515e8800c5a20a2d7f3be3cd48aadce62259aa5c"
+      "sha256": "c2069dcbb99e27dba1d8918c3a4d9b185e7c5146907f04cec6c1defb1a906c2e",
+      "size": 3759,
+      "normalized_sha256": "c2069dcbb99e27dba1d8918c3a4d9b185e7c5146907f04cec6c1defb1a906c2e"
     },
     "src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java": {
       "role": "index",
@@ -2852,6 +2852,12 @@
       "sha256": "708dff095ef15c202a36d42de401e7df68cef12729d2316f10fe806c345cb368",
       "size": 1363,
       "normalized_sha256": "708dff095ef15c202a36d42de401e7df68cef12729d2316f10fe806c345cb368"
+    },
+    "src/test/java/com/fitpilot/pr/application/PersonalRecordProjectionIT.java": {
+      "role": "index",
+      "sha256": "25d34d613a85abfdde9aae6eda9dd57a98e273ebfe96858b61035dad4fbe60fc",
+      "size": 8695,
+      "normalized_sha256": "25d34d613a85abfdde9aae6eda9dd57a98e273ebfe96858b61035dad4fbe60fc"
     },
     "src/test/java/com/fitpilot/pr/domain/PersonalRecordCalculatorTest.java": {
       "role": "index",

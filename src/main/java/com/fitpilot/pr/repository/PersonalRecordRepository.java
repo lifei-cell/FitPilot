@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fitpilot.pr.domain.PersonalRecord;
 import com.fitpilot.pr.infrastructure.PersonalRecordMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -20,7 +21,12 @@ public class PersonalRecordRepository {
         this.jdbc = jdbc;
     }
 
-    public void insert(PersonalRecord record) { mapper.insert(record); }
+    public void lockProjection(long userId) {
+        jdbc.query("""
+                SELECT pg_advisory_xact_lock(hashtextextended('fitpilot:personal-record:' || CAST(? AS text), 0))
+                """, (RowCallbackHandler) result -> {}, userId);
+    }
+
     public boolean insertIfAbsent(PersonalRecord record) {
         KeyHolder keys = new GeneratedKeyHolder();
         int changed = jdbc.update(connection -> {

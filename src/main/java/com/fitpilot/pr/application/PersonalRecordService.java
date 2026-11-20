@@ -8,6 +8,7 @@ import com.fitpilot.infrastructure.events.EventOutboxService;
 import com.fitpilot.infrastructure.events.EventPayloads;
 import com.fitpilot.infrastructure.events.EventTypes;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -31,11 +32,16 @@ public class PersonalRecordService {
         this.events = events;
     }
 
+    @Transactional
     public int calculateAndPersist(CompletedWorkout workout) {
         Map<Long, CompletedExercise> exerciseBySnapshot = workout.exercises().stream()
                 .collect(Collectors.toMap(CompletedExercise::snapshotId, Function.identity()));
         Set<Long> exerciseIds = workout.exercises().stream()
                 .map(CompletedExercise::exerciseId).collect(Collectors.toSet());
+        if (exerciseIds.isEmpty() || workout.sets().isEmpty()) return 0;
+
+        // Different workout events for the same user can arrive on different Kafka partitions.
+        repository.lockProjection(workout.userId());
         Map<String, BigDecimal> best = new HashMap<>();
         for (PersonalRecord record : repository.findCurrent(workout.userId(), exerciseIds)) {
             best.put(key(record.exerciseId, record.recordType), score(record));
@@ -98,17 +104,16 @@ public class PersonalRecordService {
 
     private void updateLeaderboardAfterCommit(List<PersonalRecord> records) {
         if (records.isEmpty()) return;
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override public void afterCommit() { records.forEach(leaderboard::update); }
-            });
-        } else records.forEach(leaderboard::update);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { records.forEach(leaderboard::update); }
+        });
     }
 
     private BigDecimal score(PersonalRecord record) {
         return switch (record.recordType) {
             case "ESTIMATED_1RM" -> record.estimated1rm;
-            case "MAX_VOLUME" -> record.weightKg.multiply(BigDecimal.valueOf(record.reps));
+            case "MAX_VOLUME" -> record.weightKg == null || record.reps == null
+                    ? null : record.weightKg.multiply(BigDecimal.valueOf(record.reps));
             default -> record.weightKg;
         };
     }
