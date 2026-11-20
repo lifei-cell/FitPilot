@@ -15,8 +15,8 @@ docker-compose.yml[OV7M]: F:启动 FitPilot 本地应用、数据依赖，以及
 pom.xml[FV7S]: F:定义 Java 21 后端依赖、打包、单元/集成测试、覆盖率和 SBOM 门禁 | R:code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:全局行覆盖率至少 60%，选定核心包至少 70%，跳过测试另行阻断
 
 ===/<repository>/.github/workflows/===
-ci.yml[TQ7S]: F:在 PR 和主分支运行后端及 Web 质量门禁、制品漏洞扫描和交付配置校验 | R:code:scripts/run-quality-gate.ps1 | A:CI | S:同一引用的新运行会取消旧运行；总是尝试上传验证证据
-deploy.yml[OV7S]: F:手动按后端和 Web 镜像 digest 执行生产交付门禁并收集 Kubernetes 证据 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Production Delivery Gate | S:绑定 production 环境；并发交付串行且不中断执行中的门禁
+ci.yml[TQ7S]: F:在 PR 和主分支执行前后端质量门禁、V22 发布回归、清单渲染与制品扫描 | R:code:scripts/run-quality-gate.ps1,code:scripts/delivery/test-v22-rollout.ps1 | A:CI | S:同一引用的新运行取消旧运行，验证证据在失败时仍尝试上传
+deploy.yml[OV7S]: F:手动以不可变镜像执行生产交付并归档探测、迁移和部署证据 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Production Delivery Gate | S:生产交付串行且不中断正在运行的门禁，回滚演练默认关闭
 model-evaluation.yml[TA5T]: F:定时或手动启动 Compose，运行真实模型与 RAG 验收并归档证据 | R:code:scripts/evaluation/run-evaluations.ps1 | A:Real Model Evaluation | S:先检查操作令牌及主模型必要配置；结束总是清理容器和卷
 release.yml[OV7S]: F:构建 CI 验证过的当前主分支后端与 Web 镜像，发布 digest 清单和来源证明 | R:code:.github/workflows/ci.yml | A:Release Image | S:成功的 CI revision 必须仍与 origin/main 一致才能发布
 
@@ -45,7 +45,7 @@ web-service.yml[ON4T]: F:以 HTTP 80 将集群流量转发到 Web Pod 的命名�
 backup-restore-job.yml[OR6T]: F:从源库制作逻辑备份，在演练库恢复并比对关键表和 Flyway 版本 | R:- | A:Job fitpilot-backup-restore-drill | S:显式拒绝相同的源与恢复 URL；恢复使用 clean 清理现有对象
 
 ===/<repository>/deploy/k8s/overlays/production-migration/===
-kustomization.yml[OV6T]: F:从交付基座裁去常驻网关与应用资源，保留单独迁移所需对象 | R:code:deploy/k8s/base/kustomization.yml,code:deploy/k8s/base/migration-job.yml | A:Kustomization production-migration | S:单独渲染避免迁移时同时触发应用滚动
+kustomization.yml[OV6T]: F:从基座保留独立 Flyway Job、迁移配置和运行所需资源 | R:code:deploy/k8s/base/kustomization.yml,code:deploy/k8s/base/migration-job.yml | A:production-migration | S:迁移 Job 使用独立 ConfigMap，探测和迁移均不会改写常驻应用配置
 
 ===/<repository>/deploy/k8s/overlays/production/===
 deployment-patch.yml[OR5T]: F:为生产后端定义双副本与不主动减少可用 Pod 的滚动策略 | R:code:deploy/k8s/base/deployment.yml | A:maxUnavailable=0,maxSurge=1 | S:-
@@ -102,9 +102,9 @@ project-structure.md[SG4T]: F:定义 Maven 后端、独立 Web、模块边界、
 ===/<repository>/docs/architecture/===
 v1-performance.md[SP5T]: F:记录 V1 的缓存、Redis 幂等与限流读写治理及键空间 | R:code:docs/release/short-ttl-cache-consistency.md | A:- | S:陈旧窗口从最后一次旧值回填算，不能从事务提交推导强时限
 v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢复契约 | R:code:docs/release/outbox-claim-ownership.md | A:fitness.workout.completed,fitness.personal-record.created | S:-
-v3-rag.md[SA5T]: F:说明带引用的混合知识检索和线上与评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/architecture/v4-agent.md | A:- | S:V22 先停旧实例和评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
+v3-rag.md[SA5T]: F:说明带引用的混合检索、知识文档生命周期及线上和评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/runbooks/release-rollback.md | A:- | S:V22 先停旧后端及评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
 v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
-v5-production.md[SG5T]: F:描述模型网关、评测、观测与容器交付的 V5 架构 | R:code:docs/architecture/v4-agent.md | A:- | S:身份与授权、确认和持久化归后端，发布证据分本地与真实环境
+v5-production.md[SG5T]: F:描述模型网关、评测、观测与包含 V22 门禁的容器交付 | R:code:docs/architecture/v4-agent.md,code:docs/runbooks/release-rollback.md | A:- | S:模型不拥有授权和写入权，发布证据需区分本机与生产环境
 v6-ai-product.md[SA5T]: F:记录 V6 持久会话、可解释调整、AI 产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:会话以 PostgreSQL 为真源；仍有有效待确认动作的记录跳过清理
 
 ===/<repository>/docs/interview/===
@@ -237,10 +237,10 @@ public-service-deployment-2026-09-16.md[SV4T]: F:规划首次外网服务的托�
 backup-restore.md[SR5T]: F:说明 PostgreSQL 备份、时间点恢复与隔离校验流程 | R:code:deploy/k8s/drills/backup-restore-job.yml | A:RPO≤5分钟,RTO≤60分钟 | S:-
 ecs-2g-preflight.md[SV3T]: F:记录小规格 ECS 的初始配置与重装和容量预检 | R:- | A:- | S:-
 failure-drills.md[SR4T]: F:列出隔离 Compose 故障演练条件及恢复后检查 | R:code:scripts/operations/invoke-failure-drills.ps1 | A:- | S:-
-first-public-deploy.md[SV5T]: F:列出外网部署前的镜像、云资源、生产命名空间和密钥验证步骤 | R:code:docs/runbooks/release-rollback.md | A:- | S:-
+first-public-deploy.md[SV5T]: F:列出首次外网部署的镜像、云资源、命名空间和凭据验证步骤 | R:code:docs/runbooks/release-rollback.md | A:- | S:空库首次部署先关闭备份恢复演练，回滚演练须等 V22 和当前镜像兼容记录就绪
 kafka-outbox-backlog.md[SM5T]: F:按 Outbox 年龄、Kafka lag、毒消息及投影耗时分流积压处置 | R:code:docs/release/outbox-claim-ownership.md | A:OUTBOX_BATCH_SIZE | S:V20 发布先停旧 Relay；批配置只限每轮数量
 llm-circuit-breaker.md[SR4T]: F:说明 LLM 主备、可重试状态、熔断和规则降级排障 | R:code:scripts/operations/invoke-failure-drills.ps1 | A:- | S:-
-release-rollback.md[SV5T]: F:规定镜像 digest 发布、独立迁移和双 Deployment 回滚门禁 | R:code:scripts/delivery/run-kubernetes-rollout.ps1 | A:- | S:应用回滚时保留向前兼容的数据库迁移
+release-rollback.md[SV6T]: F:规定只读探测、停机迁移、镜像兼容判定及失败恢复流程 | R:code:scripts/delivery/run-kubernetes-rollout.ps1 | A:rollback_drill,fitpilot.io/v22-compatible-image | S:前滚发布停旧后端及其评测，禁止恢复不兼容镜像。兼容回滚只替换镜像并保留迁移
 secret-rotation.md[SS5T]: F:规定 JWT 双密钥过渡、Operations Token 轮换与泄漏处置 | R:code:scripts/delivery/run-secret-rotation-drill.ps1 | A:- | S:-
 
 ===/<repository>/docs/test-plans/===
@@ -263,13 +263,15 @@ README.md[SG3T]: F:按质量、开发、交付、评测和故障演练索引脚�
 run-quality-gate.ps1[TQ6T]: F:统一执行 Maven 与 Web 质量门禁，可分别运行后端或前端 | R:code:pom.xml,code:web/package.json | A:BackendOnly,WebOnly,QUALITY_GATE=PASS | S:两个单端开关互斥；任何子命令失败即阻断
 
 ===/<repository>/scripts/delivery/===
-DeliveryGate.Common.psm1[OV6S]: F:共享上下文和 digest 检查、Kustomize 渲染、部署等待与清单应用 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Assert-KubernetesContext,Render-Kustomization,Apply-Manifest | S:正常生产只接受不可变 digest 并核对当前 kube context
+DeliveryGate.Common.psm1[OV6S]: F:共享上下文与 digest 检查、清单渲染和资源等待 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Assert-KubernetesContext,Render-Kustomization,Wait-ForJobCompletion,Apply-Manifest | S:生产核对当前 kube context 和不可变 digest。Job 用终态条件区分成功、最终失败和重试
 prepare-database-drill.ps1[OS5T]: F:校验演练库 URL 并生成 Kubernetes 临时数据库连接 Secret | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:fitpilot-delivery-drill | S:拒绝源与目标 URL 相同
 run-backup-restore-drill.ps1[OR5T]: F:执行备份恢复 Job 并保存通过标记、日志和失败证据 | R:code:deploy/k8s/drills/backup-restore-job.yml | A:BACKUP_RESTORE_DRILL=PASS | S:-
 run-delivery-gate.ps1[OV6T]: F:编排应用迁移、滚动验收以及可选回滚、恢复、轮换演练 | R:code:scripts/delivery/run-kubernetes-rollout.ps1,code:scripts/delivery/run-secret-rotation-drill.ps1,code:scripts/delivery/run-backup-restore-drill.ps1 | A:DELIVERY_GATE=PASS | S:-
-run-kind-delivery-drill.ps1[TR6S]: F:在固定隔离 Kind 集群准备基线和候选镜像并重跑交付门禁 | R:code:scripts/delivery/run-delivery-gate.ps1,code:deploy/kind/docker-compose.yml | A:KeepCluster | S:固定集群名且已有同名集群即停止，避免清理现有集群
-run-kubernetes-rollout.ps1[OV7S]: F:先完成独立 Flyway Job，再滚动部署并核验两镜像，可演练回滚 | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:KubeContext,AppImage,WebImage | S:回滚演练要求已有部署，失败尝试恢复先前镜像
+run-kind-delivery-drill.ps1[TR6S]: F:在隔离 Kind 集群用归档版本发布基线，再执行候选交付门禁 | R:code:scripts/delivery/run-delivery-gate.ps1,code:deploy/kind/docker-compose.yml | A:KeepCluster | S:已有固定同名集群即停止。仅基线交付具有 V22 状态证据时请求回滚演练
+run-kubernetes-rollout.ps1[OV7S]: F:探测 V22、编排停机或滚动迁移、验证候选镜像并记录兼容性 | R:code:scripts/delivery/DeliveryGate.Schema.psm1,code:docs/runbooks/release-rollback.md | A:KubeContext,AppImage,WebImage,RollbackDrill | S:V22 待迁移或旧镜像无匹配兼容记录时前滚，等待旧 Pod 退出再迁移，成功后先替换零副本模板
 run-secret-rotation-drill.ps1[OS6S]: F:轮换 JWT 与操作令牌，用真实请求验证兼容与撤销并记录证据 | R:code:scripts/delivery/DeliveryGate.Common.psm1 | A:RevokePreviousJwt | S:失败时回滚原 Secret 并重启应用
+DeliveryGate.Schema.psm1[OR7T]: F:清理旧交付 Job、探测 V22 状态并验证后端已停机 | R:code:scripts/delivery/DeliveryGate.Common.psm1,code:scripts/delivery/run-kubernetes-rollout.ps1 | A:Remove-DeliveryJob,Test-V22Applied,Stop-BackendForV22,Wait-ForStoppedBackend | S:后端需保持零副本且控制器已观察最新代际，同时标签范围内无 Pod。状态日志必须有且仅有一条布尔结果
+test-v22-rollout.ps1[TV5S]: F:用状态化 kubectl 替身回归发布探测、停机顺序、重试及兼容回滚 | R:code:scripts/delivery/run-kubernetes-rollout.ps1 | A:V22_DELIVERY_REGRESSION=PASS | S:覆盖迁移和首次上线失败时禁止恢复旧镜像，以及迁移已完成但旧镜像未验证的重跑
 
 ===/<repository>/scripts/development/===
 seed-demo-data.ps1[XD4T]: F:从开发 Compose 读取数据库设置，在 PostgreSQL 容器内执行演示种子 | R:code:scripts/development/seed-demo-data.sql | A:ComposeFile | S:-
@@ -398,7 +400,8 @@ SecureTokenMatcher.java[CI5T]: F:用 UTF-8 字节进行操作凭证的常量时�
 SecurityConfig.java[FI8T]: F:配置无状态端点授权、密码编码与 JWT、运维和幂等过滤顺序 | R:code:src/main/java/com/fitpilot/common/operations/OperationsAuthenticationFilter.java,code:src/main/java/com/fitpilot/common/security/JwtAuthenticationFilter.java | A:securityFilterChain | S:运维路径需专用角色；IdempotencyFilter 在两种身份过滤之后
 
 ===/<repository>/src/main/java/com/fitpilot/deployment/===
-FlywayMigrationMain.java[OD5T]: F:从部署环境取数据库配置并独立执行 Flyway 迁移 | R:code:deploy/k8s/base/migration-job.yml | A:main | S:连接变量缺失时退出并校验迁移文件名
+FlywayMigrationMain.java[OD6T]: F:读取部署数据库配置，验证 V22 约束后独立执行 Flyway 迁移 | R:code:deploy/k8s/base/migration-job.yml,code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:main,--quiesced-for-v22 | S:V22 未成功应用时必须显式确认旧后端已停，迁移结束重新检查 V22 已应用
+FlywaySchemaStatusMain.java[OD6T]: F:通过 Flyway 历史只读探测 V22 是否已成功应用 | R:code:src/main/java/com/fitpilot/deployment/FlywayMigrationMain.java | A:main,FITPILOT_V22_APPLIED | S:独立主类与迁移入口共用候选连接配置，缺少此主类的旧镜像无法执行探测
 
 ===/<repository>/src/main/java/com/fitpilot/evaluation/application/===
 AgentEvaluationRunner.java[TA6T]: F:按规则或活动模型执行 Agent 工具选择样本并记录选择、违规和耗时 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java,code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:run | S:工具列表严格按序比较；每题先确认执行租约
@@ -893,3 +896,9 @@ PersonalRecordProjectionIT.java[TB6S]: F:用真实 PostgreSQL 验证乱序、重
 
 ===/<repository>/src/test/java/com/fitpilot/rag/infrastructure/===
 RagCorpusMigrationIT.java[TA6T]: F:在真实 PostgreSQL 验证 V21 数据经 V22 升级后的语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:- | S:涵盖两种旧外部 ID 和只保存在历史修订中的运行标识，并验证线上文档重新排队
+
+===/<repository>/deploy/k8s/overlays/production-schema-status/===
+kustomization.yml[OV6T]: F:基于迁移资源运行候选镜像的只读 Flyway 状态探测 | R:code:deploy/k8s/overlays/production-migration/kustomization.yml,code:src/main/java/com/fitpilot/deployment/FlywaySchemaStatusMain.java | A:Job fitpilot-schema-status | S:探测采用独立 Job 名称并禁用重试，避免多个尝试混淆日志结果
+
+===/<repository>/deploy/k8s/overlays/production-v22-migration/===
+kustomization.yml[OV7T]: F:为已停后端的 V22 升级 Job 附加停机确认参数 | R:code:deploy/k8s/overlays/production-migration/kustomization.yml,code:src/main/java/com/fitpilot/deployment/FlywayMigrationMain.java | A:production-v22-migration,--quiesced-for-v22 | S:发布门禁等待旧后端 Pod 全部退出后才应用该清单

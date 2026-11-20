@@ -60,8 +60,8 @@ Kustomize production overlay 使用外部 PostgreSQL、Redis、Kafka 和 Elastic
 
 - 应用起始 2 副本，滚动升级 `maxUnavailable=0`，HPA 2–10、CPU 70%。
 - 配置 ServiceAccount、Ingress、PDB、NetworkPolicy、只读文件系统和能力丢弃。
-- Flyway 由独立 migration overlay/Job 执行，应用 Pod 设置 `FLYWAY_ENABLED=false`。
-- 迁移只允许向前兼容；发布失败停止 rollout 并回滚应用镜像，不执行 down migration。
+- Flyway 由独立 migration overlay/Job 执行，应用 Pod 设置 `FLYWAY_ENABLED=false`。发布门禁先检查 V22 状态，首次跨越 V22 时停止后端再迁移。
+- 同一兼容范围内允许恢复发布前的镜像。对 V22 首次升级及未确认兼容性的旧部署，失败后使用兼容候选版本前滚。见[发布与回滚](../runbooks/release-rollback.md)。
 
 ## 6. 验证入口
 

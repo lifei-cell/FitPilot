@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-20T03:16:01Z",
+  "updated_at": "2026-11-20T07:15:06Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -23,15 +23,15 @@
     },
     ".github/workflows/ci.yml": {
       "role": "index",
-      "sha256": "27b5e56552e963254648bc51304c145f5b5677cc93d348bc1354f4d7b6041de9",
-      "size": 5089,
-      "normalized_sha256": "27b5e56552e963254648bc51304c145f5b5677cc93d348bc1354f4d7b6041de9"
+      "sha256": "d779a521cfe35b7c302ffeb3dc2af9be67de949ae03ef5057437f0b9f5d75deb",
+      "size": 5417,
+      "normalized_sha256": "d779a521cfe35b7c302ffeb3dc2af9be67de949ae03ef5057437f0b9f5d75deb"
     },
     ".github/workflows/deploy.yml": {
       "role": "index",
-      "sha256": "e2afd272306f31b7217b27e1e85c6767071598a6180f7ffba077668b6517fb0c",
-      "size": 5291,
-      "normalized_sha256": "e2afd272306f31b7217b27e1e85c6767071598a6180f7ffba077668b6517fb0c"
+      "sha256": "46c26f4d791a1665c531e3cce8e4fbc9d5fd71e4c257c33bef8462a8b7b308ad",
+      "size": 5470,
+      "normalized_sha256": "46c26f4d791a1665c531e3cce8e4fbc9d5fd71e4c257c33bef8462a8b7b308ad"
     },
     ".github/workflows/model-evaluation.yml": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "db489c4d19972641bc5af22d9015c0ed3d55a2478e7b876b288464aa65f05638",
-      "size": 124779,
-      "normalized_sha256": "db489c4d19972641bc5af22d9015c0ed3d55a2478e7b876b288464aa65f05638"
+      "sha256": "05c433c51f09207567f488fd5295af616379b130f5aac05ed923a7359318bc75",
+      "size": 127313,
+      "normalized_sha256": "05c433c51f09207567f488fd5295af616379b130f5aac05ed923a7359318bc75"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -215,9 +215,21 @@
     },
     "deploy/k8s/overlays/production-migration/kustomization.yml": {
       "role": "index",
-      "sha256": "be0761875efd48f18faf782434291a6283c8bff3a6c684d54d3094c19311a8b9",
-      "size": 1444,
-      "normalized_sha256": "be0761875efd48f18faf782434291a6283c8bff3a6c684d54d3094c19311a8b9"
+      "sha256": "fe8300f83ff195cfc5d8a99aff549718341525114969c45ee821a6551e34deac",
+      "size": 1839,
+      "normalized_sha256": "fe8300f83ff195cfc5d8a99aff549718341525114969c45ee821a6551e34deac"
+    },
+    "deploy/k8s/overlays/production-schema-status/kustomization.yml": {
+      "role": "index",
+      "sha256": "1be959da288d9ba13bf0061a8f7ed1db931e3a02ca0d7feda1b429fa8ef91251",
+      "size": 511,
+      "normalized_sha256": "1be959da288d9ba13bf0061a8f7ed1db931e3a02ca0d7feda1b429fa8ef91251"
+    },
+    "deploy/k8s/overlays/production-v22-migration/kustomization.yml": {
+      "role": "index",
+      "sha256": "dd735606069c09963ee4038a569c33d62a98346b0c81b2ad8a923c4a2184577c",
+      "size": 308,
+      "normalized_sha256": "dd735606069c09963ee4038a569c33d62a98346b0c81b2ad8a923c4a2184577c"
     },
     "deploy/k8s/overlays/production/deployment-patch.yml": {
       "role": "index",
@@ -395,9 +407,9 @@
     },
     "docs/architecture/v3-rag.md": {
       "role": "index",
-      "sha256": "a9f26fabc0eb762e943618942f69e83341e5f49376e63a83149f9e2269fe90a8",
-      "size": 5384,
-      "normalized_sha256": "a9f26fabc0eb762e943618942f69e83341e5f49376e63a83149f9e2269fe90a8"
+      "sha256": "ca18b7565c1af6a1684f596726ee28a445f4951d99c1f324f30b1645eeb532d1",
+      "size": 5432,
+      "normalized_sha256": "ca18b7565c1af6a1684f596726ee28a445f4951d99c1f324f30b1645eeb532d1"
     },
     "docs/architecture/v4-agent.md": {
       "role": "index",
@@ -407,9 +419,9 @@
     },
     "docs/architecture/v5-production.md": {
       "role": "index",
-      "sha256": "6fee2edd61535610a341b85aa5f37b99cbb6c42e28f403bae4f4705cb28ca8c5",
-      "size": 5663,
-      "normalized_sha256": "6fee2edd61535610a341b85aa5f37b99cbb6c42e28f403bae4f4705cb28ca8c5"
+      "sha256": "1687215dc2359f4462c25902e5a33503f49c9f6656ebded23417fbe046c4fd17",
+      "size": 5842,
+      "normalized_sha256": "1687215dc2359f4462c25902e5a33503f49c9f6656ebded23417fbe046c4fd17"
     },
     "docs/architecture/v6-ai-product.md": {
       "role": "index",
@@ -995,9 +1007,9 @@
     },
     "docs/runbooks/first-public-deploy.md": {
       "role": "index",
-      "sha256": "eb6662e8578264be5c3a82ae5d555ccee5635d147df7e6e470b1b0597d5f9e9a",
-      "size": 8951,
-      "normalized_sha256": "eb6662e8578264be5c3a82ae5d555ccee5635d147df7e6e470b1b0597d5f9e9a"
+      "sha256": "6bec9910e4c06f0e088e14eda42521bfcb95724067cde519922e408995450fb1",
+      "size": 9040,
+      "normalized_sha256": "6bec9910e4c06f0e088e14eda42521bfcb95724067cde519922e408995450fb1"
     },
     "docs/runbooks/kafka-outbox-backlog.md": {
       "role": "index",
@@ -1013,9 +1025,9 @@
     },
     "docs/runbooks/release-rollback.md": {
       "role": "index",
-      "sha256": "74f287a5e68eede3c259054b9653fbfa4b69803fc4b56e6d0f4f959310f556d6",
-      "size": 1574,
-      "normalized_sha256": "74f287a5e68eede3c259054b9653fbfa4b69803fc4b56e6d0f4f959310f556d6"
+      "sha256": "925cf6c56ab5884403ead0cd243986eab7ac39837efe7bb0d1c27da20329680d",
+      "size": 2402,
+      "normalized_sha256": "925cf6c56ab5884403ead0cd243986eab7ac39837efe7bb0d1c27da20329680d"
     },
     "docs/runbooks/secret-rotation.md": {
       "role": "index",
@@ -1103,9 +1115,15 @@
     },
     "scripts/delivery/DeliveryGate.Common.psm1": {
       "role": "index",
-      "sha256": "c88025202c73a1364aeac78fac9c5bc3aa492dff7dc1744833e6f7ce8b6f026b",
-      "size": 5567,
-      "normalized_sha256": "c88025202c73a1364aeac78fac9c5bc3aa492dff7dc1744833e6f7ce8b6f026b"
+      "sha256": "4b66b084573cff86d6e21171f113d7720c745639d911fdec6ad7323e29592fc0",
+      "size": 5420,
+      "normalized_sha256": "4b66b084573cff86d6e21171f113d7720c745639d911fdec6ad7323e29592fc0"
+    },
+    "scripts/delivery/DeliveryGate.Schema.psm1": {
+      "role": "index",
+      "sha256": "846913ae9903ccca92affbec9a4ad75bcb16134ebe4e7d6483eec266306c2cfd",
+      "size": 3143,
+      "normalized_sha256": "846913ae9903ccca92affbec9a4ad75bcb16134ebe4e7d6483eec266306c2cfd"
     },
     "scripts/delivery/prepare-database-drill.ps1": {
       "role": "index",
@@ -1127,21 +1145,27 @@
     },
     "scripts/delivery/run-kind-delivery-drill.ps1": {
       "role": "index",
-      "sha256": "5928d8e7dba6875f52b75fbaf2a72fc8a72129fafbe9b94390d0d28f0993a378",
-      "size": 6919,
-      "normalized_sha256": "5928d8e7dba6875f52b75fbaf2a72fc8a72129fafbe9b94390d0d28f0993a378"
+      "sha256": "1679d419a0b02ae8e4a4aab3b58871f36fb0d8f396a843229cd88a0118287496",
+      "size": 7167,
+      "normalized_sha256": "1679d419a0b02ae8e4a4aab3b58871f36fb0d8f396a843229cd88a0118287496"
     },
     "scripts/delivery/run-kubernetes-rollout.ps1": {
       "role": "index",
-      "sha256": "74ce3ab833b2136e70960f3f12d5efaeb8007d21f0c9400f253106780ebaa2ec",
-      "size": 6456,
-      "normalized_sha256": "74ce3ab833b2136e70960f3f12d5efaeb8007d21f0c9400f253106780ebaa2ec"
+      "sha256": "4d44d2604132a66d3015dbd7520540a4159b7c50e47b7b3ee7db794c13973432",
+      "size": 7788,
+      "normalized_sha256": "4d44d2604132a66d3015dbd7520540a4159b7c50e47b7b3ee7db794c13973432"
     },
     "scripts/delivery/run-secret-rotation-drill.ps1": {
       "role": "index",
       "sha256": "203615897b00bb913330bd371777932001b386f46fff71a638387ab0104f1248",
       "size": 5102,
       "normalized_sha256": "203615897b00bb913330bd371777932001b386f46fff71a638387ab0104f1248"
+    },
+    "scripts/delivery/test-v22-rollout.ps1": {
+      "role": "index",
+      "sha256": "68ada98f54e1342d612d787c3c77b90d67f3695f19d328e3c1dcfb924b1850d2",
+      "size": 8159,
+      "normalized_sha256": "68ada98f54e1342d612d787c3c77b90d67f3695f19d328e3c1dcfb924b1850d2"
     },
     "scripts/development/seed-demo-data.ps1": {
       "role": "index",
@@ -1583,9 +1607,15 @@
     },
     "src/main/java/com/fitpilot/deployment/FlywayMigrationMain.java": {
       "role": "index",
-      "sha256": "eed99221056a68fa2ec6195246c8d444a8fadb5bc6ff645091bc4b1f1c322820",
-      "size": 776,
-      "normalized_sha256": "eed99221056a68fa2ec6195246c8d444a8fadb5bc6ff645091bc4b1f1c322820"
+      "sha256": "224e8fcdd416f66acf8e5b03ee033c4db3d763d53d2c244cf39e4f80eb59f923",
+      "size": 1858,
+      "normalized_sha256": "224e8fcdd416f66acf8e5b03ee033c4db3d763d53d2c244cf39e4f80eb59f923"
+    },
+    "src/main/java/com/fitpilot/deployment/FlywaySchemaStatusMain.java": {
+      "role": "index",
+      "sha256": "8d3f6cfba25d8c5ca1219975f4385503e0bfb8161d196880b5beb3c9501b7adc",
+      "size": 431,
+      "normalized_sha256": "8d3f6cfba25d8c5ca1219975f4385503e0bfb8161d196880b5beb3c9501b7adc"
     },
     "src/main/java/com/fitpilot/evaluation/application/AgentEvaluationRunner.java": {
       "role": "index",

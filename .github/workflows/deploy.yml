@@ -14,10 +14,10 @@ on:
         required: true
         default: fitpilot-production
       rollback_drill:
-        description: Roll back to the previous ReplicaSet and recover the candidate
+        description: Verify rollback to the exact previous images after a V22-compatible deployment
         required: true
         type: boolean
-        default: true
+        default: false
       backup_restore_drill:
         description: Restore a logical backup into the isolated restore database
         required: true
@@ -80,6 +80,8 @@ jobs:
           test -n "$ROTATED_OPERATIONS_TOKEN"
           test "$(kubectl auth can-i create jobs -n fitpilot)" = yes
           test "$(kubectl auth can-i patch deployments -n fitpilot)" = yes
+          test "$(kubectl auth can-i patch deployments --subresource=scale -n fitpilot)" = yes
+          test "$(kubectl auth can-i list pods -n fitpilot)" = yes
           test "$(kubectl auth can-i patch secrets -n fitpilot)" = yes
       - name: Prepare isolated restore target
         if: inputs.backup_restore_drill
