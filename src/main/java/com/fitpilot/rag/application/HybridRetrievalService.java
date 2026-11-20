@@ -4,6 +4,7 @@ import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
@@ -65,17 +66,22 @@ public class HybridRetrievalService {
     }
 
     public RagDtos.SearchResponse search(Long userId, String query, int requestedTopK, String category) {
-        return search(userId, query, requestedTopK, category, liveProfile(), true);
+        return search(userId, query, requestedTopK, category, liveProfile(), RagCorpus.LIVE, true);
     }
 
-    /** Executes an isolated offline variant and deliberately does not create user feedback records. */
+    /** Runs a tuning profile against the default corpus without recording a retrieval. */
     public RagDtos.SearchResponse searchOffline(String query, int requestedTopK, String category,
                                                 RagTuningProfile profile) {
-        return search(null, query, requestedTopK, category, profile, false);
+        return searchOffline(query, requestedTopK, category, profile, RagCorpus.LIVE);
+    }
+
+    public RagDtos.SearchResponse searchOffline(String query, int requestedTopK, String category,
+                                                RagTuningProfile profile, RagCorpus corpus) {
+        return search(null, query, requestedTopK, category, profile == null ? liveProfile() : profile, corpus, false);
     }
 
     private RagDtos.SearchResponse search(Long userId, String query, int requestedTopK, String category,
-                                          RagTuningProfile profile, boolean persistRetrieval) {
+                                          RagTuningProfile profile, RagCorpus corpus, boolean persistRetrieval) {
         long started = System.nanoTime();
         int topK = Math.max(1, Math.min(requestedTopK, properties.getRetrieval().getMaxTopK()));
         int candidateLimit = Math.max(topK, properties.getRetrieval().getCandidateLimit());
@@ -83,8 +89,8 @@ public class HybridRetrievalService {
         String lexicalQuery = analyzer.lexicalText(query);
         Map<UUID, Candidate> candidates = new LinkedHashMap<>();
         boolean lexicalSucceeded = collectLexical(lexicalQuery, normalizedCategory, candidateLimit,
-                profile, candidates);
-        boolean vectorSucceeded = collectVector(query, normalizedCategory, candidateLimit, profile, candidates);
+                profile, corpus, candidates);
+        boolean vectorSucceeded = collectVector(query, normalizedCategory, candidateLimit, profile, corpus, candidates);
         if (!lexicalSucceeded && !vectorSucceeded) {
             metrics.rag("UNAVAILABLE", "FAILED", elapsedMillis(started));
             throw new BusinessException(ErrorCode.RAG_RETRIEVAL_UNAVAILABLE,
@@ -94,7 +100,7 @@ public class HybridRetrievalService {
         List<UUID> ids = candidates.values().stream()
                 .sorted(Comparator.comparingDouble(Candidate::rrfScore).reversed())
                 .map(Candidate::id).toList();
-        Map<UUID, KnowledgeModels.ChunkContext> contexts = repository.contexts(ids);
+        Map<UUID, KnowledgeModels.ChunkContext> contexts = repository.contexts(ids, corpus);
         Set<String> queryTerms = new LinkedHashSet<>(analyzer.tokens(query));
         Map<UUID, RankedContext> parents = new LinkedHashMap<>();
         for (UUID id : ids) {
@@ -137,10 +143,10 @@ public class HybridRetrievalService {
     }
 
     private boolean collectLexical(String query, String category, int limit, RagTuningProfile profile,
-                                   Map<UUID, Candidate> candidates) {
+                                   RagCorpus corpus, Map<UUID, Candidate> candidates) {
         if (profile.bm25Weight() == 0) return false;
         try {
-            List<KnowledgeModels.SearchHit> hits = lexicalIndex.search(query, category, limit);
+            List<KnowledgeModels.SearchHit> hits = lexicalIndex.search(query, category, limit, corpus);
             for (int i = 0; i < hits.size(); i++) {
                 Candidate candidate = candidates.computeIfAbsent(hits.get(i).chunkId(), Candidate::new);
                 candidate.add("BM25", profile.bm25Weight() * reciprocalRank(i + 1, profile.rrfK()));
@@ -153,10 +159,10 @@ public class HybridRetrievalService {
     }
 
     private boolean collectVector(String query, String category, int limit, RagTuningProfile profile,
-                                  Map<UUID, Candidate> candidates) {
+                                  RagCorpus corpus, Map<UUID, Candidate> candidates) {
         if (profile.vectorWeight() == 0) return false;
         try {
-            List<KnowledgeModels.SearchHit> hits = repository.vectorSearch(embeddings.embed(query), category, limit);
+            List<KnowledgeModels.SearchHit> hits = repository.vectorSearch(embeddings.embed(query), category, limit, corpus);
             for (int i = 0; i < hits.size(); i++) {
                 Candidate candidate = candidates.computeIfAbsent(hits.get(i).chunkId(), Candidate::new);
                 candidate.add("VECTOR", profile.vectorWeight() * reciprocalRank(i + 1, profile.rrfK()));

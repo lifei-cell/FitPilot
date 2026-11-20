@@ -3,6 +3,7 @@ package com.fitpilot.rag.application;
 import com.fitpilot.observability.FitPilotMetrics;
 import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
@@ -30,7 +31,8 @@ class HybridRetrievalServiceTest {
         var embeddings = mock(EmbeddingProvider.class);
         var service = new HybridRetrievalService(repository, lexical, embeddings, new TextAnalyzer(),
                 new RagProperties(), mock(FitPilotMetrics.class), mock(RagGovernanceRepository.class));
-        if (lexicalOnly) when(lexical.search(anyString(), isNull(), anyInt())).thenThrow(new IllegalStateException("offline"));
+        if (lexicalOnly) when(lexical.search(anyString(), isNull(), anyInt(), eq(RagCorpus.LIVE)))
+                .thenThrow(new IllegalStateException("offline"));
         else when(embeddings.embed(anyString())).thenThrow(new IllegalStateException("offline"));
         var profile = new RagTuningProfile("single-channel", 2400, 700, 100, 60,
                 lexicalOnly ? 1 : 0, lexicalOnly ? 0 : 1, "NONE");
@@ -57,7 +59,7 @@ class HybridRetrievalServiceTest {
         assertThat(result.retrievalMode()).isEqualTo(lexicalOnly ? "BM25_ONLY" : "VECTOR_ONLY");
         if (lexicalOnly) {
             verify(embeddings, never()).embed(anyString());
-            verify(repository, never()).vectorSearch(any(), any(), anyInt());
+            verify(repository, never()).vectorSearch(any(), any(), anyInt(), any());
         } else verifyNoInteractions(lexical);
     }
 
@@ -76,14 +78,14 @@ class HybridRetrievalServiceTest {
         when(analyzer.tokens("rpe")).thenReturn(List.of("rpe"));
         when(embeddings.embed("rpe")).thenReturn(new float[]{1});
         when(embeddings.name()).thenReturn("test");
-        when(elasticsearch.search("rpe", null, properties.getRetrieval().getCandidateLimit())).thenReturn(List.of(
+        when(elasticsearch.search("rpe", null, properties.getRetrieval().getCandidateLimit(), RagCorpus.LIVE)).thenReturn(List.of(
                 new KnowledgeModels.SearchHit(officialChunk, 1), new KnowledgeModels.SearchHit(communityChunk, .9)));
-        when(repository.vectorSearch(any(), isNull(), eq(properties.getRetrieval().getCandidateLimit()))).thenReturn(List.of(
+        when(repository.vectorSearch(any(), isNull(), eq(properties.getRetrieval().getCandidateLimit()), eq(RagCorpus.LIVE))).thenReturn(List.of(
                 new KnowledgeModels.SearchHit(communityChunk, 1), new KnowledgeModels.SearchHit(officialChunk, .9)));
         LinkedHashMap<UUID, KnowledgeModels.ChunkContext> contexts = new LinkedHashMap<>();
         contexts.put(officialChunk, context(officialChunk, "OFFICIAL"));
         contexts.put(communityChunk, context(communityChunk, "COMMUNITY"));
-        when(repository.contexts(anyList())).thenReturn(contexts);
+        when(repository.contexts(anyList(), eq(RagCorpus.LIVE))).thenReturn(contexts);
         when(governance.saveRetrieval(eq(7L), anyString(), eq("rpe"), isNull(), eq("HYBRID_RRF"), anyList()))
                 .thenReturn(retrievalId);
         HybridRetrievalService service = new HybridRetrievalService(repository, elasticsearch, embeddings, analyzer,
@@ -107,21 +109,22 @@ class HybridRetrievalServiceTest {
         RagGovernanceRepository governance = mock(RagGovernanceRepository.class);
         RagProperties properties = new RagProperties();
         properties.getRetrieval().setEvidenceGateEnabled(false);
+        RagCorpus corpus = RagCorpus.evaluation();
         UUID lexicalFirst = UUID.randomUUID(), vectorFirst = UUID.randomUUID();
         when(analyzer.lexicalText("rpe")).thenReturn("rpe");
         when(analyzer.tokens(anyString())).thenReturn(List.of());
         when(embeddings.embed("rpe")).thenReturn(new float[]{1});
         when(embeddings.name()).thenReturn("test");
-        when(elasticsearch.search("rpe", "training", 30)).thenReturn(List.of(
+        when(elasticsearch.search("rpe", "training", 30, corpus)).thenReturn(List.of(
                 new KnowledgeModels.SearchHit(lexicalFirst, 1),
                 new KnowledgeModels.SearchHit(vectorFirst, .9)));
-        when(repository.vectorSearch(any(), eq("training"), eq(30))).thenReturn(List.of(
+        when(repository.vectorSearch(any(), eq("training"), eq(30), eq(corpus))).thenReturn(List.of(
                 new KnowledgeModels.SearchHit(vectorFirst, 1),
                 new KnowledgeModels.SearchHit(lexicalFirst, .9)));
         LinkedHashMap<UUID, KnowledgeModels.ChunkContext> contexts = new LinkedHashMap<>();
         contexts.put(lexicalFirst, context(lexicalFirst, "COMMUNITY"));
         contexts.put(vectorFirst, context(vectorFirst, "COMMUNITY"));
-        when(repository.contexts(anyList())).thenReturn(contexts);
+        when(repository.contexts(anyList(), eq(corpus))).thenReturn(contexts);
         HybridRetrievalService service = new HybridRetrievalService(repository, elasticsearch, embeddings, analyzer,
                 properties, metrics, governance);
         RagTuningProfile lexicalHeavy = new RagTuningProfile(
@@ -129,8 +132,8 @@ class HybridRetrievalServiceTest {
         RagTuningProfile vectorHeavy = new RagTuningProfile(
                 "vector-heavy", 2400, 700, 100, 60, .5, 1.5, "NONE");
 
-        var lexicalResponse = service.searchOffline("rpe", 2, "training", lexicalHeavy);
-        var vectorResponse = service.searchOffline("rpe", 2, "training", vectorHeavy);
+        var lexicalResponse = service.searchOffline("rpe", 2, "training", lexicalHeavy, corpus);
+        var vectorResponse = service.searchOffline("rpe", 2, "training", vectorHeavy, corpus);
 
         assertThat(lexicalResponse.contexts().getFirst().chunkId()).isEqualTo(lexicalFirst);
         assertThat(vectorResponse.contexts().getFirst().chunkId()).isEqualTo(vectorFirst);

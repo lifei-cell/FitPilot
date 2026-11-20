@@ -102,7 +102,7 @@ project-structure.md[SG4T]: F:定义 Maven 后端、独立 Web、模块边界、
 ===/<repository>/docs/architecture/===
 v1-performance.md[SP5T]: F:记录 V1 的缓存、Redis 幂等与限流读写治理及键空间 | R:code:docs/release/short-ttl-cache-consistency.md | A:- | S:陈旧窗口从最后一次旧值回填算，不能从事务提交推导强时限
 v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢复契约 | R:code:docs/release/outbox-claim-ownership.md | A:fitness.workout.completed,fitness.personal-record.created | S:-
-v3-rag.md[SA5T]: F:说明带来源许可、父子分块、双路召回和可重建索引的知识检索架构 | R:code:docs/architecture/v4-agent.md | A:- | S:文档必须附 sourceUrl 与 sourceLicense，授权有效性由运营审核
+v3-rag.md[SA5T]: F:说明带引用的混合知识检索和线上与评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/architecture/v4-agent.md | A:- | S:V22 先停旧实例和评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
 v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
 v5-production.md[SG5T]: F:描述模型网关、评测、观测与容器交付的 V5 架构 | R:code:docs/architecture/v4-agent.md | A:- | S:身份与授权、确认和持久化归后端，发布证据分本地与真实环境
 v6-ai-product.md[SA5T]: F:记录 V6 持久会话、可解释调整、AI 产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:会话以 PostgreSQL 为真源；仍有有效待确认动作的记录跳过清理
@@ -405,9 +405,9 @@ AgentEvaluationRunner.java[TA6T]: F:按规则或活动模型执行 Agent 工具�
 EvaluationDatasetLoader.java[TA4T]: F:从 classpath 的 UTF-8 JSONL 装载版本化 Agent/RAG 样本和语料 | R:- | A:agent,rag,ragCorpus | S:-
 EvaluationMetricCalculator.java[KA6S]: F:计算检索召回、倒数排名、nDCG、引用有效性和 Agent 评测统计 | R:- | A:scoreRagCase,AgentAccumulator,RagAccumulator | S:检索统计按分类聚合，同时保留总体指标
 EvaluationReportService.java[AA6S]: F:完成 Agent/RAG 评测并根据类别回退与引用门槛选择可接受配置 | R:code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java | A:finishAgent,finishRag,finishRagExperiment | S:引用有效性要求 100%，类别指标落后基线超过 5 个百分点即失败
-EvaluationService.java[AA6S]: F:创建 Agent/RAG 评测运行，冻结动态反馈样本和实验来源再调度 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java,code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java | A:startAgent,startRag,startRagFeedbackExperiment | S:反馈实验要求已批准负样本且包含所有预期来源
+EvaluationService.java[AA6S]: F:冻结 Agent 和 RAG 评测的运行输入并调度执行 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java,code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java | A:startAgent,startRag,startRagFeedbackExperiment | S:普通 RAG 也冻结反馈样本的文档版本；反馈实验要求已批准负样本及所有预期来源
 EvaluationTaskScheduler.java[AR7S]: F:在有限线程池中接管、续租和运行评测，超时或丢失租约取消执行 | R:code:src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java,code:src/main/java/com/fitpilot/evaluation/config/EvaluationConfig.java | A:dispatch,recover | S:持久化 lease 控制领取、心跳、状态写回和恢复
-RagEvaluationRunner.java[TA6S]: F:为检索评测准备隔离语料、遍历样本及配置并清理临时文档 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:run | S:不同运行和配置使用不同外部文档身份和类别
+RagEvaluationRunner.java[TA6S]: F:在独立语料中执行检索评测并清理临时文档 | R:code:src/main/java/com/fitpilot/rag/domain/RagCorpus.java,code:src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java | A:run | S:每次尝试和实验配置生成新范围，普通评测分开内置和反馈语料。摄取和检索前检查租约，删除只作用于所属范围
 
 ===/<repository>/src/main/java/com/fitpilot/evaluation/config/===
 EvaluationConfig.java[FW4T]: F:配置有界评测线程池及独立心跳调度器 | R:- | A:evaluationExecutor,evaluationHeartbeatScheduler | S:-
@@ -423,7 +423,7 @@ EvaluationCases.java[CA4T]: F:声明 Agent/RAG 评测样本标签、文档版本
 EvaluationDtos.java[CA4T]: F:约束 Agent 运行模式并定义评测任务状态及指标响应 | R:- | A:AgentRunRequest,RunView | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/evaluation/infrastructure/===
-EvaluationRepository.java[PR7M]: F:持久化评测请求、样本结果、worker 租约、终态和最近成功基线 | R:- | A:reserve,start,renewLease,requeueExpiredLeases | S:领取及转运行检查 deadline；终态更新须匹配 RUNNING 和 worker_id
+EvaluationRepository.java[PR7M]: F:持久化评测运行输入、样本结果、执行租约和终态 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java | A:createRag,reserve,start,renewLease,requeueExpiredLeases | S:普通 RAG 和反馈实验均将冻结来源保存在请求载荷供恢复，领取与启动检查截止期限，终态校验运行状态和 worker
 
 ===/<repository>/src/main/java/com/fitpilot/exercise/application/===
 ExerciseService.java[AB5T]: F:规范动作筛选条件，缓存详情并提供直查有效动作的方法 | R:code:src/main/java/com/fitpilot/exercise/repository/ExerciseRepository.java,code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:search,get,findActiveByIds | S:-
@@ -571,11 +571,11 @@ PersonalRecordRepository.java[PB6T]: F:提供个人纪录投影锁、来源去�
 
 ===/<repository>/src/main/java/com/fitpilot/rag/application/===
 EvidenceSupportGate.java[KA7S]: F:用查询锚点覆盖、数值和特定事实检查决定文段是否支持作答 | R:code:src/main/java/com/fitpilot/rag/processing/TextAnalyzer.java | A:verify | S:特定事实缺失先拒绝，主题相似度不能越过该检查
-HybridRetrievalService.java[AA8M]: F:融合 BM25 与 pgvector，按父块去重重排，经证据门槛返回引用 | R:code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java,code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java | A:search,searchOffline | S:单路失败可降级，两路均失败返回不可用；离线查询不记录线上审计
+HybridRetrievalService.java[AA8M]: F:在指定语料范围融合双路检索，按父块重排后经证据门槛返回引用 | R:code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java,code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:search,searchOffline | S:线上固定 live 范围，回读候选上下文也校验范围。单路失败降级，两路失败返回不可用。离线检索不写入反馈快照
 KnowledgeIndexingService.java[AR7T]: F:协调指定文档版本的索引领取、词法发布、结果回写与定时恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java,code:src/main/java/com/fitpilot/rag/infrastructure/RagGovernanceRepository.java | A:indexNow,reindex | S:发布在领取事务结束后执行，成功和失败回写丢失领取权时均不更新当前文档。手动重建也须领取同一版本
-KnowledgeIngestionService.java[AA7S]: F:审核来源、解析嵌入文档并编排索引、删除和版本恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java | A:ingest,reindex,delete,restore | S:摄取对事务返回的确切版本发起索引。恢复历史内容生成新版本，过期时间须晚于生效时间
+KnowledgeIngestionService.java[AA7S]: F:校验并分块嵌入知识文档，编排保存、索引、删除与恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java | A:ingest,reindex,delete,restore | S:线上运维访问固定 live 范围，评测写入和删除绑定自身范围。索引使用落库返回的准确版本，恢复创建新版本
 RagExperimentCatalog.java[AA4T]: F:枚举离线反馈对照使用的分块、融合权重与重排策略 | R:code:src/main/java/com/fitpilot/rag/domain/RagTuningProfile.java | A:profiles | S:-
-RagFeedbackService.java[AA6T]: F:校验检索反馈归属与引用，从人工审核产生动态评测样本和语料 | R:code:src/main/java/com/fitpilot/rag/infrastructure/RagGovernanceRepository.java | A:submit,review,evaluationCorpus | S:负反馈需原因；审核通过需准确来源
+RagFeedbackService.java[AA6T]: F:校验检索反馈并从审核结果产生评测样本和版本化来源 | R:code:src/main/java/com/fitpilot/rag/infrastructure/RagGovernanceRepository.java | A:submit,review,evaluationCorpus,evaluationDocument | S:审核通过须给出正确来源。样本无类别时仍可按来源选择语料，冻结版本从线上修订读取
 
 ===/<repository>/src/main/java/com/fitpilot/rag/config/===
 RagProperties.java[FA5S]: F:定义 RAG 服务、嵌入、分块、检索和索引配置 | R:- | A:fitpilot.rag | S:数据库向量维度固定 384；子块重叠必须小于子块长度
@@ -587,8 +587,9 @@ RagOperationsController.java[EA5T]: F:提供知识文档摄取、清单、索引
 RagSearchController.java[EA5T]: F:为认证用户公开按问题、候选数和类别发起检索的接口 | R:code:src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java | A:GET /api/v1/rag/search | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/rag/domain/===
-KnowledgeModels.java[CA5T]: F:定义知识文档、索引领取快照、分块、检索命中和引用上下文 | R:- | A:Document,DocumentVersion,IndexClaim,IndexChunk,SearchHit,ChunkContext | S:同一文档版本的索引操作序号为2v，删除为2v+1，下一版本发布可覆盖删除标记
+KnowledgeModels.java[CA5T]: F:定义知识文档、索引发布快照、索引分块和检索上下文 | R:- | A:Document,DocumentVersion,IndexClaim,IndexChunk,SearchHit,ChunkContext | S:索引操作序号为2v，删除为2v+1。索引分块携带持久化语料范围供词法预过滤
 RagTuningProfile.java[DA5T]: F:固定离线检索分块、RRF 和重排参数并验证配置组合 | R:- | A:RagTuningProfile | S:融合权重允许关闭单路，但至少一路权重大于零
+RagCorpus.java[DA6T]: F:建模线上知识语料及一次评测使用的独立语料范围 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:LIVE,evaluation,key | S:评测每次分配完整随机 UUID 以隔离同一运行的重试，键格式必须和数据库及词法索引一致
 
 ===/<repository>/src/main/java/com/fitpilot/rag/dto/===
 RagDtos.java[CA5T]: F:定义知识文档、检索引用、生命周期与反馈的 API 校验和响应 | R:- | A:IngestDocumentRequest,SearchResponse,Citation,FeedbackRequest | S:-
@@ -599,9 +600,9 @@ LocalHashingEmbeddingProvider.java[KA5T]: F:通过 FNV-1a 对中英文词元做�
 OpenAiCompatibleEmbeddingProvider.java[IA6T]: F:调用 OpenAI 兼容嵌入端点并验证服务响应的向量尺寸 | R:code:src/main/java/com/fitpilot/rag/config/RagProperties.java | A:embed | S:启动要求端点和密钥；响应维度必须匹配配置
 
 ===/<repository>/src/main/java/com/fitpilot/rag/infrastructure/===
-ElasticsearchKnowledgeIndex.java[IA8M]: F:按固定分块槽位发布和删除指定文档版本，支持兼容旧分块标识的 BM25 召回 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java,code:src/main/java/com/fitpilot/rag/domain/KnowledgeModels.java | A:ensureIndex,publish,search,deleteDocument | S:槽位写入用 external_gte 拒绝较旧操作。缩减分块和删除都写无正文墓碑保留版本。物理清理只匹配同一文档中无槽位且版本不晚于本次的旧分块，并检查批量逐项结果
-KnowledgeRepository.java[PA8M]: F:维护知识版本和分块，领取索引工作，保护状态回写并提供 pgvector 检索 | R:code:src/main/resources/db/migration/V21__fence_knowledge_index_versions.sql | A:replace,claimIndexing,markIndexed,markFailed,retryCandidates,requestDelete | S:领取事务按版本锁定文档并读取其分块，终态更新须匹配版本与令牌。替换保留历史最大子块数并撤销删除任务，检索过滤未生效、过期与删除内容
-RagGovernanceRepository.java[PA7M]: F:持久化检索快照、反馈治理、文档修订与删除任务领取和终态 | R:code:src/main/resources/db/migration/V21__fence_knowledge_index_versions.sql | A:saveRetrieval,upsertFeedback,review,claimDeletionTasks,deletionSucceeded,deletionFailed | S:删除回写按任务版本与尝试次数校验，成功路径先锁文档再更新任务。反馈重提交使相关动态样本失效
+ElasticsearchKnowledgeIndex.java[IA8M]: F:发布和删除固定槽位的版本化分块并按语料范围执行 BM25 | R:code:src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java,code:src/main/java/com/fitpilot/rag/domain/KnowledgeModels.java | A:ensureIndex,publish,search,deleteDocument | S:候选按 corpusScope 精确过滤，未重建的无范围旧条目不参与检索。槽位使用 external_gte 和墓碑防迟到覆盖，历史无槽位清理限文档和版本并检查响应
+KnowledgeRepository.java[PA8M]: F:在 PostgreSQL 管理语料文档、版本化分块与向量检索 | R:code:src/main/resources/db/migration/V21__fence_knowledge_index_versions.sql,code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:replace,claimIndexing,markIndexed,vectorSearch,contexts,requestDelete | S:摄取按范围与外部 ID 原子换版并保留最大槽位，撤销旧删除。索引领取与分块同事务，回写匹配版本与令牌。向量召回及回读均过滤范围、生命周期和有效期
+RagGovernanceRepository.java[PA7M]: F:保存检索反馈、文档修订和删除任务，为反馈样本提供版本化语料 | R:code:src/main/resources/db/migration/V21__fence_knowledge_index_versions.sql,code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:saveRetrieval,evaluationCorpus,revision,review,claimDeletionTasks,deletionSucceeded | S:反馈语料和版本只取 live。删除回写按版本和尝试次数校验，成功先锁文档再更新任务；反馈重提交使相关动态样本失效
 
 ===/<repository>/src/main/java/com/fitpilot/rag/processing/===
 DocumentParser.java[KA4T]: F:将 Markdown 归一化并按标题提取内容段，纯文本保留为单段 | R:- | A:parse | S:-
@@ -683,6 +684,7 @@ V7__add_llm_gateway_audit.sql[FD5T]: F:记录模型调用元数据及 Agent 提�
 V8__add_evaluation_runs.sql[FD5T]: F:建立 Agent/RAG 评测运行和逐例结果存储 | R:- | A:agent_eval_run,rag_eval_run | S:允许独立评测用模型调用没有业务 execution_id
 V9__strengthen_rag_evaluation_truth.sql[FD4T]: F:在 RAG 样本结果保存期望来源、实际来源及引用有效状态 | R:- | A:rag_eval_result | S:-
 V21__fence_knowledge_index_versions.sql[FD7T]: F:迁移知识索引领取令牌、分块槽位数量上限和删除任务版本 | R:code:src/main/resources/db/migration/V14__add_rag_governance_feedback.sql | A:knowledge_document.index_claim_token,knowledge_document.index_slot_count,rag_deletion_task.document_version | S:从现存子块回填槽位。索引及删除旧进行中任务重新排队，已恢复文档的遗留删除任务移除
+V22__isolate_rag_evaluation_corpora.sql[FD7T]: F:建立知识文档语料范围并隔离旧评测文档 | R:database://fitpilot/public/knowledge_document,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:corpus_scope,uk_knowledge_document_corpus_external | S:识别当前或历史修订中的运行标记，并与旧外部 ID 匹配。线上活跃文档清除旧领取并排队重建词法索引
 
 ===/<repository>/src/main/resources/eval/===
 agent-v1.jsonl[TA4S]: F:分行定义 150 个 Agent 评测输入与预期工具、意图和禁止项 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java | A:- | S:-
@@ -697,7 +699,7 @@ FitPilotAgentProductMetricsIT.java[TO5M]: F:以数据库构造用户、建议、
 FitPilotApiIT.java[TG7L]: F:用真实 PostgreSQL 和 Redis 验证核心 API、认证、缓存、Agent 确认、评测与训练恢复 | R:code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java | A:- | S:认证用例以独立模拟来源隔离限流桶，固定来源专测429。组回执在 Redis 丢失、删除和完成后仍能重放
 FitPilotEventFlowIT.java[TM6S]: F:用真实 Kafka、Redis 和 PostgreSQL 验证完成训练投递、投影及重复消费幂等 | R:- | A:relaysWorkoutAndProjectsPrAnalyticsAndNotificationsIdempotently | S:-
 FitPilotLlmFlowIT.java[TA5T]: F:用回环模型桩验证主备切换、规则降级和审计落库 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
-FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证摄取检索、索引超时接管、迟到版本与删除恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:- | S:按顺序保留旧领取快照，并在较新版本发布或删除后重放。覆盖历史 UUID 分块兼容及新版分块缩减
+FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证双路检索、评测隔离及版本恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:- | S:同外部 ID 和类别同时出现在三个范围，校验无类别线上检索及反馈语料过滤。保留旧领取快照重放以验证版本栅栏，无范围旧分块不可召回且可清理
 FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 不可用时验证 readiness 与并发数据库回源 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
@@ -780,7 +782,7 @@ ZeroSkippedTestsGateTest.java[TQ4T]: F:验证零跳过校验器接受正常套�
 
 ===/<repository>/src/test/java/com/fitpilot/rag/application/===
 EvidenceSupportGateTest.java[TA6S]: F:对冻结样本验证无答案拒答、可回答回归及数值证据检查 | R:code:src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java,code:src/test/resources/retrieval/hard-negatives-v2.json | A:- | S:先核验 v2 留出文件固定散列
-HybridRetrievalServiceTest.java[TA6S]: F:验证零权重确实关闭检索通道、单路故障、重排权重及线上快照 | R:code:src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java | A:- | S:-
+HybridRetrievalServiceTest.java[TA6S]: F:验证单路关闭与失败、范围传递、重排权重及线上反馈快照 | R:code:src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java | A:- | S:离线配置用同一评测范围调用两个召回通道及上下文回读，且不写反馈记录
 RagExperimentCatalogTest.java[TA4T]: F:验证离线策略覆盖分块、RRF 权重与三种重排策略 | R:code:src/main/java/com/fitpilot/rag/application/RagExperimentCatalog.java | A:- | S:-
 RagFeedbackServiceTest.java[TA5T]: F:验证反馈 owner、原检索引用及审核正确来源约束 | R:code:src/main/java/com/fitpilot/rag/application/RagFeedbackService.java | A:- | S:-
 
@@ -888,3 +890,6 @@ setup.ts[TQ4T]: F:配置 DOM 断言、MSW 生命周期、同源 fetch 转换及�
 
 ===/<repository>/src/test/java/com/fitpilot/pr/application/===
 PersonalRecordProjectionIT.java[TB6S]: F:用真实 PostgreSQL 验证乱序、重复和并发消费的个人最佳及破纪录事件 | R:code:src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java,code:src/main/java/com/fitpilot/pr/application/PersonalRecordService.java | A:- | S:以 pg_blocking_pids 核实同用户竞争投影确实阻塞，覆盖原始训练引用缺失的历史纪录
+
+===/<repository>/src/test/java/com/fitpilot/rag/infrastructure/===
+RagCorpusMigrationIT.java[TA6T]: F:在真实 PostgreSQL 验证 V21 数据经 V22 升级后的语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql | A:- | S:涵盖两种旧外部 ID 和只保存在历史修订中的运行标识，并验证线上文档重新排队

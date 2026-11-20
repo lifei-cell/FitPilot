@@ -5,6 +5,7 @@ import com.fitpilot.evaluation.infrastructure.EvaluationRepository;
 import com.fitpilot.rag.application.HybridRetrievalService;
 import com.fitpilot.rag.application.KnowledgeIngestionService;
 import com.fitpilot.rag.application.RagFeedbackService;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.dto.RagDtos;
 import org.springframework.beans.factory.ObjectProvider;
@@ -48,20 +49,26 @@ public class RagEvaluationRunner {
             return;
         }
         KnowledgeIngestionService loader = ingestion.getIfAvailable();
+        RagCorpus corpus = RagCorpus.evaluation();
+        RagCorpus feedbackCorpus = RagCorpus.evaluation();
         List<UUID> evaluationDocuments = new ArrayList<>();
+        List<UUID> feedbackDocuments = new ArrayList<>();
         boolean cleaned = false;
         try {
             HybridRetrievalService service = retrieval.getIfAvailable();
             if (service == null || loader == null) throw new IllegalStateException("RAG is disabled");
             for (var document : datasets.ragCorpus()) {
-                evaluationDocuments.add(loader.ingest(scoped(document, runId)).id());
+                ensureLease.run();
+                evaluationDocuments.add(loader.ingest(document, null, corpus).id());
             }
+            ingestRevisions(loader, experiment.documents(), null, feedbackCorpus, feedbackDocuments, ensureLease);
             EvaluationMetricCalculator.RagAccumulator accumulator =
                     new EvaluationMetricCalculator.RagAccumulator();
             for (var item : cases) {
                 ensureLease.run();
                 long started = System.nanoTime();
-                RagDtos.SearchResponse response = service.search(item.query(), 5, item.category());
+                RagCorpus caseCorpus = item.id().startsWith("dynamic-") ? feedbackCorpus : corpus;
+                RagDtos.SearchResponse response = service.searchOffline(item.query(), 5, item.category(), null, caseCorpus);
                 EvaluationMetricCalculator.RagCaseMetrics caseMetrics =
                         metrics.scoreRagCase(item.expectedSourceUrls(), response.contexts());
                 accumulator.add(item.category(), caseMetrics);
@@ -70,11 +77,15 @@ public class RagEvaluationRunner {
                         caseMetrics.ndcg(), caseMetrics.precision(), caseMetrics.contextRecall(),
                         caseMetrics.citationValid(), metrics.elapsed(started));
             }
-            cleanupDocuments(loader, evaluationDocuments);
+            cleanupDocuments(loader, evaluationDocuments, corpus);
+            cleanupDocuments(loader, feedbackDocuments, feedbackCorpus);
             cleaned = true;
             reports.finishRag(runId, workerId, cases.size(), accumulator);
         } finally {
-            if (!cleaned && loader != null) cleanupDocuments(loader, evaluationDocuments);
+            if (!cleaned && loader != null) {
+                cleanupDocuments(loader, evaluationDocuments, corpus);
+                cleanupDocuments(loader, feedbackDocuments, feedbackCorpus);
+            }
         }
     }
 
@@ -88,21 +99,17 @@ public class RagEvaluationRunner {
         Map<String, EvaluationMetricCalculator.RagAccumulator> profileMetrics = new LinkedHashMap<>();
         for (RagTuningProfile profile : experiment.profiles()) {
             ensureLease.run();
+            RagCorpus corpus = RagCorpus.evaluation();
             List<UUID> documents = new ArrayList<>();
             try {
-                for (EvaluationCases.RagDocumentRef reference : experiment.documents()) {
-                    RagDtos.IngestDocumentRequest source = feedback.evaluationDocument(
-                            new RagFeedbackService.EvaluationDocumentRef(reference.documentId(),
-                                    reference.version(), reference.sourceUrl(), reference.category()));
-                    documents.add(loader.ingest(scoped(source, runId, profile), profile).id());
-                }
+                ingestRevisions(loader, experiment.documents(), profile, corpus, documents, ensureLease);
                 EvaluationMetricCalculator.RagAccumulator accumulator =
                         new EvaluationMetricCalculator.RagAccumulator();
                 for (EvaluationCases.RagCase item : cases) {
                     ensureLease.run();
                     long started = System.nanoTime();
                     RagDtos.SearchResponse response = service.searchOffline(item.query(), 5,
-                            scopedCategory(item.category(), runId, profile), profile);
+                            item.category(), profile, corpus);
                     EvaluationMetricCalculator.RagCaseMetrics caseMetrics =
                             metrics.scoreRagCase(item.expectedSourceUrls(), response.contexts());
                     accumulator.add(item.category(), caseMetrics);
@@ -113,49 +120,26 @@ public class RagEvaluationRunner {
                 }
                 profileMetrics.put(profile.id(), accumulator);
             } finally {
-                cleanupDocuments(loader, documents);
+                cleanupDocuments(loader, documents, corpus);
             }
         }
         reports.finishRagExperiment(runId, workerId, cases.size(), experiment.profiles(), profileMetrics);
     }
 
-    private RagDtos.IngestDocumentRequest scoped(RagDtos.IngestDocumentRequest source, UUID runId) {
-        Map<String, String> metadata = new LinkedHashMap<>(
-                source.metadata() == null ? Map.of() : source.metadata());
-        metadata.put("evaluationRunId", runId.toString());
-        return new RagDtos.IngestDocumentRequest(scopedExternalId(source.externalId(), runId, "baseline"),
-                source.title(),
-                source.category(), source.sourceUrl(), source.sourceLicense(), source.format(),
-                source.content(), metadata, source.publisher(), source.trustLevel(),
-                source.effectiveFrom(), source.expiresAt());
+    private void ingestRevisions(KnowledgeIngestionService loader, List<EvaluationCases.RagDocumentRef> references,
+                                 RagTuningProfile profile, RagCorpus corpus, List<UUID> documents, Runnable ensureLease) {
+        for (var reference : references) {
+            ensureLease.run();
+            RagDtos.IngestDocumentRequest source = feedback.evaluationDocument(new RagFeedbackService.EvaluationDocumentRef(
+                    reference.documentId(), reference.version(), reference.sourceUrl(), reference.category()));
+            documents.add(loader.ingest(source, profile, corpus).id());
+        }
     }
 
-    private RagDtos.IngestDocumentRequest scoped(RagDtos.IngestDocumentRequest source, UUID runId,
-                                                  RagTuningProfile profile) {
-        Map<String, String> metadata = new LinkedHashMap<>();
-        metadata.put("evaluationRunId", runId.toString());
-        metadata.put("evaluationProfile", profile.id());
-        return new RagDtos.IngestDocumentRequest(scopedExternalId(source.externalId(), runId, profile.id()),
-                source.title(), scopedCategory(source.category(), runId, profile), source.sourceUrl(),
-                source.sourceLicense(), source.format(), source.content(), metadata, source.publisher(),
-                source.trustLevel(), source.effectiveFrom(), source.expiresAt());
-    }
-
-    private String scopedCategory(String category, UUID runId, RagTuningProfile profile) {
-        return "ev-" + runId.toString().substring(0, 16) + "-" + profile.id() + "-"
-                + metrics.hash(category == null ? "uncategorized" : category).substring(0, 8);
-    }
-
-    private String scopedExternalId(String externalId, UUID runId, String profileId) {
-        String suffix = "-ev-" + runId + "-" + profileId;
-        int prefixLength = Math.min(externalId.length(), 160 - suffix.length());
-        return externalId.substring(0, prefixLength) + suffix;
-    }
-
-    private void cleanupDocuments(KnowledgeIngestionService loader, List<UUID> documentIds) {
+    private void cleanupDocuments(KnowledgeIngestionService loader, List<UUID> documentIds, RagCorpus corpus) {
         documentIds.forEach(id -> {
             try {
-                loader.delete(id);
+                loader.delete(id, corpus);
             } catch (RuntimeException ignored) {
                 // Evaluation cleanup is best-effort and indexing has its own deletion retry queue.
             }

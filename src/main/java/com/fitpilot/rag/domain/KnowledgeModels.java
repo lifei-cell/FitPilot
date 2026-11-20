@@ -31,7 +31,7 @@ public final class KnowledgeModels {
     public record IndexChunk(
             UUID chunkId, UUID documentId, String title, String category, String heading,
             String content, String lexicalText, String sourceUrl, String sourceLicense,
-            String publisher, String trustLevel, int version, LocalDateTime expiresAt) {}
+            String publisher, String trustLevel, int version, LocalDateTime expiresAt, String corpusScope) {}
 
     public record ChunkContext(
             UUID chunkId, UUID parentChunkId, UUID documentId, String title, String category,

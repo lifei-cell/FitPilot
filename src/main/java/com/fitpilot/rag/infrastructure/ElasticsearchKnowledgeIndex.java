@@ -6,6 +6,7 @@ import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.domain.KnowledgeModels;
 import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
 import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
+import com.fitpilot.rag.domain.RagCorpus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -85,6 +86,7 @@ public class ElasticsearchKnowledgeIndex {
         source.put("documentVersion", document.version());
         source.put("slot", slot);
         source.put("chunkId", chunk.chunkId().toString());
+        source.put("corpusScope", chunk.corpusScope());
         source.put("lifecycleStatus", "ACTIVE");
         source.put("title", chunk.title());
         source.put("category", chunk.category());
@@ -125,12 +127,14 @@ public class ElasticsearchKnowledgeIndex {
         }
     }
 
-    public List<KnowledgeModels.SearchHit> search(String lexicalQuery, String category, int limit) {
+    public List<KnowledgeModels.SearchHit> search(String lexicalQuery, String category, int limit,
+                                                  RagCorpus corpus) {
         ensureIndex();
         Map<String, Object> textQuery = Map.of("multi_match", Map.of(
                 "query", lexicalQuery, "fields", List.of("lexicalText^3", "title^2", "heading^2"),
                 "type", "best_fields", "operator", "or"));
         List<Object> filters = new ArrayList<>();
+        filters.add(Map.of("term", Map.of("corpusScope", corpus.key())));
         filters.add(Map.of("term", Map.of("lifecycleStatus", "ACTIVE")));
         filters.add(Map.of("bool", Map.of("should", List.of(
                 Map.of("bool", Map.of("must_not", Map.of("exists", Map.of("field", "expiresAt")))),
@@ -221,6 +225,7 @@ public class ElasticsearchKnowledgeIndex {
                 Map.entry("trustLevel", Map.of("type", "keyword")),
                 Map.entry("documentVersion", Map.of("type", "integer")),
                 Map.entry("slot", Map.of("type", "integer")), Map.entry("chunkId", Map.of("type", "keyword")),
+                Map.entry("corpusScope", Map.of("type", "keyword")),
                 Map.entry("lifecycleStatus", Map.of("type", "keyword")), Map.entry("expiresAt", Map.of("type", "date")));
     }
     private String trimSlash(String value) { return value.endsWith("/") ? value.substring(0, value.length() - 1) : value; }

@@ -3,9 +3,11 @@ package com.fitpilot.rag.infrastructure;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.dto.RagDtos;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -132,13 +134,14 @@ public class RagGovernanceRepository {
         return namedJdbc.query("""
                 SELECT id,version,source_url,category
                 FROM knowledge_document
-                WHERE lifecycle_status='ACTIVE'
+                WHERE corpus_scope=:scope AND lifecycle_status='ACTIVE'
                   AND (effective_from IS NULL OR effective_from<=CURRENT_TIMESTAMP)
                   AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
-                  AND (LOWER(category) IN (:categories) OR source_url IN (:sources))
+                  AND (LOWER(category) = ANY(:categories) OR source_url IN (:sources))
                 ORDER BY CASE WHEN source_url IN (:sources) THEN 0 ELSE 1 END,updated_at DESC,id
                 LIMIT :limit
-                """, Map.of("categories", categories, "sources", expectedSources, "limit", limit),
+                """, Map.of("scope", RagCorpus.LIVE.key(), "categories", new SqlArrayValue("text", categories.toArray()),
+                        "sources", expectedSources, "limit", limit),
                 (rs, row) -> new EvaluationDocumentRef(rs.getObject(1, UUID.class), rs.getInt(2),
                         rs.getString(3), rs.getString(4)));
     }
@@ -157,11 +160,11 @@ public class RagGovernanceRepository {
                 SELECT d.external_id,r.title,r.category,r.source_url,r.source_license,r.format,r.raw_content,
                   r.metadata::text,r.publisher,r.trust_level,r.effective_from,r.expires_at
                 FROM knowledge_document_revision r JOIN knowledge_document d ON d.id=r.document_id
-                WHERE r.document_id=? AND r.version=?
+                WHERE r.document_id=? AND r.version=? AND d.corpus_scope=?
                 """, rs -> rs.next() ? new RevisionData(rs.getString(1), rs.getString(2), rs.getString(3),
                 rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), readMap(rs.getString(8)),
                 rs.getString(9), rs.getString(10), timestamp(rs, 11), timestamp(rs, 12)) : null,
-                documentId, version);
+                documentId, version, RagCorpus.LIVE.key());
     }
 
     public List<DeletionTask> claimDeletionTasks(int limit) {

@@ -2,10 +2,15 @@ package com.fitpilot;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fitpilot.rag.application.HybridRetrievalService;
+import com.fitpilot.rag.application.KnowledgeIngestionService;
 import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
 import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
 import com.fitpilot.rag.domain.KnowledgeModels.SearchHit;
 import com.fitpilot.rag.domain.KnowledgeModels.StoredChunk;
+import com.fitpilot.rag.domain.RagCorpus;
+import com.fitpilot.rag.dto.RagDtos;
+import com.fitpilot.rag.embedding.EmbeddingProvider;
 import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
 import com.fitpilot.rag.infrastructure.KnowledgeRepository;
 import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
@@ -28,6 +33,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.net.URI;
@@ -87,6 +93,9 @@ class FitPilotRagFlowIT {
     @Autowired KnowledgeRepository knowledge;
     @Autowired RagGovernanceRepository governance;
     @Autowired ElasticsearchKnowledgeIndex lexical;
+    @Autowired KnowledgeIngestionService ingestion;
+    @Autowired HybridRetrievalService retrieval;
+    @Autowired EmbeddingProvider embeddings;
     @Autowired JdbcTemplate jdbc;
     @Autowired PlatformTransactionManager transactions;
 
@@ -154,6 +163,10 @@ class FitPilotRagFlowIT {
             assertThat(run.path("metrics").path("mrr").asDouble()).isGreaterThanOrEqualTo(0.75);
             assertThat(run.path("metrics").path("citationValidity").asDouble()).isEqualTo(1.0);
         });
+        assertThat(jdbc.queryForObject("""
+                SELECT recall_at_5 FROM rag_eval_result WHERE run_id=? AND case_id LIKE 'dynamic-%'
+                """, Double.class, UUID.fromString(evalRunId))).isEqualTo(1.0);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM rag_retrieval WHERE user_id IS NULL", Long.class)).isZero();
 
         JsonNode experimentStarted = call(post("/api/v1/operations/evaluations/rag/feedback-experiments")
                 .header("X-Operations-Token", OPERATIONS_TOKEN), 202);
@@ -208,14 +221,53 @@ class FitPilotRagFlowIT {
     }
 
     @Test
+    void liveAndSimultaneousEvaluationCorporaAreIsolatedInBothChannels() throws Exception {
+        String query = "scopeisolationfixture";
+        String category = "scope-isolation";
+        var request = new RagDtos.IngestDocumentRequest("scope:same-external-id", query, category,
+                "https://example.org/scope", "CC-BY-4.0", "TEXT", query, Map.of(), null, null, null, null);
+        RagCorpus runA = RagCorpus.evaluation();
+        RagCorpus runB = RagCorpus.evaluation();
+        var live = ingestion.ingest(request);
+        var evaluatedA = ingestion.ingest(request, null, runA);
+        var evaluatedB = ingestion.ingest(request, null, runB);
+        assertThat(List.of(live.id(), evaluatedA.id(), evaluatedB.id())).doesNotHaveDuplicates();
+        for (var scope : Map.of(RagCorpus.LIVE, live, runA, evaluatedA, runB, evaluatedB).entrySet()) {
+            RagCorpus corpus = scope.getKey();
+            assertThat(scope.getValue().indexStatus()).isEqualTo("INDEXED");
+            UUID child = jdbc.queryForObject("SELECT id FROM knowledge_chunk WHERE document_id=? AND chunk_type='CHILD'",
+                    UUID.class, scope.getValue().id());
+            assertThat(lexical.search(query, null, 10, corpus)).extracting(SearchHit::chunkId).containsExactly(child);
+            assertThat(knowledge.vectorSearch(embeddings.embed(query), category, 10, corpus))
+                    .extracting(SearchHit::chunkId).containsExactly(child);
+            assertThat(knowledge.contexts(List.of(child), corpus.equals(RagCorpus.LIVE) ? runA : RagCorpus.LIVE))
+                    .isEmpty();
+        }
+        assertThat(retrieval.searchOffline(query, 5, null, null, runB).contexts())
+                .extracting(RagDtos.RetrievedContext::documentId).containsExactly(evaluatedB.id());
+        assertThat(governance.evaluationCorpus(List.of(), List.of(live.sourceUrl()), 20))
+                .extracting(RagGovernanceRepository.EvaluationDocumentRef::documentId).containsExactly(live.id());
+        assertThat(ingestion.list(100)).extracting(RagDtos.DocumentView::id).contains(live.id())
+                .doesNotContain(evaluatedA.id(), evaluatedB.id());
+        assertThatThrownBy(() -> ingestion.delete(evaluatedA.id(), runB)).hasMessage("knowledge document not found");
+        ingestion.delete(evaluatedA.id(), runA);
+
+        // Run B is still present, as it would be if an evaluation worker exited before cleanup.
+        String token = registerAndLogin("rag_scope_user");
+        JsonNode online = call(get("/api/v1/rag/search").header("Authorization", bearer(token)).param("q", query), 200);
+        assertThat(online.path("data").path("contexts")).extracting(item -> item.path("documentId").asText())
+                .containsExactly(live.id().toString());
+    }
+
+    @Test
     void lateVersionCannotOverwriteNewChunksOrRestoreRemovedSlots() throws Exception {
         IndexClaim first = claimVersion("version-fence:replace", "retiredfixture", 3);
         UUID legacyChunk = addLegacyChunk(first.document());
-        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10))
-                .extracting(SearchHit::chunkId).containsExactly(legacyChunk);
+        assertThat(legacyChunkStatus(legacyChunk)).isEqualTo(200);
+        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
         lexical.publish(first);
         assertThat(knowledge.markIndexed(first)).isTrue();
-        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
+        assertThat(legacyChunkStatus(legacyChunk)).isEqualTo(404);
 
         IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
         IndexClaim current = claimVersion("version-fence:replace", "currentfixture", 1);
@@ -224,14 +276,15 @@ class FitPilotRagFlowIT {
         assertThat(knowledge.claimIndexing(first.document(), true)).isEmpty();
         assertThat(knowledge.markIndexed(stale)).isFalse();
         assertThat(knowledge.markFailed(stale, new IllegalStateException("late failure"))).isFalse();
-        assertThat(knowledge.findDocument(current.document().id()).orElseThrow().indexStatus()).isEqualTo("INDEXING");
+        assertThat(knowledge.findDocument(current.document().id(), RagCorpus.LIVE).orElseThrow().indexStatus())
+                .isEqualTo("INDEXING");
 
         lexical.publish(current);
         assertThat(knowledge.markIndexed(current)).isTrue();
         assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
         assertThat(knowledge.markIndexed(stale)).isFalse();
-        assertThat(lexical.search("retiredfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
-        assertThat(lexical.search("currentfixture", VERSION_TEST_CATEGORY, 10))
+        assertThat(lexical.search("retiredfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
+        assertThat(lexical.search("currentfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE))
                 .extracting(SearchHit::chunkId).containsExactly(current.chunks().getFirst().chunkId());
     }
 
@@ -258,7 +311,7 @@ class FitPilotRagFlowIT {
         assertThat(knowledge.markIndexed(first)).isTrue();
         IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
         RagGovernanceRepository.DeletionTask deletion = new TransactionTemplate(transactions).execute(status -> {
-            assertThat(knowledge.requestDelete(first.document().id())).isTrue();
+            assertThat(knowledge.requestDelete(first.document().id(), RagCorpus.LIVE)).isTrue();
             return governance.claimDeletionTasks(1).getFirst();
         });
 
@@ -266,7 +319,7 @@ class FitPilotRagFlowIT {
         lexical.deleteDocument(deletion.document(), deletion.slotCount());
         assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
         assertThat(knowledge.markIndexed(stale)).isFalse();
-        assertThat(lexical.search("deletedfixture", VERSION_TEST_CATEGORY, 10)).isEmpty();
+        assertThat(lexical.search("deletedfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
 
         IndexClaim restored = claimVersion("version-fence:restore", "restoredfixture", 1);
         lexical.publish(restored);
@@ -275,8 +328,9 @@ class FitPilotRagFlowIT {
                 .hasMessageContaining("item errors");
         assertThat(governance.deletionSucceeded(deletion)).isFalse();
         assertThat(governance.deletionFailed(deletion, new IllegalStateException("late deletion"))).isFalse();
-        assertThat(knowledge.findDocument(restored.document().id()).orElseThrow().indexStatus()).isEqualTo("INDEXED");
-        assertThat(lexical.search("restoredfixture", VERSION_TEST_CATEGORY, 10))
+        assertThat(knowledge.findDocument(restored.document().id(), RagCorpus.LIVE).orElseThrow().indexStatus())
+                .isEqualTo("INDEXED");
+        assertThat(lexical.search("restoredfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE))
                 .extracting(SearchHit::chunkId).containsExactly(restored.chunks().getFirst().chunkId());
     }
 
@@ -291,7 +345,7 @@ class FitPilotRagFlowIT {
             chunks.add(new StoredChunk(UUID.randomUUID(), parent, "CHILD", ordinal, null, text, text, null));
         }
         return new TransactionTemplate(transactions).execute(status ->
-                knowledge.claimIndexing(knowledge.replace(write, chunks), false).orElseThrow());
+                knowledge.claimIndexing(knowledge.replace(write, chunks, RagCorpus.LIVE), false).orElseThrow());
     }
 
     private UUID addLegacyChunk(DocumentVersion document) throws Exception {
@@ -308,6 +362,14 @@ class FitPilotRagFlowIT {
             assertThat(client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(201);
         }
         return id;
+    }
+
+    private int legacyChunkStatus(UUID id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://" + ELASTICSEARCH.getHttpHostAddress()
+                + "/fitpilot-rag-it/_doc/" + id)).timeout(Duration.ofSeconds(10)).GET().build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            return client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
+        }
     }
 
     private String registerAndLogin(String username) throws Exception {

@@ -61,7 +61,7 @@ public class RagFeedbackService {
                 .map(String::toLowerCase).distinct().toList();
         List<String> expectedSources = cases.stream().flatMap(item -> item.expectedSources().stream())
                 .filter(value -> value != null && !value.isBlank()).distinct().toList();
-        if (categories.isEmpty() || expectedSources.isEmpty()) return List.of();
+        if (expectedSources.isEmpty()) return List.of();
         return repository.evaluationCorpus(categories, expectedSources, Math.max(1, Math.min(limit, 1000)))
                 .stream().map(item -> new EvaluationDocumentRef(item.documentId(), item.version(),
                         item.sourceUrl(), item.category())).toList();
