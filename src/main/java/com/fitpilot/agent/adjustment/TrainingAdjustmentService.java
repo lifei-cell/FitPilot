@@ -58,8 +58,16 @@ public class TrainingAdjustmentService {
         } else if (completion >= 0.85 && metrics.averageFatigue() <= 6 && metrics.latestPain() <= 2
                 && metrics.averageRpe() >= 6 && metrics.averageRpe() <= 8.5
                 && metrics.personalRecords() == 0 && Math.abs(volumeChange) <= 0.05) {
-            rule = "PROGRESS";
-            reasons.add("完成率稳定且恢复良好，但容量和 PR 趋势进入平台期");
+            if (metrics.previousVolume() <= 0) {
+                rule = "INSUFFICIENT_DATA";
+                reasons.add("前一个 14 天窗口缺少可比较的训练量，暂缓进阶建议");
+            } else if (!metrics.prProjectionComplete()) {
+                rule = "INSUFFICIENT_DATA";
+                reasons.add("部分训练的个人纪录尚未核实，暂缓进阶建议");
+            } else {
+                rule = "PROGRESS";
+                reasons.add("完成率稳定且恢复良好，但容量和 PR 趋势进入平台期");
+            }
         } else {
             rule = "NO_CHANGE";
             reasons.add("当前负荷、完成率与恢复信号平衡，建议保持计划");

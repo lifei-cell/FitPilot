@@ -230,17 +230,17 @@
     },
     {
       "object_ref": "database://fitpilot/public/outbox_event",
-      "table_evidence_sha256": "5ed0d26e3b2bde942a2655c69613ed6c85e6f0cbc44652f078c64cb14bbe5b81",
+      "table_evidence_sha256": "204af8b455fbefedae96ba5f0a5216448c59bfdf1ac167072e79086380a2ba65",
       "component_hashes": {
         "columns": "eb61c22cd8a68ec61d90880a45b1e9048d1f3c96f5b69f0f2217d0c82f7d101e",
         "primary_key": "ec0033c1ac2d7d2547a23092852e48a92fe946f22c4b69bc041ae02417c3067e",
         "unique_constraints": "707e54113b0f24b247b5e2ca488de2ba1ae17b16d2b0fb0bebd217b2c654830d",
         "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
         "checks": "e6dc523f18ce3db125131699e8c1eb18dadd26dffe7445b55668aeebe97ce352",
-        "indexes": "11abf2a7e0c983df26e8cd3221334e8ce5b7cacf23ae99ae831b5069301f9559",
+        "indexes": "5b1ce4e1da4adfd7695c11710a4d3d43600a804c1676c2f57989679ed20ef046",
         "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
       },
-      "evidence_ref": "fitpilot/tables/5ed0d26e3b2bde942a2655c69613ed6c85e6f0cbc44652f078c64cb14bbe5b81.json"
+      "evidence_ref": "fitpilot/tables/204af8b455fbefedae96ba5f0a5216448c59bfdf1ac167072e79086380a2ba65.json"
     },
     {
       "object_ref": "database://fitpilot/public/personal_record",
@@ -537,6 +537,6 @@
       "evidence_ref": "fitpilot/tables/ded3e2b1bf38c7a6bf1566a4c969a1140915af174bf9a281cba1b388bc37ae6f.json"
     }
   ],
-  "source_snapshot_sha256": "c4da141b5ca604a28987b72ee4e1f14f3d2684ec97045724a8a6e1900c0caf36",
+  "source_snapshot_sha256": "b2d0b876295c9a100d1f3845149e293cc8e9364865de700c0603425ef2c6d441",
   "business_data_read": false
 }

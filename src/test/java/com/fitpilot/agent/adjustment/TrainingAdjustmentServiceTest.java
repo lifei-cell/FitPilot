@@ -5,6 +5,8 @@ import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.exercise.application.ExerciseService;
 import com.fitpilot.exercise.dto.ExerciseView;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,7 +25,7 @@ class TrainingAdjustmentServiceTest {
     void blocksProgressionWhenRecentPainIsElevated() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                8, 70, 72, 7.5, 6, 5.0, 4, 10000, 10000, 0));
+                8, 70, 72, 7.5, 6, 5.0, 4, 10000, 10000, 0, false));
 
         var analysis = service.analyze(7);
 
@@ -35,7 +37,7 @@ class TrainingAdjustmentServiceTest {
     void createsADecreasedWorkloadWithinGuardrailBounds() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                8, 70, 72, 9.1, 6, 8.2, 1, 9000, 10000, 0));
+                8, 70, 72, 9.1, 6, 8.2, 1, 9000, 10000, 0, false));
 
         var analysis = service.analyze(7);
         var proposal = service.deterministicPlan(analysis);
@@ -45,16 +47,34 @@ class TrainingAdjustmentServiceTest {
         assertThat(proposal.name()).contains("AI 调整草案");
     }
 
+    @ParameterizedTest
+    @CsvSource({"0, true, 前一个 14 天窗口", "10000, false, 个人纪录尚未核实"})
+    void declinesProgressionWithoutComparableVolumeAndCompletePrProjection(
+            double previousVolume, boolean prComplete, String reason) {
+        when(plans.active(7)).thenReturn(plan(1));
+        when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
+                12, 80, 81, 7.2, 6, 5, 1, 10000, previousVolume, 0, prComplete));
+
+        var analysis = service.analyze(7);
+
+        assertThat(analysis.rule()).isEqualTo("INSUFFICIENT_DATA");
+        assertThat(analysis.proposalAllowed()).isFalse();
+        assertThat(analysis.reasons()).singleElement().asString().contains(reason);
+    }
+
     @Test
     void replacementRequiresCitationAndMatchingPrimaryMuscle() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                12, 80, 81, 7.2, 6, 5, 1, 10000, 10000, 0));
+                12, 80, 81, 7.2, 6, 5, 1, 10000, 10000, 0, true));
         ExerciseView source = exercise(1, "CHEST");
         ExerciseView replacement = exercise(99, "CHEST");
         when(exercises.findActive(1)).thenReturn(java.util.Optional.of(source));
         when(exercises.findActive(99)).thenReturn(java.util.Optional.of(replacement));
-        var proposal = service.deterministicPlan(service.analyze(7));
+        var analysis = service.analyze(7);
+        assertThat(analysis.rule()).isEqualTo("PROGRESS");
+        assertThat(analysis.proposalAllowed()).isTrue();
+        var proposal = service.deterministicPlan(analysis);
         var firstDay = proposal.days().getFirst();
         var first = firstDay.exercises().getFirst();
         var changed = new TrainingPlanDtos.ExerciseRequest(99L, first.sequence(), first.targetSets(),
@@ -67,9 +87,9 @@ class TrainingAdjustmentServiceTest {
                                     .mapToObj(i -> i == 0 ? changed : day.exercises().get(i)).toList()) : day;
                 }).toList());
 
-        assertThat(service.validate(service.analyze(7), changedPlan, false))
+        assertThat(service.validate(analysis, changedPlan, false))
                 .contains("动作替换必须引用有效知识来源");
-        assertThat(service.validate(service.analyze(7), changedPlan, true))
+        assertThat(service.validate(analysis, changedPlan, true))
                 .doesNotContain("动作替换必须引用有效知识来源", "动作替换必须匹配原动作的主要肌群");
     }
 

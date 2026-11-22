@@ -105,7 +105,7 @@ v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢�
 v3-rag.md[SA5T]: F:说明带引用的混合检索、知识文档生命周期及线上和评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/runbooks/release-rollback.md | A:- | S:V22 先停旧后端及评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
 v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
 v5-production.md[SG5T]: F:描述模型网关、评测、观测与包含 V22 门禁的容器交付 | R:code:docs/architecture/v4-agent.md,code:docs/runbooks/release-rollback.md | A:- | S:模型不拥有授权和写入权，发布证据需区分本机与生产环境
-v6-ai-product.md[SA5T]: F:记录 V6 持久会话、可解释调整、AI 产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:会话以 PostgreSQL 为真源；仍有有效待确认动作的记录跳过清理
+v6-ai-product.md[SA5T]: F:说明 V6 持久会话、可解释计划调整、产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:保留期跳过有效待确认动作。进阶需可比较的训练量及已提交的个人纪录消费回执
 
 ===/<repository>/docs/interview/===
 01-Java-Spring-领域与数据库.md[SB4M]: F:整理模块化、Spring 事务与鉴权、PostgreSQL 不变量和交付的面试资料 | R:code:docs/project-structure.md | A:- | S:-
@@ -305,8 +305,8 @@ FitPilotApplication.java[EG5T]: F:启动 Spring Boot，注册各业务 Mapper �
 
 ===/<repository>/src/main/java/com/fitpilot/agent/adjustment/===
 TrainingAdjustmentDtos.java[CA4T]: F:定义训练调整的分析证据、提议和历史视图合同 | R:- | A:Evidence,Context,AdjustmentProposal,AdjustmentView | S:-
-TrainingAdjustmentRepository.java[PA7S]: F:汇总训练反馈和组数，查询并持久化计划调整提议及其决定 | R:code:src/main/resources/db/migration/V13__add_training_feedback_and_adjustments.sql | A:metrics,create,hasPending,findPendingForSource,findPendingAction,decide | S:插入只忽略同用户同来源计划的待确认唯一冲突。决定更新匹配用户与待确认状态，由调用者先锁关联动作
-TrainingAdjustmentService.java[AA7S]: F:依据训练事实判定调整规则，构造规则草案、校验负荷并提供调整历史 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:analyze,context,deterministicPlan,validate,proposal,list | S:改换动作需有效引用且匹配原动作主要肌群。最近七天最高疼痛分达到四分时进入安全暂停
+TrainingAdjustmentRepository.java[PA7S]: F:读取训练调整证据快照并持久化提议和决定 | R:code:src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java,database://fitpilot/public/plan_adjustment | A:metrics,create,hasPending,findPendingForSource,findPendingAction,decide | S:单语句读取训练组和个人纪录回执；只接受绑定对应训练完成事件的 PR 回执。更新提议限归属与待确认态，调用者先锁动作
+TrainingAdjustmentService.java[AA7S]: F:依据训练证据判定调整规则、构造并校验草案和查询历史 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:analyze,context,deterministicPlan,validate,proposal,list | S:前一窗口训练量为零或缺少 PR 回执时暂停进阶。改换动作需有效引用且匹配原主要肌群，近期疼痛达到四分时限制进阶
 
 ===/<repository>/src/main/java/com/fitpilot/agent/application/===
 AgentOrchestrator.java[AA7S]: F:编排单条 Agent 消息的路由、读工具、提议、答复与审计 | R:code:src/main/java/com/fitpilot/agent/application/IntentRouter.java,code:src/main/java/com/fitpilot/agent/application/PlanProposalService.java | A:message | S:拒绝和无需动作分别收尾，写入提议只成为待确认动作
@@ -466,7 +466,7 @@ OutboxRepository.java[PM8T]: F:实现 Outbox 插入、跳锁接管、续租、�
 PersonalRecordEventConsumer.java[IM4T]: F:把个人纪录 Kafka 事件交给通知消费者的事务 Handler | R:code:src/main/java/com/fitpilot/infrastructure/events/PersonalRecordEventHandler.java | A:notification | S:-
 PersonalRecordEventHandler.java[AM6T]: F:记录个人纪录事件消费权并在同一事务插入用户通知 | R:code:src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java,code:src/main/java/com/fitpilot/notification/infrastructure/NotificationRepository.java | A:notifyUser | S:-
 ProcessedEventRepository.java[PM6T]: F:以事件 ID 与消费者复合键登记 Inbox 去重权 | R:- | A:claim | S:冲突直接忽略，业务 Handler 必须共用同一事务
-WorkoutCompletedEventHandler.java[AM7T]: F:分别事务化消费训练完成事件，投影个人纪录和统计结果 | R:code:src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java,code:src/main/java/com/fitpilot/analytics/infrastructure/WorkoutAnalyticsProjectionRepository.java | A:projectPersonalRecords,projectAnalytics | S:两组各自去重；数据库训练必须已完成且 owner 匹配载荷
+WorkoutCompletedEventHandler.java[AM7T]: F:分别在事务内消费训练完成事件并投影个人纪录和统计结果 | R:code:src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java,code:src/main/java/com/fitpilot/analytics/infrastructure/WorkoutAnalyticsProjectionRepository.java | A:projectPersonalRecords,projectAnalytics,PR_CONSUMER | S:训练归属和终态须匹配事件，两组分别去重。PR 回执与纪录同事务提交，训练调整用该回执确认处理完成
 WorkoutEventConsumers.java[IM4T]: F:为训练完成主题配置 PR 与分析的独立消费组 | R:code:src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java | A:- | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/infrastructure/performance/===
@@ -688,6 +688,7 @@ V8__add_evaluation_runs.sql[FD5T]: F:建立 Agent/RAG 评测运行和逐例结�
 V9__strengthen_rag_evaluation_truth.sql[FD4T]: F:在 RAG 样本结果保存期望来源、实际来源及引用有效状态 | R:- | A:rag_eval_result | S:-
 V21__fence_knowledge_index_versions.sql[FD7T]: F:迁移知识索引领取令牌、分块槽位数量上限和删除任务版本 | R:code:src/main/resources/db/migration/V14__add_rag_governance_feedback.sql | A:knowledge_document.index_claim_token,knowledge_document.index_slot_count,rag_deletion_task.document_version | S:从现存子块回填槽位。索引及删除旧进行中任务重新排队，已恢复文档的遗留删除任务移除
 V22__isolate_rag_evaluation_corpora.sql[FD7T]: F:建立知识文档语料范围并隔离旧评测文档 | R:database://fitpilot/public/knowledge_document,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:corpus_scope,uk_knowledge_document_corpus_external | S:识别当前或历史修订中的运行标记，并与旧外部 ID 匹配。线上活跃文档清除旧领取并排队重建词法索引
+V23__index_workout_completion_outbox_lookup.sql[FD5T]: F:为按训练标识查询完成事件并关联消费回执提供部分覆盖索引 | R:database://fitpilot/public/outbox_event,code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java | A:idx_outbox_workout_completion | S:索引谓词必须匹配 Workout 聚合和 WorkoutCompletedEvent 类型
 
 ===/<repository>/src/main/resources/eval/===
 agent-v1.jsonl[TA4S]: F:分行定义 150 个 Agent 评测输入与预期工具、意图和禁止项 | R:code:src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java | A:- | S:-
@@ -706,7 +707,8 @@ FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证双
 FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 不可用时验证 readiness 与并发数据库回源 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
-TrainingAdjustmentServiceTest.java[TA5T]: F:检验疼痛阻断、减量约束和动作替换的引用与肌群规则 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:-
+TrainingAdjustmentServiceTest.java[TA5S]: F:验证训练调整的数据不足、疼痛安全、减量和动作替换规则 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:缺历史训练量或缺 PR 回执时拒绝进阶，已有的疼痛和减量规则仍生效
+TrainingAdjustmentEvidenceIT.java[TA6S]: F:在真实 PostgreSQL 验证训练量和 PR 投影完整性证据 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java | A:- | S:无分析投影也得到两段训练量，Analytics 回执不能替代 PR，缺少完成事件同样阻止认定投影完整
 
 ===/<repository>/src/test/java/com/fitpilot/agent/application/===
 AgentPlannerTest.java[TA4T]: F:验证规则规划器稳定选中接受数据集的精确工具序列 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java | A:- | S:-
