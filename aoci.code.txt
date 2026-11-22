@@ -104,7 +104,7 @@ v1-performance.md[SP5T]: F:说明 V1 缓存、Redis 幂等、限流和故障降�
 v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢复契约 | R:code:docs/release/outbox-claim-ownership.md | A:fitness.workout.completed,fitness.personal-record.created | S:-
 v3-rag.md[SA5T]: F:说明带引用的混合检索、知识文档生命周期及线上和评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/runbooks/release-rollback.md | A:- | S:V22 先停旧后端及评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
 v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
-v5-production.md[SG5T]: F:描述模型网关、评测、观测与包含 V22 门禁的容器交付 | R:code:docs/architecture/v4-agent.md,code:docs/runbooks/release-rollback.md | A:- | S:模型不拥有授权和写入权，发布证据需区分本机与生产环境
+v5-production.md[SG5T]: F:描述模型网关、评测生命周期、观测与容器交付门禁 | R:code:docs/architecture/v4-agent.md,code:docs/runbooks/release-rollback.md,code:src/main/java/com/fitpilot/infrastructure/scheduling/BackgroundSchedulingConfig.java | A:- | S:评测心跳和恢复不使用普通后台调度池。模型不拥有授权和写入权，发布证据需区分本机与生产环境
 v6-ai-product.md[SA5T]: F:说明 V6 持久会话、可解释计划调整、产品指标和 RAG 治理 | R:code:docs/release/ai-product-value-metrics-validation.md | A:- | S:保留期跳过有效待确认动作。进阶需可比较的训练量及已提交的个人纪录消费回执
 
 ===/<repository>/docs/interview/===
@@ -703,7 +703,7 @@ FitPilotAgentProductMetricsIT.java[TO5M]: F:以数据库构造用户、建议、
 FitPilotApiIT.java[TG7L]: F:用真实 PostgreSQL 和 Redis 验证核心 API、认证、缓存、Agent 确认、评测与训练恢复 | R:code:src/main/java/com/fitpilot/workout/application/RecoverableSetService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java | A:- | S:认证用例以独立模拟来源隔离限流桶，固定来源专测429。组回执在 Redis 丢失、删除和完成后仍能重放
 FitPilotEventFlowIT.java[TM6S]: F:用真实 Kafka、Redis 和 PostgreSQL 验证完成训练投递、投影及重复消费幂等 | R:- | A:relaysWorkoutAndProjectsPrAnalyticsAndNotificationsIdempotently | S:-
 FitPilotLlmFlowIT.java[TA5T]: F:用回环模型桩验证主备切换、规则降级和审计落库 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
-FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证双路检索、评测隔离及版本恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:- | S:同外部 ID 和类别同时出现在三个范围，校验无类别线上检索及反馈语料过滤。保留旧领取快照重放以验证版本栅栏，无范围旧分块不可召回且可清理
+FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证双路检索、评测语料隔离及版本恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:- | S:三个范围共享外部 ID 和类别，验证无类别查询及反馈过滤。重放旧领取并清理无范围旧分块。验证手动重建和指定文档删除栅栏前先等后台删除队列清空
 FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 连接拒绝时验证 readiness、数据库回源和并发本地限流 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java,code:src/main/java/com/fitpilot/infrastructure/performance/ApiRateLimitInterceptor.java | A:- | S:以真实 PostgreSQL 校验 24 个不同动作的响应与降级头并保持 15 秒批请求上限
 
 ===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
@@ -906,3 +906,9 @@ kustomization.yml[OV6T]: F:基于迁移资源运行候选镜像的只读 Flyway 
 
 ===/<repository>/deploy/k8s/overlays/production-v22-migration/===
 kustomization.yml[OV7T]: F:为已停后端的 V22 升级 Job 附加停机确认参数 | R:code:deploy/k8s/overlays/production-migration/kustomization.yml,code:src/main/java/com/fitpilot/deployment/FlywayMigrationMain.java | A:production-v22-migration,--quiesced-for-v22 | S:发布门禁等待旧后端 Pod 全部退出后才应用该清单
+
+===/<repository>/src/main/java/com/fitpilot/infrastructure/scheduling/===
+BackgroundSchedulingConfig.java[FW6T]: F:为未指定调度器的定时任务配置双线程池 | R:code:src/main/java/com/fitpilot/evaluation/config/EvaluationConfig.java | A:taskScheduler | S:使用 Spring 默认 Bean 名，使普通定时任务与评测续租和恢复隔离
+
+===/<repository>/src/test/java/com/fitpilot/infrastructure/scheduling/===
+SchedulerIsolationTest.java[TW5T]: F:在真实 Spring 调度中验证普通定时任务阻塞时评测心跳仍能周期运行 | R:code:src/main/java/com/fitpilot/infrastructure/scheduling/BackgroundSchedulingConfig.java,code:src/main/java/com/fitpilot/evaluation/config/EvaluationConfig.java | A:- | S:用闩锁同时卡住两个默认调度线程，释放前须观察到两次心跳

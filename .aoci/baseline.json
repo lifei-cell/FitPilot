@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-22T02:06:42Z",
+  "updated_at": "2026-11-22T04:49:17Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "835a018136bb2c426873239ff144cb0d1ab628d656983fd0e72870edf8dbe384",
-      "size": 129538,
-      "normalized_sha256": "835a018136bb2c426873239ff144cb0d1ab628d656983fd0e72870edf8dbe384"
+      "sha256": "657438a58b0c2d85de5fa2d358d0ab3deb1a42e1c6da03bd837279a9dd12d97d",
+      "size": 130505,
+      "normalized_sha256": "657438a58b0c2d85de5fa2d358d0ab3deb1a42e1c6da03bd837279a9dd12d97d"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -419,9 +419,9 @@
     },
     "docs/architecture/v5-production.md": {
       "role": "index",
-      "sha256": "1687215dc2359f4462c25902e5a33503f49c9f6656ebded23417fbe046c4fd17",
-      "size": 5842,
-      "normalized_sha256": "1687215dc2359f4462c25902e5a33503f49c9f6656ebded23417fbe046c4fd17"
+      "sha256": "2eda61a85b08966712ede3b56a49b7c303be1d7cb010437f2bb666ab12d9c39f",
+      "size": 6122,
+      "normalized_sha256": "2eda61a85b08966712ede3b56a49b7c303be1d7cb010437f2bb666ab12d9c39f"
     },
     "docs/architecture/v6-ai-product.md": {
       "role": "index",
@@ -1929,6 +1929,12 @@
       "size": 6196,
       "normalized_sha256": "a6984eb7199db04d00f4f969ffc3018ffa4563ee6334389ad31457e240def22e"
     },
+    "src/main/java/com/fitpilot/infrastructure/scheduling/BackgroundSchedulingConfig.java": {
+      "role": "index",
+      "sha256": "a658924eea136cc786cfe76b4d9603907f393fb1b47d553d78817dec481d8118",
+      "size": 700,
+      "normalized_sha256": "a658924eea136cc786cfe76b4d9603907f393fb1b47d553d78817dec481d8118"
+    },
     "src/main/java/com/fitpilot/llm/application/LlmAuditRetentionJob.java": {
       "role": "index",
       "sha256": "96193fc7fb7c9bf56c776c266df2e9dbc43762c9f094a072d8d965f766b5d7e1",
@@ -2681,9 +2687,9 @@
     },
     "src/test/java/com/fitpilot/FitPilotRagFlowIT.java": {
       "role": "index",
-      "sha256": "72ecf1eefc43f2d0db29998f3ecd391dadb9c56a7758d1d8c7f4133e9b1b64cf",
-      "size": 25360,
-      "normalized_sha256": "72ecf1eefc43f2d0db29998f3ecd391dadb9c56a7758d1d8c7f4133e9b1b64cf"
+      "sha256": "98becde6bb3837e51f4689eb125d355dd710d82d8adb60c4c627df3d50410368",
+      "size": 25832,
+      "normalized_sha256": "98becde6bb3837e51f4689eb125d355dd710d82d8adb60c4c627df3d50410368"
     },
     "src/test/java/com/fitpilot/FitPilotRedisDegradationIT.java": {
       "role": "index",
@@ -2882,6 +2888,12 @@
       "sha256": "5805a75f8acd2e109561a1f071f38524b3d87bb9602402789a9b10b0dfd432a8",
       "size": 4222,
       "normalized_sha256": "5805a75f8acd2e109561a1f071f38524b3d87bb9602402789a9b10b0dfd432a8"
+    },
+    "src/test/java/com/fitpilot/infrastructure/scheduling/SchedulerIsolationTest.java": {
+      "role": "index",
+      "sha256": "1f2e9d27d64a86c49d29e343258097d04fbb06240e749bed22aed57e971de623",
+      "size": 2458,
+      "normalized_sha256": "1f2e9d27d64a86c49d29e343258097d04fbb06240e749bed22aed57e971de623"
     },
     "src/test/java/com/fitpilot/llm/application/LlmGatewayTest.java": {
       "role": "index",

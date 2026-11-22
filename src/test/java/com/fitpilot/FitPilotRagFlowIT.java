@@ -188,6 +188,7 @@ class FitPilotRagFlowIT {
             assertThat(baseline.path("categories").path("training-theory")
                     .path("citationValidity").asDouble()).isEqualTo(1);
         });
+        awaitDeletionQueueDrained();
 
         mvc.perform(get("/api/v1/operations/rag/documents").header("X-Operations-Token", "wrong"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value(1002));
@@ -306,6 +307,7 @@ class FitPilotRagFlowIT {
 
     @Test
     void delayedIndexAndDeletionAreFencedAcrossDeletionAndRestore() {
+        awaitDeletionQueueDrained();
         IndexClaim first = claimVersion("version-fence:restore", "deletedfixture", 2);
         lexical.publish(first);
         assertThat(knowledge.markIndexed(first)).isTrue();
@@ -332,6 +334,13 @@ class FitPilotRagFlowIT {
                 .isEqualTo("INDEXED");
         assertThat(lexical.search("restoredfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE))
                 .extracting(SearchHit::chunkId).containsExactly(restored.chunks().getFirst().chunkId());
+    }
+
+    private void awaitDeletionQueueDrained() {
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() ->
+                assertThat(jdbc.queryForList("""
+                        SELECT status FROM rag_deletion_task WHERE status IN ('PENDING', 'RUNNING', 'FAILED')
+                        """, String.class)).as("unfinished RAG deletion tasks").isEmpty());
     }
 
     private IndexClaim claimVersion(String externalId, String text, int childCount) {

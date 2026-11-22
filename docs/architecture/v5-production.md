@@ -33,6 +33,8 @@ Agent Workflow
 
 `EvaluationService` 作为运维 API 门面创建任务；`EvaluationTaskScheduler` 处理租约、心跳、恢复和取消；`AgentEvaluationRunner`、`RagEvaluationRunner` 分别执行数据集；`EvaluationMetricCalculator` 负责纯指标计算，`EvaluationReportService` 生成最终报告并执行回归门禁。
 
+评测心跳和恢复使用 `evaluationHeartbeatScheduler`。Outbox 投递、RAG 索引重试等未指定调度器的定时任务使用独立的 `taskScheduler`，避免 Kafka 或 Elasticsearch 等待占满评测的调度线程。评测执行仍由有界工作线程池处理。
+
 门禁：Tool Selection ≥95%、Task Success ≥95%、违规率为 0；RAG Recall@5 ≥85%、MRR ≥0.75，并校验引用属于本次检索上下文。CI 使用 Mock OpenAI-compatible Server；真实模型评测保留为夜间/手动任务。
 
 审核负反馈可触发独立的离线实验任务。任务固定反馈与文档版本，分别改变 Chunk 大小、BM25/向量 RRF 权重及 Rerank 策略；每个实验使用隔离分类重建索引，避免污染线上配置与其他实验，完成后在 `experimentReport` 输出总体、分类指标和推荐配置。
