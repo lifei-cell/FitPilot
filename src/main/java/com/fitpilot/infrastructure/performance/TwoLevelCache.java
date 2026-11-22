@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 public class TwoLevelCache {
     private static final Logger log = LoggerFactory.getLogger(TwoLevelCache.class);
     private static final String NULL = "__FITPILOT_NULL__";
+    private static final L2Read UNAVAILABLE = new L2Read(null, false);
     private final Cache<String, String> local;
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
@@ -54,27 +55,28 @@ public class TwoLevelCache {
     }
 
     private <T> String loadPayload(String namespace, String id, String key, Supplier<Optional<T>> loader) {
-        String l2 = redisGet(key);
-        if (l2 != null) return l2;
+        L2Read l2 = redisGet(key);
+        if (!l2.available()) return loadFromSource(loader);
+        if (l2.payload() != null) return l2.payload();
         String lockKey = "fitpilot:v1:lock:cache:" + namespace + ":" + id;
         var handle = locks.tryLock(lockKey, Duration.ofSeconds(properties.cache().rebuildLockSeconds()));
         if (handle.isPresent()) {
             try (var ignored = handle.get()) {
-                String secondCheck = redisGet(key);
-                if (secondCheck != null) return secondCheck;
-                Optional<T> loaded = loader.get();
-                String payload = loaded.map(this::encode).orElse(NULL);
+                L2Read secondCheck = redisGet(key);
+                if (!secondCheck.available()) return loadFromSource(loader);
+                if (secondCheck.payload() != null) return secondCheck.payload();
+                String payload = loadFromSource(loader);
                 redisPut(key, payload);
                 return payload;
             }
         }
         for (int attempt = 0; attempt < 3; attempt++) {
             LockSupport.parkNanos(Duration.ofMillis(20L * (attempt + 1)).toNanos());
-            String rebuilt = redisGet(key);
-            if (rebuilt != null) return rebuilt;
+            L2Read rebuilt = redisGet(key);
+            if (!rebuilt.available()) break;
+            if (rebuilt.payload() != null) return rebuilt.payload();
         }
-        Optional<T> loaded = loader.get();
-        return loaded.map(this::encode).orElse(NULL);
+        return loadFromSource(loader);
     }
 
     public void evict(String namespace, String id) {
@@ -98,9 +100,13 @@ public class TwoLevelCache {
                 stats.evictionCount(), local.estimatedSize());
     }
 
-    private String redisGet(String key) {
-        try { return redis.opsForValue().get(key); }
-        catch (RuntimeException ex) { failures.warn(log, "cache-read", ex); return null; }
+    private L2Read redisGet(String key) {
+        return failures.tryOptionalCall(log, "cache-read",
+                () -> new L2Read(redis.opsForValue().get(key), true), UNAVAILABLE);
+    }
+
+    private <T> String loadFromSource(Supplier<Optional<T>> loader) {
+        return loader.get().map(this::encode).orElse(NULL);
     }
 
     private void redisPut(String key, String payload) {
@@ -123,6 +129,8 @@ public class TwoLevelCache {
     }
 
     private String key(String namespace, String id) { return "fitpilot:v1:cache:" + namespace + ":" + id; }
+
+    private record L2Read(String payload, boolean available) {}
 
     public record CacheStatsView(long requests, long hits, long misses, double hitRate,
                                  long evictions, long estimatedSize) {}

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-22T01:00:02Z",
+  "updated_at": "2026-11-22T02:06:42Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "8171bc58cc970472a7197890e5d5b6db95837029442ce800ba5c174d57b9304a",
-      "size": 128292,
-      "normalized_sha256": "8171bc58cc970472a7197890e5d5b6db95837029442ce800ba5c174d57b9304a"
+      "sha256": "835a018136bb2c426873239ff144cb0d1ab628d656983fd0e72870edf8dbe384",
+      "size": 129538,
+      "normalized_sha256": "835a018136bb2c426873239ff144cb0d1ab628d656983fd0e72870edf8dbe384"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -395,9 +395,9 @@
     },
     "docs/architecture/v1-performance.md": {
       "role": "index",
-      "sha256": "afbd38b19788a53695707c9cfcbde99e1bebe0978beebe4d35131f7c8a1f1256",
-      "size": 3207,
-      "normalized_sha256": "afbd38b19788a53695707c9cfcbde99e1bebe0978beebe4d35131f7c8a1f1256"
+      "sha256": "11f78e5c31dcbadb6b1586d2012dc52c4b45e3c830875152e551e9ad1b28bb9f",
+      "size": 3374,
+      "normalized_sha256": "11f78e5c31dcbadb6b1586d2012dc52c4b45e3c830875152e551e9ad1b28bb9f"
     },
     "docs/architecture/v2-events.md": {
       "role": "index",
@@ -1913,21 +1913,21 @@
     },
     "src/main/java/com/fitpilot/infrastructure/performance/RedisFailureGuard.java": {
       "role": "index",
-      "sha256": "3dd9f475a75a440c6bc4af0f466e1851fc0362ea134f951668327d618790a9a9",
-      "size": 612,
-      "normalized_sha256": "3dd9f475a75a440c6bc4af0f466e1851fc0362ea134f951668327d618790a9a9"
+      "sha256": "4f545968bb18c7be8793864b9064f8f681e237ccd5c2a76a366ae883ca5717f0",
+      "size": 2226,
+      "normalized_sha256": "4f545968bb18c7be8793864b9064f8f681e237ccd5c2a76a366ae883ca5717f0"
     },
     "src/main/java/com/fitpilot/infrastructure/performance/RedisTokenBucketRateLimiter.java": {
       "role": "index",
-      "sha256": "36ccdcc1039974f38d5f75621904c3543834e0fdcccc7169d5e45fd7e42b499c",
-      "size": 2929,
-      "normalized_sha256": "36ccdcc1039974f38d5f75621904c3543834e0fdcccc7169d5e45fd7e42b499c"
+      "sha256": "d4da89a80c2c6056bd6c9a276ed74ec738cefb99cb82475c9aa6394c9afd6a37",
+      "size": 2959,
+      "normalized_sha256": "d4da89a80c2c6056bd6c9a276ed74ec738cefb99cb82475c9aa6394c9afd6a37"
     },
     "src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java": {
       "role": "index",
-      "sha256": "d334f55baf27cc34f5cbc2d5ef533d73c6d0b37be5015d30be6e831553727dce",
-      "size": 5806,
-      "normalized_sha256": "d334f55baf27cc34f5cbc2d5ef533d73c6d0b37be5015d30be6e831553727dce"
+      "sha256": "a6984eb7199db04d00f4f969ffc3018ffa4563ee6334389ad31457e240def22e",
+      "size": 6196,
+      "normalized_sha256": "a6984eb7199db04d00f4f969ffc3018ffa4563ee6334389ad31457e240def22e"
     },
     "src/main/java/com/fitpilot/llm/application/LlmAuditRetentionJob.java": {
       "role": "index",
@@ -2687,9 +2687,9 @@
     },
     "src/test/java/com/fitpilot/FitPilotRedisDegradationIT.java": {
       "role": "index",
-      "sha256": "0e01582b6d17fade624ec7724095b78d1301494592bdc7f0aabfca6d5c3c2307",
-      "size": 3407,
-      "normalized_sha256": "0e01582b6d17fade624ec7724095b78d1301494592bdc7f0aabfca6d5c3c2307"
+      "sha256": "7a5bd333f42d9301ade4144644f72836346f11dcd341d7f524f4b6c9ae8d3ef0",
+      "size": 3636,
+      "normalized_sha256": "7a5bd333f42d9301ade4144644f72836346f11dcd341d7f524f4b6c9ae8d3ef0"
     },
     "src/test/java/com/fitpilot/agent/adjustment/TrainingAdjustmentEvidenceIT.java": {
       "role": "index",
@@ -2864,6 +2864,18 @@
       "sha256": "0f2424bd52748bb8a62e93ef47cb79228616ccd83d7dddf2b7a9f29630c525dc",
       "size": 1564,
       "normalized_sha256": "0f2424bd52748bb8a62e93ef47cb79228616ccd83d7dddf2b7a9f29630c525dc"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/RedisFailureGuardTest.java": {
+      "role": "index",
+      "sha256": "a895a119564e5b1f8f8e14434a81e0a0e7102c77488c5b3ce69b4c898bcfcda3",
+      "size": 2883,
+      "normalized_sha256": "a895a119564e5b1f8f8e14434a81e0a0e7102c77488c5b3ce69b4c898bcfcda3"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/TwoLevelCacheDegradationTest.java": {
+      "role": "index",
+      "sha256": "1c42bf4366f1d966752b04345cc128f8585c3a8da08bcc6e0e5e57d34f2dc75e",
+      "size": 1499,
+      "normalized_sha256": "1c42bf4366f1d966752b04345cc128f8585c3a8da08bcc6e0e5e57d34f2dc75e"
     },
     "src/test/java/com/fitpilot/infrastructure/performance/TwoLevelCacheIT.java": {
       "role": "index",

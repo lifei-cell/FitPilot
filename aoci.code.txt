@@ -100,7 +100,7 @@ README.md[SG3T]: F:索引架构、交付、性能、运维与测试文档并说�
 project-structure.md[SG4T]: F:定义 Maven 后端、独立 Web、模块边界、脚本与证据布局 | R:code:docs/README.md,code:scripts/README.md | A:- | S:-
 
 ===/<repository>/docs/architecture/===
-v1-performance.md[SP5T]: F:记录 V1 的缓存、Redis 幂等与限流读写治理及键空间 | R:code:docs/release/short-ttl-cache-consistency.md | A:- | S:陈旧窗口从最后一次旧值回填算，不能从事务提交推导强时限
+v1-performance.md[SP5T]: F:说明 V1 缓存、Redis 幂等、限流和故障降级读写契约 | R:code:docs/release/short-ttl-cache-consistency.md | A:- | S:缓存读与限流冷却后分别单探测。L2 失效仍尝试删除，陈旧窗口从最后一次旧值回填算
 v2-events.md[SM5T]: F:说明 Workout/PR 事件的 Outbox、Inbox、死信和恢复契约 | R:code:docs/release/outbox-claim-ownership.md | A:fitness.workout.completed,fitness.personal-record.created | S:-
 v3-rag.md[SA5T]: F:说明带引用的混合检索、知识文档生命周期及线上和评测语料隔离 | R:code:src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql,code:docs/runbooks/release-rollback.md | A:- | S:V22 先停旧后端及评测，旧词法条目重建前由范围过滤排除，向量仍可召回线上文档
 v4-agent.md[SA5T]: F:说明单 Agent 工作流的编排分工、工具授权、确认及审计边界 | R:code:docs/architecture/v5-production.md | A:RULE_WORKFLOW | S:未确认零业务写；确认只创建草稿并受身份及重放规则约束
@@ -479,9 +479,9 @@ PerformanceConfig.java[FP5T]: F:注册 Caffeine 容量/写后过期策略，并�
 PerformanceController.java[EP4T]: F:以 HTTP 返回两级缓存的本实例统计 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:GET /api/v1/performance/cache-stats | S:-
 PerformanceProperties.java[FP4T]: F:统一绑定缓存、限流、幂等和排行榜运行参数 | R:- | A:fitpilot.performance | S:-
 PerformanceWebConfig.java[FP4T]: F:为所有 v1 API 路由安装性能限流拦截器 | R:code:src/main/java/com/fitpilot/infrastructure/performance/ApiRateLimitInterceptor.java | A:- | S:-
-RedisFailureGuard.java[RO3T]: F:以原子时间门槛节流 Redis 降级告警 | R:- | A:warn | S:每实例至少间隔一分钟
-RedisTokenBucketRateLimiter.java[RP7T]: F:运行 Redis Lua 令牌桶，基础设施故障时换用进程内桶 | R:code:src/main/resources/redis/token_bucket.lua | A:consume | S:降级桶用同步更新保护，实例间限流额度不共享
-TwoLevelCache.java[RP8S]: F:组织 Caffeine、Redis 和数据库回源，处理空值、防击穿及提交后失效 | R:code:src/main/java/com/fitpilot/infrastructure/performance/DistributedLockService.java | A:get,evict,evictAfterCommit | S:锁未取得只有限等待；事务提交删除本机 L1 与共享 L2
+RedisFailureGuard.java[RR6T]: F:为可降级 Redis 调用提供冷却、恢复探测和告警节流 | R:- | A:tryOptionalCall,warn | S:每实例失败后冷却一秒，只允许一个探测请求。状态比较交换阻止晚到结果覆盖后继状态，告警间隔至少一分钟
+RedisTokenBucketRateLimiter.java[RP7T]: F:执行共享 Redis Lua 令牌桶并在故障期间使用进程内限流 | R:code:src/main/resources/redis/token_bucket.lua,code:src/main/java/com/fitpilot/infrastructure/performance/RedisFailureGuard.java | A:consume | S:冷却和探测期间的其他请求继续使用本地桶，同一实例同步更新，实例间额度独立
+TwoLevelCache.java[RP8S]: F:组织 Caffeine、Redis 和数据库回源，处理空值、防击穿及提交后失效 | R:code:src/main/java/com/fitpilot/infrastructure/performance/DistributedLockService.java,code:src/main/java/com/fitpilot/infrastructure/performance/RedisFailureGuard.java | A:get,evict,evictAfterCommit | S:L2 不可用时跳过重建等待并回源，健康的未命中仍用分布式锁与有限轮询。提交后删除 L1 并尝试删除 L2
 
 ===/<repository>/src/main/java/com/fitpilot/llm/application/===
 LlmAuditRetentionJob.java[RS4T]: F:按配置定期删除超过保留窗口的模型调用审计 | R:code:src/main/java/com/fitpilot/llm/infrastructure/LlmInvocationRepository.java | A:cleanup | S:-
@@ -704,7 +704,7 @@ FitPilotApiIT.java[TG7L]: F:用真实 PostgreSQL 和 Redis 验证核心 API、�
 FitPilotEventFlowIT.java[TM6S]: F:用真实 Kafka、Redis 和 PostgreSQL 验证完成训练投递、投影及重复消费幂等 | R:- | A:relaysWorkoutAndProjectsPrAnalyticsAndNotificationsIdempotently | S:-
 FitPilotLlmFlowIT.java[TA5T]: F:用回环模型桩验证主备切换、规则降级和审计落库 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
 FitPilotRagFlowIT.java[TA7M]: F:用真实 PostgreSQL 和 Elasticsearch 验证双路检索、评测隔离及版本恢复 | R:code:src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java,code:src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java | A:- | S:同外部 ID 和类别同时出现在三个范围，校验无类别线上检索及反馈语料过滤。保留旧领取快照重放以验证版本栅栏，无范围旧分块不可召回且可清理
-FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 不可用时验证 readiness 与并发数据库回源 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
+FitPilotRedisDegradationIT.java[TR5T]: F:在 Redis 连接拒绝时验证 readiness、数据库回源和并发本地限流 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java,code:src/main/java/com/fitpilot/infrastructure/performance/ApiRateLimitInterceptor.java | A:- | S:以真实 PostgreSQL 校验 24 个不同动作的响应与降级头并保持 15 秒批请求上限
 
 ===/<repository>/src/test/java/com/fitpilot/agent/adjustment/===
 TrainingAdjustmentServiceTest.java[TA5S]: F:验证训练调整的数据不足、疼痛安全、减量和动作替换规则 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:- | S:缺历史训练量或缺 PR 回执时拒绝进阶，已有的疼痛和减量规则仍生效
@@ -759,6 +759,8 @@ IdempotencyFilterTest.java[TP5T]: F:验证幂等过滤器不缓存过大响应�
 IdempotencyFingerprintTest.java[TP4T]: F:验证查询参数归一化、不同身份范围与正文变化的指纹隔离 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFingerprint.java | A:- | S:-
 PerformanceConfigTest.java[TP4T]: F:验证默认本地缓存采用写后过期及 Redis TTL、抖动配置 | R:code:src/main/resources/application.yml | A:- | S:-
 TwoLevelCacheIT.java[TP5T]: F:用真 Redis 验证远端实例的本地旧值在持续读取时仍会过期 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:-
+RedisFailureGuardTest.java[TR5T]: F:验证 Redis 失败冷却、单探测和探测结果驱动的恢复 | R:code:src/main/java/com/fitpilot/infrastructure/performance/RedisFailureGuard.java | A:- | S:注入单调时钟推进冷却，使用同步闩锁验证探测在途时其他请求降级
+TwoLevelCacheDegradationTest.java[TP5T]: F:回归 Redis 首次读失败后的直接回源、本地缓存和失效 | R:code:src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java | A:- | S:故障时仍应尝试删除共享缓存，读取回源不触发分布式重建锁
 
 ===/<repository>/src/test/java/com/fitpilot/llm/application/===
 LlmGatewayTest.java[TA5T]: F:验证模型网关接受允许的结构并拒绝身份参数后走规则回退 | R:code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:- | S:-

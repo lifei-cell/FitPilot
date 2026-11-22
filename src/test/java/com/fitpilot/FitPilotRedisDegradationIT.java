@@ -14,7 +14,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -22,6 +21,7 @@ import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,16 +56,18 @@ class FitPilotRedisDegradationIT {
         mvc.perform(get("/actuator/health/readiness"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
 
-        Instant started = Instant.now();
+        long started = System.nanoTime();
         try (var pool = Executors.newFixedThreadPool(8)) {
             List<Future<Integer>> responses = new ArrayList<>();
             for (int id = 1; id <= 24; id++) {
                 int exerciseId = id;
                 responses.add(pool.submit(() -> mvc.perform(get("/api/v1/exercises/{id}", exerciseId))
+                        .andExpect(header().string("X-RateLimit-Degraded", "local"))
+                        .andExpect(jsonPath("$.data.id").value(exerciseId))
                         .andReturn().getResponse().getStatus()));
             }
             for (Future<Integer> response : responses) assertThat(response.get()).isEqualTo(200);
         }
-        assertThat(Duration.between(started, Instant.now())).isLessThan(Duration.ofSeconds(15));
+        assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(15));
     }
 }
