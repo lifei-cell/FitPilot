@@ -204,10 +204,11 @@ SELECT u.id, n.source_event_id, 'PERSONAL_RECORD', n.title, n.message, FALSE, n.
 FROM demo_user u CROSS JOIN notifications n
 ON CONFLICT (source_event_id) DO NOTHING;
 
-INSERT INTO knowledge_document(id, external_id, title, category, source_url, source_license, format,
+INSERT INTO knowledge_document(id, corpus_scope, external_id, title, category, source_url, source_license, format,
                                content_hash, raw_content, metadata, index_status)
 VALUES (
     'f4d7335a-2f35-47bc-bd9b-000000000010'::uuid,
+    'live',
     'demo-bench-press-guide-v1',
     '杠铃卧推演示指南',
     'STRENGTH_TRAINING',
@@ -219,7 +220,7 @@ VALUES (
     '{"seed":"demo","language":"zh-CN"}'::jsonb,
     'PENDING'
 )
-ON CONFLICT (external_id) DO UPDATE SET
+ON CONFLICT (corpus_scope, external_id) DO UPDATE SET
     title = EXCLUDED.title, raw_content = EXCLUDED.raw_content, metadata = EXCLUDED.metadata,
     index_status = CASE WHEN knowledge_document.index_status = 'INDEXED' THEN 'INDEXED' ELSE 'PENDING' END,
     updated_at = CURRENT_TIMESTAMP;

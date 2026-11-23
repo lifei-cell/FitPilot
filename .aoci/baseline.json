@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-23T03:37:21Z",
+  "updated_at": "2026-11-23T07:23:18Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "0a03714ddd9743f3841c698924febd47c8da106e5ac43093a7aa1b4a7c037ff4",
-      "size": 132274,
-      "normalized_sha256": "0a03714ddd9743f3841c698924febd47c8da106e5ac43093a7aa1b4a7c037ff4"
+      "sha256": "cf70639aa12dcfcbe54d501c0ed6a799f9652839de3dd917dab253e70e3a72ab",
+      "size": 132660,
+      "normalized_sha256": "cf70639aa12dcfcbe54d501c0ed6a799f9652839de3dd917dab253e70e3a72ab"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -1175,9 +1175,9 @@
     },
     "scripts/development/seed-demo-data.sql": {
       "role": "index",
-      "sha256": "e6568dfb23ffc271811cbc8ff1fb8d10a4607575ccb5bd63ac3098d4ba7c22d8",
-      "size": 14233,
-      "normalized_sha256": "e6568dfb23ffc271811cbc8ff1fb8d10a4607575ccb5bd63ac3098d4ba7c22d8"
+      "sha256": "2931bb841a0506a7f22e5c33ea69a36e5bbc44eb1ab52790fca0ca77e61311bd",
+      "size": 14273,
+      "normalized_sha256": "2931bb841a0506a7f22e5c33ea69a36e5bbc44eb1ab52790fca0ca77e61311bd"
     },
     "scripts/evaluation/local_embedding_server.py": {
       "role": "index",
@@ -3059,9 +3059,9 @@
     },
     "web/Dockerfile": {
       "role": "index",
-      "sha256": "00370332d7856a41b16b923b6e795ced7c8e1beb9e1f31fb6cb75a5312f98f30",
-      "size": 552,
-      "normalized_sha256": "00370332d7856a41b16b923b6e795ced7c8e1beb9e1f31fb6cb75a5312f98f30"
+      "sha256": "0b111a140db7d11c2a1d6eaa0cf752209a35b253e28294e2ba95e1061a05506e",
+      "size": 573,
+      "normalized_sha256": "0b111a140db7d11c2a1d6eaa0cf752209a35b253e28294e2ba95e1061a05506e"
     },
     "web/README.md": {
       "role": "index",
