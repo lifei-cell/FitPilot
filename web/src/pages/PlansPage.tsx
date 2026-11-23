@@ -18,6 +18,7 @@ import {
 import { PlanBuilder } from "../features/plan/PlanBuilder";
 import { PlanDetailPanel } from "../features/plan/PlanDetailPanel";
 import { PlanPresetPicker } from "../features/plan/PlanPresetPicker";
+import { activePlanQuery } from "../features/plan/activePlanQuery";
 import {
   initialPlanDraft,
   type PlanDraft,
@@ -52,7 +53,7 @@ export function PlansPage() {
       client.setQueryData(["plan", plan.id], plan);
       setMessage("计划已激活");
       void refresh();
-      void client.invalidateQueries({ queryKey: ["active-plan"] });
+      void client.invalidateQueries({ queryKey: activePlanQuery.queryKey });
     },
   });
 
@@ -144,7 +145,11 @@ export function PlansPage() {
                     <Eye size={16} />
                     查看
                   </button>
-                  {plan.status !== "ACTIVE" && (
+                  {plan.status === "ACTIVE" ? (
+                    <a className="secondary-button" href="/workouts">
+                      去训练
+                    </a>
+                  ) : (
                     <button
                       className="secondary-button"
                       disabled={activate.isPending}

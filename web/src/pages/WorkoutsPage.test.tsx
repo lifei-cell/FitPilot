@@ -26,6 +26,30 @@ const plan: Plan = {
 };
 
 describe("WorkoutsPage", () => {
+  it("distinguishes plan lookup failure from having no active plan", async () => {
+    let requests = 0;
+    server.use(
+      http.get("/api/v1/workouts/active/current", () =>
+        HttpResponse.json({ code: 40001, message: "no active workout" }, { status: 404 })),
+      http.get("/api/v1/workouts", () => HttpResponse.json({ code: 0, data: { items: [] } })),
+      http.get("/api/v1/training-plans/active/current", () => {
+        requests += 1;
+        if (requests === 1) {
+          return HttpResponse.json({ message: "unavailable" }, { status: 503 });
+        }
+        return HttpResponse.json({ code: 30001, message: "training plan not found" }, { status: 404 });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<WorkoutsPage />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("暂时无法加载训练计划");
+    expect(screen.queryByText("没有可执行计划")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "重试加载" }));
+    expect(await screen.findByText("没有可执行计划")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "去训练计划" })).toHaveAttribute("href", "/plans");
+  });
+
   it("loads read-only history on demand and retries the selected workout", async () => {
     const first = { id: 9, name: "上肢训练", status: "COMPLETED", startedAt: "2026-09-12T08:00:00Z", durationSeconds: 1800 };
     const second = { ...first, id: 8, name: "下肢训练", status: "CANCELLED" };

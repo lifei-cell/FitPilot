@@ -47,6 +47,7 @@ describe("PlansPage", () => {
 
     expect(await screen.findByText("计划已激活")).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole("button", { name: "激活计划" })).not.toBeInTheDocument());
+    expect(screen.getByRole("link", { name: "去训练" })).toHaveAttribute("href", "/workouts");
   });
 
   it("prefills an editable preset from active catalogue pages and saves only on submit", async () => {

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { CheckCircle2, CircleStop, Play } from "lucide-react";
 import { api } from "../api/client";
 import type {
-  Plan,
   Workout,
   WorkoutSetInput,
   WorkoutFeedbackInput,
@@ -21,6 +20,7 @@ import { QuickSetForm } from "../features/workout/QuickSetForm";
 import { WorkoutHistoryPanel } from "../features/workout/WorkoutHistoryPanel";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
+import { activePlanQuery } from "../features/plan/activePlanQuery";
 import { navigate } from "../components/AppShell";
 
 export function WorkoutsPage() {
@@ -32,9 +32,7 @@ export function WorkoutsPage() {
   const recovery = useWorkoutRecovery();
   const { active } = recovery;
   const plan = useQuery({
-    queryKey: ["active-plan"],
-    queryFn: () => api<Plan>("/training-plans/active/current"),
-    retry: false,
+    ...activePlanQuery,
     enabled: !active.data || recovery.isClosed,
   });
   const refresh = () => {
@@ -221,8 +219,23 @@ export function WorkoutsPage() {
         </Panel>
       ) : (
         <Panel>
-          <SectionTitle title="选择今天的训练日" detail={plan.data?.name} />
-          {plan.data?.days.length ? (
+          <SectionTitle title="选择训练日" detail={plan.data?.name} />
+          {plan.isError ? (
+            <div role="alert">
+              <p className="form-error">暂时无法加载训练计划。</p>
+              <button
+                className="secondary-button"
+                disabled={!recovery.online || plan.isFetching}
+                onClick={() => void plan.refetch()}
+              >
+                重试加载
+              </button>
+            </div>
+          ) : plan.isPending ? (
+            <p role="status">
+              {recovery.online ? "正在加载训练计划…" : "联网后可加载训练计划。"}
+            </p>
+          ) : plan.data?.days.length ? (
             <div className="day-grid">
               {plan.data.days.map((day) => (
                 <button
@@ -239,7 +252,10 @@ export function WorkoutsPage() {
               ))}
             </div>
           ) : (
-            <Empty title="没有可执行计划" text="先创建并激活一份训练计划。" />
+            <>
+              <Empty title="没有可执行计划" text="先创建并激活一份训练计划。" />
+              <a className="secondary-button" href="/plans">去训练计划</a>
+            </>
           )}
         </Panel>
       )}
