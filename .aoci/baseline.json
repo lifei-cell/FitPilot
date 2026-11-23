@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-23T01:20:27Z",
+  "updated_at": "2026-11-23T03:37:21Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "fe820a4ff3be6b327b9df7ba885027c5201af31bac4c20f60aac62ac63cb6633",
-      "size": 131168,
-      "normalized_sha256": "fe820a4ff3be6b327b9df7ba885027c5201af31bac4c20f60aac62ac63cb6633"
+      "sha256": "0a03714ddd9743f3841c698924febd47c8da106e5ac43093a7aa1b4a7c037ff4",
+      "size": 132274,
+      "normalized_sha256": "0a03714ddd9743f3841c698924febd47c8da106e5ac43093a7aa1b4a7c037ff4"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3065,9 +3065,9 @@
     },
     "web/README.md": {
       "role": "index",
-      "sha256": "69d6a996768af2812ec3e1423b86293e4b6a3cb160ff819a7e6206e29726013b",
-      "size": 1095,
-      "normalized_sha256": "69d6a996768af2812ec3e1423b86293e4b6a3cb160ff819a7e6206e29726013b"
+      "sha256": "7db4d16ef481bfa4d5ac140db903f9a33627eb98a2321495e34e0ab2cf8fe273",
+      "size": 1748,
+      "normalized_sha256": "7db4d16ef481bfa4d5ac140db903f9a33627eb98a2321495e34e0ab2cf8fe273"
     },
     "web/e2e-offline/mobile-recovery.spec.ts": {
       "role": "observe",
@@ -3285,6 +3285,30 @@
       "size": 1505,
       "normalized_sha256": "da2789a09a0f1ea432b9c449423dba18d5fdf854547ee9f78cc5b27e1dcf0d04"
     },
+    "web/src/features/exercise/ExerciseMediaPanel.tsx": {
+      "role": "index",
+      "sha256": "8c986963787c3baf8d737ab7667814dbbc55907522c1ab8d03bfa0f73f89bf2d",
+      "size": 2253,
+      "normalized_sha256": "8c986963787c3baf8d737ab7667814dbbc55907522c1ab8d03bfa0f73f89bf2d"
+    },
+    "web/src/features/exercise/exercise-media-panel.css": {
+      "role": "index",
+      "sha256": "2eabae611d3f1600bcaa921e7f48a3e4aff4c854afcee1ef83243a762b3a39c6",
+      "size": 730,
+      "normalized_sha256": "2eabae611d3f1600bcaa921e7f48a3e4aff4c854afcee1ef83243a762b3a39c6"
+    },
+    "web/src/features/exercise/exerciseMediaCatalog.test.ts": {
+      "role": "observe",
+      "sha256": "24623c383b7fbe26d50de1389ae6aaf6055157460b45d766743c54edf1faeadf",
+      "size": 839,
+      "normalized_sha256": "24623c383b7fbe26d50de1389ae6aaf6055157460b45d766743c54edf1faeadf"
+    },
+    "web/src/features/exercise/exerciseMediaCatalog.ts": {
+      "role": "index",
+      "sha256": "892a09be9eedbce5b821d7c61b11f48ebc38f8427d8c799cd319225d24a22644",
+      "size": 5503,
+      "normalized_sha256": "892a09be9eedbce5b821d7c61b11f48ebc38f8427d8c799cd319225d24a22644"
+    },
     "web/src/features/plan/ExerciseSearchPicker.tsx": {
       "role": "index",
       "sha256": "f04a753972fcd81e8f3d7a57365b888e851caa369f69d96e25505544a31db58a",
@@ -3461,9 +3485,9 @@
     },
     "web/src/pages/ExercisesPage.tsx": {
       "role": "index",
-      "sha256": "169dbed571e890725710f879ec93722356e63a419d59a38a861774fe84865001",
-      "size": 3263,
-      "normalized_sha256": "169dbed571e890725710f879ec93722356e63a419d59a38a861774fe84865001"
+      "sha256": "fa0d78f1e6eba0cf0249cb2b60f47ce0a2ef64e68d43d0cd965edf0ef954e062",
+      "size": 3752,
+      "normalized_sha256": "fa0d78f1e6eba0cf0249cb2b60f47ce0a2ef64e68d43d0cd965edf0ef954e062"
     },
     "web/src/pages/NotificationsPage.tsx": {
       "role": "index",
@@ -3497,9 +3521,9 @@
     },
     "web/src/pages/SecondaryPages.test.tsx": {
       "role": "observe",
-      "sha256": "692a3dae460aa2ca7d63965194df38eaa0e48c6138321e2b55e7ee70392508a7",
-      "size": 2824,
-      "normalized_sha256": "692a3dae460aa2ca7d63965194df38eaa0e48c6138321e2b55e7ee70392508a7"
+      "sha256": "219863701c45e753585b4ea2b6db9daba1e44a76b9376df095273d72c88f67c2",
+      "size": 4125,
+      "normalized_sha256": "219863701c45e753585b4ea2b6db9daba1e44a76b9376df095273d72c88f67c2"
     },
     "web/src/pages/WorkoutsPage.test.tsx": {
       "role": "observe",

@@ -16,8 +16,9 @@ describe("secondary product pages", () => {
         return HttpResponse.json({ code: 0, message: "success", data: {
           items: keyword && !"杠铃卧推".includes(keyword) ? [] : [{ id: 1, name: "杠铃卧推",
             englishName: "Barbell Bench Press", category: "力量", equipment: "杠铃",
-            primaryMuscle: "胸部", difficulty: "中级", description: "卧推说明", instructions: "肩胛稳定" }],
-          total: 1, page: 1, size: 60, pages: 1,
+            primaryMuscle: "胸部", difficulty: "中级", description: "卧推说明", instructions: "肩胛稳定" },
+          { id: 20, name: "站姿提踵", englishName: "Standing Calf Raise" }],
+          total: 2, page: 1, size: 60, pages: 1,
         } });
       }),
     );
@@ -26,6 +27,20 @@ describe("secondary product pages", () => {
 
     await user.click(await screen.findByRole("button", { name: /杠铃卧推/ }));
     expect(screen.getByText("肩胛稳定")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "杠铃卧推动作示意图" })).toHaveAttribute("src", "/exercise-media/repdb/bench-press.webp");
+    expect(screen.queryByTitle("杠铃卧推教学视频")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "观看教学视频" }));
+    expect(screen.getByTitle("杠铃卧推教学视频")).toHaveAttribute("src", expect.stringContaining("player.bilibili.com/player.html?bvid=BV1JF411g7ua"));
+
+    await user.click(screen.getByRole("button", { name: /站姿提踵/ }));
+    expect(screen.queryByTitle("杠铃卧推教学视频")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("站姿提踵教学视频")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "在 B 站打开" })).toHaveAttribute("href", "https://www.bilibili.com/video/BV1zS4y1c77u/?p=38");
+    await user.click(screen.getByRole("button", { name: "观看教学视频" }));
+    expect(screen.getByTitle("站姿提踵教学视频")).toHaveAttribute("src", expect.stringContaining("&p=38"));
+    await user.click(screen.getByRole("button", { name: "收起视频" }));
+    expect(screen.queryByTitle("站姿提踵教学视频")).not.toBeInTheDocument();
+
     await user.type(screen.getByPlaceholderText("搜索卧推、深蹲…"), "不存在");
     expect(await screen.findByText("没有找到动作")).toBeInTheDocument();
     expect(keyword).toBe("不存在");

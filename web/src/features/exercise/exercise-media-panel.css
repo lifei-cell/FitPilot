@@ -1,0 +1,48 @@
+.exercise-media {
+  display: grid;
+  gap: 12px;
+  margin-block: 16px;
+}
+
+.exercise-media-image {
+  margin: 0;
+}
+
+.exercise-media-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.exercise-media-image img.exercise-media-line-art {
+  background: #202725;
+}
+
+.exercise-media-image figcaption {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.exercise-media a {
+  color: var(--lime);
+}
+
+.exercise-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 12px;
+}
+
+.exercise-media-player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 6px;
+  background: #090b0b;
+}
