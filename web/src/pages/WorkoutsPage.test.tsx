@@ -26,6 +26,56 @@ const plan: Plan = {
 };
 
 describe("WorkoutsPage", () => {
+  it("loads read-only history on demand and retries the selected workout", async () => {
+    const first = { id: 9, name: "上肢训练", status: "COMPLETED", startedAt: "2026-09-12T08:00:00Z", durationSeconds: 1800 };
+    const second = { ...first, id: 8, name: "下肢训练", status: "CANCELLED" };
+    const active = { ...first, id: 10, name: "今天的训练", status: "IN_PROGRESS", exercises: [] };
+    const requested: string[] = [];
+    server.use(
+      http.get("/api/v1/workouts/active/current", () => HttpResponse.json({ code: 0, data: active })),
+      http.get("/api/v1/workouts", () => HttpResponse.json({ code: 0, data: { items: [active, first, second] } })),
+      http.get("/api/v1/workouts/:id", ({ params }) => {
+        const id = String(params.id);
+        requested.push(id);
+        if (requested.length === 1) return HttpResponse.json({ code: 503, message: "unavailable" }, { status: 503 });
+        if (id === "8") return HttpResponse.json({ code: 0, data: { ...second, exercises: [] } });
+        return HttpResponse.json({ code: 0, data: { ...first, exercises: [
+          { id: 91, exerciseName: "卧推快照", sets: [
+            { id: 911, setNumber: 1, weightKg: 0, reps: 12, rpe: null, rir: null, isWarmup: true, isFailure: false },
+            { id: 912, setNumber: 2, weightKg: 62.5, reps: 5, rpe: 9.5, rir: 0, isWarmup: false, isFailure: true },
+          ] },
+          { id: 92, exerciseName: "划船快照", sets: [] },
+        ] } });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<WorkoutsPage />);
+
+    const openFirst = await screen.findByRole("button", { name: /查看 上肢训练/ });
+    expect(openFirst).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /查看 今天的训练/ })).not.toBeInTheDocument();
+    expect(requested).toEqual([]);
+
+    await user.click(openFirst);
+    expect(await screen.findByRole("alert")).toHaveTextContent("训练详情加载失败");
+    await user.click(screen.getByRole("button", { name: "重试加载详情" }));
+    expect(await screen.findByRole("heading", { name: "卧推快照" })).toBeInTheDocument();
+    expect(screen.getByText("0 kg × 12 次")).toBeInTheDocument();
+    expect(screen.getByText("62.5 kg × 5 次")).toBeInTheDocument();
+    expect(screen.getByText("RIR 0")).toBeInTheDocument();
+    expect(screen.getByText("热身")).toBeInTheDocument();
+    expect(screen.getByText("力竭")).toBeInTheDocument();
+    expect(screen.getByText("此动作没有组记录。")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /编辑第|删除第/ })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /查看 下肢训练/ }));
+    expect(await screen.findByText("本次训练没有记录动作。")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "卧推快照" })).not.toBeInTheDocument();
+    expect(requested).toEqual(["9", "9", "8"]);
+    await user.click(screen.getByRole("button", { name: /收起 下肢训练/ }));
+    expect(screen.queryByText("本次训练没有记录动作。")).not.toBeInTheDocument();
+  });
+
   it("persists a cached workout and removes stale UI when another device ends it", async () => {
     sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature");
     let ended = false;

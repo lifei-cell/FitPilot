@@ -878,6 +878,8 @@ syncWorkoutQueue.ts[AR7T]: F:串行补交训练组，回读服务端事实后确
 useWorkoutRecovery.ts[AR7S]: F:组合活动训练、本机快照和恢复队列，提供同步与完成状态 | R:code:web/src/features/workout/syncWorkoutQueue.ts,code:web/src/features/workout/workoutRecoveryStore.ts | A:useWorkoutRecovery | S:服务端活动训练优先；完成只检查当前训练的待同步组和草稿，离线或读存储失败时阻止
 workout-set-editor.css[FU3S]: F:定义训练组行、快速操作和编辑区样式及窄屏布局 | R:code:web/src/features/workout/WorkoutSetEditor.tsx | A:- | S:-
 workoutRecoveryStore.ts[PR7S]: F:在账户范围内保存活动快照、不可变操作、训练组草稿与冲突状态 | R:- | A:snapshot,enqueue,acknowledge,syncConflict,recordSyncConflict,exportRecovery | S:冲突按训练单独存储；成功回执移除对应操作及该训练的冲突标记
+WorkoutHistoryPanel.tsx[EU5T]: F:展示最近十次训练并在列表内回看动作快照和实际组记录 | R:code:src/main/java/com/fitpilot/workout/controller/WorkoutController.java,code:web/src/features/workout/workout-history-panel.css | A:WorkoutHistoryPanel | S:只对完成或取消的训练按需查询详情，同一时间展开一条。摘要和详情共用失效前缀
+workout-history-panel.css[FU3T]: F:定义训练历史摘要、展开区域和组记录的窄屏换行布局 | R:code:web/src/features/workout/WorkoutHistoryPanel.tsx | A:- | S:-
 
 ===/<repository>/web/src/pages/===
 AuthPage.tsx[EU4S]: F:展示注册和登录表单，提交认证并反馈忙碌和错误状态 | R:code:web/src/auth/AuthContext.tsx | A:AuthPage | S:-
@@ -888,7 +890,7 @@ NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项�
 PlansPage.tsx[EU5S]: F:展示计划列表，编排新建、详情以及激活操作与查询刷新 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx | A:PlansPage | S:-
 ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
 ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
-WorkoutsPage.tsx[EU7M]: F:编排开练、组编辑、终态提交及反馈，并显示各训练的同步冲突 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx | A:WorkoutsPage | S:旧训练结束后仍可导出其本机记录并开始新训练；反馈表单绑定打开时的训练 ID
+WorkoutsPage.tsx[EU7M]: F:编排开练、组编辑、同步冲突、终态提交、反馈及历史面板 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx | A:WorkoutsPage | S:旧训练结束后仍可导出其本机记录并开始新训练。反馈表单绑定打开时的训练 ID，训练写入后按前缀失效历史摘要和详情
 
 ===/<repository>/web/src/test/===
 render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-

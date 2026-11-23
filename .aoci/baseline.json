@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-22T04:49:17Z",
+  "updated_at": "2026-11-23T01:20:27Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "657438a58b0c2d85de5fa2d358d0ab3deb1a42e1c6da03bd837279a9dd12d97d",
-      "size": 130505,
-      "normalized_sha256": "657438a58b0c2d85de5fa2d358d0ab3deb1a42e1c6da03bd837279a9dd12d97d"
+      "sha256": "fe820a4ff3be6b327b9df7ba885027c5201af31bac4c20f60aac62ac63cb6633",
+      "size": 131168,
+      "normalized_sha256": "fe820a4ff3be6b327b9df7ba885027c5201af31bac4c20f60aac62ac63cb6633"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3071,15 +3071,15 @@
     },
     "web/e2e-offline/mobile-recovery.spec.ts": {
       "role": "observe",
-      "sha256": "29a8b0e71e726771ad4a475c6c796690fd17638fc8cf2d219a976b0680d22074",
-      "size": 7044,
-      "normalized_sha256": "29a8b0e71e726771ad4a475c6c796690fd17638fc8cf2d219a976b0680d22074"
+      "sha256": "536d96d1c50fae8eee6b8c2c6f1e432fc603abf4bc20a6faa924a7534a6955f4",
+      "size": 7172,
+      "normalized_sha256": "536d96d1c50fae8eee6b8c2c6f1e432fc603abf4bc20a6faa924a7534a6955f4"
     },
     "web/e2e-offline/recovery.spec.ts": {
       "role": "observe",
-      "sha256": "5d1ed2c320ead714af1ae635e3c3bb78cfad7b3ae1beb5813de50993070bedb7",
-      "size": 3696,
-      "normalized_sha256": "049c60e26a828adb5067f64cd64cbddbbd1a6332a20654570ee3007695bed2c6"
+      "sha256": "2d49ff857da50dcfc8674c237a5a92400c1ac7cd6d818e958d4f8025d70a7d34",
+      "size": 3740,
+      "normalized_sha256": "4a7df97dfb2db9d88bcc800f98acbf256588c4df85aac353e2c0ab791ecde380"
     },
     "web/e2e/ai-product.spec.ts": {
       "role": "observe",
@@ -3363,6 +3363,12 @@
       "size": 1516,
       "normalized_sha256": "6ee4c46228f715be1534c1821c40986f86d0edc20f850e1c2ece21401e45204a"
     },
+    "web/src/features/workout/WorkoutHistoryPanel.tsx": {
+      "role": "index",
+      "sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2",
+      "size": 4562,
+      "normalized_sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2"
+    },
     "web/src/features/workout/WorkoutSetEditor.test.tsx": {
       "role": "observe",
       "sha256": "6e342cc2933f51452e586047800cb554849fbdac980ccebfc57b55b7ebecabbd",
@@ -3386,6 +3392,12 @@
       "sha256": "2537fa0fec3a1ea80ae1d5cc737dfa28a158aa13ddf5b1eef19d3d324513b1f5",
       "size": 6302,
       "normalized_sha256": "e059ae536000eb7bd88ba5b67dc65bde9dbf2c06b49c7763eb023ef9462699f7"
+    },
+    "web/src/features/workout/workout-history-panel.css": {
+      "role": "index",
+      "sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090",
+      "size": 926,
+      "normalized_sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090"
     },
     "web/src/features/workout/workout-set-editor.css": {
       "role": "index",
@@ -3491,15 +3503,15 @@
     },
     "web/src/pages/WorkoutsPage.test.tsx": {
       "role": "observe",
-      "sha256": "228fe54ab7f7216c630ca46c21c31cbbb356524e31286ffe0b215c46d91202f6",
-      "size": 8914,
-      "normalized_sha256": "11fc90961170927d61db190be535e53c598b3a51f0ea97512ddab22ea1688777"
+      "sha256": "4e5cabd206c5d4b24b82c811a72bce780033239a2740d25733b36e27d89853df",
+      "size": 12133,
+      "normalized_sha256": "858ba2a0d8a7a2c992a00625c12bc5e2203eef1bc97e36f088b77b4c7bb193f7"
     },
     "web/src/pages/WorkoutsPage.tsx": {
       "role": "index",
-      "sha256": "bb77bc372869111dd23f89fc4ef70e8a501ba07bc784befe02ec7bcee5be7dc7",
-      "size": 12097,
-      "normalized_sha256": "db4015ab4a8a00129690618f2e2ece1e6cc00cd5a20d1da634c9c1204308c1ce"
+      "sha256": "87b1e5999bdd5c03f1db123a9385c55e27e35a6a530b5b0669dff6b5140fb0e1",
+      "size": 11095,
+      "normalized_sha256": "345ca0c7ab3f7dc5dc5f8e1bfe691e6908db07855ea42c12b9592df5d3f5850c"
     },
     "web/src/styles.css": {
       "role": "index",

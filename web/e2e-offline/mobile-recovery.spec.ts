@@ -64,13 +64,13 @@ test.describe("移动端弱网与跨设备恢复", () => {
     await page.getByLabel("重量 kg", { exact: true }).fill("62.5");
     await page.getByLabel("次数", { exact: true }).fill("8");
     await page.getByRole("button", { name: "记录一组", exact: true }).click();
-    await expect(page.getByRole("status")).toContainText("1 组待同步");
+    await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
     await expect(page.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "重试同步" })).toBeEnabled();
 
     await page.getByRole("button", { name: "重试同步" }).click();
     await expect.poll(() => state.sets.length, { timeout: 20_000 }).toBe(1);
-    await expect(page.getByRole("status")).toContainText("训练记录已同步");
+    await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("训练记录已同步");
     expect([...receipts.keys()]).toHaveLength(1);
     await page.close();
   });
@@ -129,7 +129,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
       await pageA.getByLabel("重量 kg", { exact: true }).fill("62.5");
       await pageA.getByLabel("次数", { exact: true }).fill("8");
       await pageA.getByRole("button", { name: /^(记录一组|完成一组)$/ }).click();
-      await expect(pageA.getByRole("status")).toContainText("1 组待同步");
+      await expect(pageA.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
       await expect(pageA.getByRole("alert")).toContainText("同步暂停");
       await expect(pageA.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
 
@@ -137,7 +137,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
       await pageA.reload();
       await expect(pageA.getByText("这次训练已在服务器结束，本机待同步记录仍保留，请核对。"))
         .toBeVisible();
-      await expect(pageA.getByRole("status")).toContainText("1 组待同步");
+      await expect(pageA.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
     } finally {
       await contextA.close();
       await contextB.close();

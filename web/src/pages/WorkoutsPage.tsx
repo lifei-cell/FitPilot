@@ -3,11 +3,9 @@ import { useState } from "react";
 import { CheckCircle2, CircleStop, Play } from "lucide-react";
 import { api } from "../api/client";
 import type {
-  PageResult,
   Plan,
   Workout,
   WorkoutSetInput,
-  WorkoutSummary,
   WorkoutFeedbackInput,
 } from "../api/types";
 import {
@@ -20,6 +18,7 @@ import {
 import { useWorkoutRecovery } from "../features/workout/useWorkoutRecovery";
 import { exportRecovery } from "../features/workout/workoutRecoveryStore";
 import { QuickSetForm } from "../features/workout/QuickSetForm";
+import { WorkoutHistoryPanel } from "../features/workout/WorkoutHistoryPanel";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
 import { navigate } from "../components/AppShell";
@@ -37,10 +36,6 @@ export function WorkoutsPage() {
     queryFn: () => api<Plan>("/training-plans/active/current"),
     retry: false,
     enabled: !active.data || recovery.isClosed,
-  });
-  const history = useQuery({
-    queryKey: ["workout-history"],
-    queryFn: () => api<PageResult<WorkoutSummary>>("/workouts?size=10"),
   });
   const refresh = () => {
     setError("");
@@ -109,7 +104,7 @@ export function WorkoutsPage() {
         description="专注当前一组，系统负责保存上下文。"
       />
       {(active.data || recovery.otherPendingCount > 0) && <Panel>
-        {active.data && <p role="status">{recovery.pendingCount ? `已保存到本机 · ${recovery.pendingCount} 组待同步`
+        {active.data && <p role="status" aria-label="训练同步状态">{recovery.pendingCount ? `已保存到本机 · ${recovery.pendingCount} 组待同步`
           : recovery.online ? "训练记录已同步；填写中的内容自动保存到本机" : "离线模式 · 可继续记录，联网后自动同步"}</p>}
         {recovery.otherPendingCount > 0 && <p>其他训练有 {recovery.otherPendingCount} 组待同步。</p>}
         {recovery.conflicts.length > 0 && <ul role="alert" className="form-error">
@@ -249,34 +244,7 @@ export function WorkoutsPage() {
         </Panel>
       )}
       {showAdjustmentPrompt ? <Panel className="adjustment-prompt"><strong>训练已记录</strong><p>积累至少 3 次训练和 2 份反馈后，AI Coach 可根据完成率、RPE、疲劳、容量和 PR 趋势评估计划。</p><button className="primary-button inline" onClick={() => navigate("/coach")}>前往 AI Coach 评估调整</button></Panel> : null}
-      <Panel>
-        <SectionTitle title="最近训练" detail="最近 10 次" />
-        {history.data?.items.length ? (
-          <div className="table-list">
-            {history.data.items.map((item) => (
-              <div key={item.id}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <small>
-                    {new Date(item.startedAt).toLocaleDateString("zh-CN")}
-                  </small>
-                </div>
-                <Status value={item.status} />
-                <span>
-                  {item.durationSeconds
-                    ? Math.round(item.durationSeconds / 60) + " 分钟"
-                    : "—"}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <Empty
-            title="暂无训练记录"
-            text="完成第一次训练后，历史会出现在这里。"
-          />
-        )}
-      </Panel>
+      <WorkoutHistoryPanel />
     </main>
   );
 }
