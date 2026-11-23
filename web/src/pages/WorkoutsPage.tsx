@@ -17,6 +17,7 @@ import {
 import { useWorkoutRecovery } from "../features/workout/useWorkoutRecovery";
 import { exportRecovery } from "../features/workout/workoutRecoveryStore";
 import { QuickSetForm } from "../features/workout/QuickSetForm";
+import { WorkoutExerciseGuide } from "../features/workout/WorkoutExerciseGuide";
 import { WorkoutHistoryPanel } from "../features/workout/WorkoutHistoryPanel";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
@@ -28,6 +29,7 @@ export function WorkoutsPage() {
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
   const [feedbackWorkoutId, setFeedbackWorkoutId] = useState<number | null>(null);
+  const [openGuideId, setOpenGuideId] = useState<number | null>(null);
   const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
   const recovery = useWorkoutRecovery();
   const { active } = recovery;
@@ -173,6 +175,13 @@ export function WorkoutsPage() {
                     {exercise.targetRepsMax ?? "—"} 次 · RPE{" "}
                     {exercise.targetRpe ?? "—"}
                   </p>
+                  <WorkoutExerciseGuide
+                    exercise={exercise}
+                    expanded={openGuideId === exercise.id}
+                    onToggle={() =>
+                      setOpenGuideId((id) => id === exercise.id ? null : exercise.id)
+                    }
+                  />
                   <div className="workout-set-list">
                     {exercise.sets.map((set) => set.localOperationId ? (
                       <div className="workout-set-line" key={set.localOperationId}>

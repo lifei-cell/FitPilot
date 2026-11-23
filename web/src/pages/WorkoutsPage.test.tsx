@@ -100,6 +100,70 @@ describe("WorkoutsPage", () => {
     expect(screen.queryByText("本次训练没有记录动作。")).not.toBeInTheDocument();
   });
 
+  it("opens one on-demand exercise guide without disturbing the set form", async () => {
+    const workout: Workout = {
+      id: 7,
+      name: "上肢练习",
+      status: "IN_PROGRESS",
+      startedAt: "2026-11-23T08:00:00Z",
+      exercises: [
+        { id: 71, exerciseId: 101, exerciseName: "杠铃卧推", sequence: 1, sets: [] },
+        { id: 72, exerciseId: 202, exerciseName: "自定义划船", sequence: 2, sets: [] },
+      ],
+    };
+    const requested: string[] = [];
+    server.use(
+      http.get("/api/v1/workouts/active/current", () => HttpResponse.json({ code: 0, data: workout })),
+      http.get("/api/v1/workouts", () => HttpResponse.json({ code: 0, data: { items: [] } })),
+      http.get("/api/v1/training-plans/active/current", () => HttpResponse.json({ code: 0, data: plan })),
+      http.get("/api/v1/workouts/7/exercises/:id/previous-sets", () =>
+        HttpResponse.json({ code: 0, data: [] })),
+      http.get("/api/v1/exercises/:id", ({ params }) => {
+        const id = String(params.id);
+        requested.push(id);
+        if (id === "101") {
+          return HttpResponse.json({ code: 0, data: {
+            id: 101, name: "杠铃卧推", englishName: "Barbell Bench Press", instructions: "双脚踩稳。",
+          } });
+        }
+        if (requested.filter((item) => item === "202").length === 1) {
+          return HttpResponse.json({ message: "unavailable" }, { status: 503 });
+        }
+        return HttpResponse.json({ code: 0, data: {
+          id: 202, name: "自定义划船", instructions: "保持躯干稳定。",
+        } });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<WorkoutsPage />);
+
+    const benchGuide = await screen.findByRole("button", { name: "查看动作教学：杠铃卧推" });
+    const weight = screen.getAllByPlaceholderText("重量 kg")[0];
+    await user.type(weight, "42");
+    expect(requested).toEqual([]);
+
+    await user.click(benchGuide);
+    expect(await screen.findByRole("img", { name: "杠铃卧推动作示意图" })).toHaveAttribute(
+      "src", "/exercise-media/repdb/bench-press.webp",
+    );
+    expect(screen.getByText("双脚踩稳。", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByTitle("杠铃卧推教学视频")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "观看教学视频" }));
+    expect(screen.getByTitle("杠铃卧推教学视频")).toHaveAttribute(
+      "src", expect.stringContaining("bvid=BV1JF411g7ua"),
+    );
+
+    await user.click(screen.getByRole("button", { name: "查看动作教学：自定义划船" }));
+    expect(benchGuide).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByTitle("杠铃卧推教学视频")).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("暂时无法加载动作教学");
+    await user.click(screen.getByRole("button", { name: "重试加载教学" }));
+    expect(await screen.findByText("保持躯干稳定。", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "观看教学视频" })).not.toBeInTheDocument();
+    expect(requested).toEqual(["101", "202", "202"]);
+    expect(weight).toHaveValue(42);
+  });
+
   it("persists a cached workout and removes stale UI when another device ends it", async () => {
     sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature");
     let ended = false;

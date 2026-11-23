@@ -884,6 +884,8 @@ workout-set-editor.css[FU3S]: F:定义训练组行、快速操作和编辑区样
 workoutRecoveryStore.ts[PR7S]: F:在账户范围内保存活动快照、不可变操作、训练组草稿与冲突状态 | R:- | A:snapshot,enqueue,acknowledge,syncConflict,recordSyncConflict,exportRecovery | S:冲突按训练单独存储；成功回执移除对应操作及该训练的冲突标记
 WorkoutHistoryPanel.tsx[EU5T]: F:展示最近十次训练并在列表内回看动作快照和实际组记录 | R:code:src/main/java/com/fitpilot/workout/controller/WorkoutController.java,code:web/src/features/workout/workout-history-panel.css | A:WorkoutHistoryPanel | S:只对完成或取消的训练按需查询详情，同一时间展开一条。摘要和详情共用失效前缀
 workout-history-panel.css[FU3T]: F:定义训练历史摘要、展开区域和组记录的窄屏换行布局 | R:code:web/src/features/workout/WorkoutHistoryPanel.tsx | A:- | S:-
+WorkoutExerciseGuide.tsx[EU5T]: F:在训练卡上展开动作要点、示意图与教学视频，提供加载和重试状态 | R:code:web/src/features/exercise/ExerciseMediaPanel.tsx,code:web/src/api/client.ts | A:WorkoutExerciseGuide | S:展开才按标准动作 ID 查询详情。收起卸载媒体和播放状态，教学读取失败不影响训练记录
+workout-exercise-guide.css[FU3T]: F:控制训练卡内教学入口的间距以及展开后内容的宽度和排版 | R:code:web/src/features/workout/WorkoutExerciseGuide.tsx | A:- | S:-
 
 ===/<repository>/web/src/pages/===
 AuthPage.tsx[EU4S]: F:展示注册和登录表单，提交认证并反馈忙碌和错误状态 | R:code:web/src/auth/AuthContext.tsx | A:AuthPage | S:-
@@ -894,7 +896,7 @@ NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项�
 PlansPage.tsx[EU5S]: F:展示用户计划，编排预设套用、手动新建、详情、激活及活动计划开练入口 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx,code:web/src/features/plan/PlanPresetPicker.tsx,code:web/src/features/plan/activePlanQuery.ts | A:PlansPage | S:套用只初始化表单，明确保存才创建草稿；保存期间阻止切换构建器或查看详情
 ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
 ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
-WorkoutsPage.tsx[EU7M]: F:呈现可选训练日和计划加载状态，编排开练、组编辑、同步冲突、终态提交、反馈及历史 | R:code:web/src/features/plan/activePlanQuery.ts,code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx | A:WorkoutsPage | S:旧训练结束后仍可导出其本机记录并开始新训练。反馈表单绑定打开时的训练 ID，训练写入后按前缀失效历史摘要和详情
+WorkoutsPage.tsx[EU7M]: F:呈现可选训练日与加载状态，编排开练、动作教学、组编辑、同步冲突、终态提交、反馈及历史 | R:code:web/src/features/plan/activePlanQuery.ts,code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx,code:web/src/features/workout/WorkoutExerciseGuide.tsx | A:WorkoutsPage | S:教学按训练动作记录单独展开且同时最多一项。已结束训练的本机记录仍可导出；反馈绑定打开时的训练 ID，训练写入使历史摘要和详情失效
 
 ===/<repository>/web/src/test/===
 render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-23T11:17:53Z",
+  "updated_at": "2026-11-23T12:21:18Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "47915a3f9c306ed8d0bff0fb51e2a9d334a4154256e2ef50430d973aa727cbe9",
-      "size": 134306,
-      "normalized_sha256": "47915a3f9c306ed8d0bff0fb51e2a9d334a4154256e2ef50430d973aa727cbe9"
+      "sha256": "2aa96c8ec0fb921b44a7e132fccd94d285b56678c0fa611e72ef14de2c76d1dc",
+      "size": 134941,
+      "normalized_sha256": "2aa96c8ec0fb921b44a7e132fccd94d285b56678c0fa611e72ef14de2c76d1dc"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3399,6 +3399,12 @@
       "size": 5037,
       "normalized_sha256": "c430ee19502f241d4afe43e6044f3190a27e1d0255b6696b4ee5b2becef3753f"
     },
+    "web/src/features/workout/WorkoutExerciseGuide.tsx": {
+      "role": "index",
+      "sha256": "e073b921afcafe26eb6917b42744f31634df9fb12ab6cf690f44c4c872e9a18b",
+      "size": 2505,
+      "normalized_sha256": "e073b921afcafe26eb6917b42744f31634df9fb12ab6cf690f44c4c872e9a18b"
+    },
     "web/src/features/workout/WorkoutFeedbackForm.test.tsx": {
       "role": "observe",
       "sha256": "34df42dc47b4eafe519e219f3a9fc05d193c27e24aced9ada4e23180e6bbdae9",
@@ -3440,6 +3446,12 @@
       "sha256": "2537fa0fec3a1ea80ae1d5cc737dfa28a158aa13ddf5b1eef19d3d324513b1f5",
       "size": 6302,
       "normalized_sha256": "e059ae536000eb7bd88ba5b67dc65bde9dbf2c06b49c7763eb023ef9462699f7"
+    },
+    "web/src/features/workout/workout-exercise-guide.css": {
+      "role": "index",
+      "sha256": "dbdf23bd976f1f4f3ac0102a1c8cb38646be66cfa4fdc83bc50359b35ac4421f",
+      "size": 300,
+      "normalized_sha256": "dbdf23bd976f1f4f3ac0102a1c8cb38646be66cfa4fdc83bc50359b35ac4421f"
     },
     "web/src/features/workout/workout-history-panel.css": {
       "role": "index",
@@ -3551,15 +3563,15 @@
     },
     "web/src/pages/WorkoutsPage.test.tsx": {
       "role": "observe",
-      "sha256": "dd6f336ea0041031654554db4d7e7510d21a79a90429eb51216f5dd5b0a24f13",
-      "size": 13377,
-      "normalized_sha256": "aece34069974c8193d05787118c47dda0c53af90671af44bc07b41bede5eee25"
+      "sha256": "a6f1e736f15b0c6feb81d664a87d57b2f82e76106d1bd7801de6c638392375c8",
+      "size": 16686,
+      "normalized_sha256": "98f3eedfbf3357694ecc6c233da65c31be259b2d3ad7c692f46c57bd437a6789"
     },
     "web/src/pages/WorkoutsPage.tsx": {
       "role": "index",
-      "sha256": "038dc1571230a4c5722b12f6ed958fe9e0037939a3b5abbf907854f15ac71c89",
-      "size": 11778,
-      "normalized_sha256": "0ea1237b820e1200082598dc2f36a0899b2fea15b5b7dc28df6cf0a9904160b7"
+      "sha256": "5a67f440924e680b27d9f4280dbab202ec95d3c47456af66d741dc36e50898c0",
+      "size": 12243,
+      "normalized_sha256": "b7f591e4fe30d5940687c4ab07f7f2e71adb2d33e724ce22345e7e24a7466674"
     },
     "web/src/styles.css": {
       "role": "index",
