@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-23T07:23:18Z",
+  "updated_at": "2026-11-23T07:45:18Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "cf70639aa12dcfcbe54d501c0ed6a799f9652839de3dd917dab253e70e3a72ab",
-      "size": 132660,
-      "normalized_sha256": "cf70639aa12dcfcbe54d501c0ed6a799f9652839de3dd917dab253e70e3a72ab"
+      "sha256": "4fd7a5b4fb267269a0f8bab15948bbbed61972e134b9fdc513a55647003fcfa8",
+      "size": 133686,
+      "normalized_sha256": "4fd7a5b4fb267269a0f8bab15948bbbed61972e134b9fdc513a55647003fcfa8"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3339,6 +3339,12 @@
       "size": 5066,
       "normalized_sha256": "0623badedce29ade4d346fad9c87a72973cc0912ae407118cd691a37a7231693"
     },
+    "web/src/features/plan/PlanPresetPicker.tsx": {
+      "role": "index",
+      "sha256": "5d7c4c9fae8031a49f1077e407c58b716d7ac5dfe55f134a07ffe02f83e2dbc1",
+      "size": 2435,
+      "normalized_sha256": "5d7c4c9fae8031a49f1077e407c58b716d7ac5dfe55f134a07ffe02f83e2dbc1"
+    },
     "web/src/features/plan/plan-builder.css": {
       "role": "index",
       "sha256": "6eb4dd09bac44f241a38a5f3ac3ebaf137230539a794014a87b254a37cb9f1f3",
@@ -3351,6 +3357,12 @@
       "size": 1938,
       "normalized_sha256": "5174cbf1e447c6787771ba4a713ea12c866910f8ca536fd88c539932a2025517"
     },
+    "web/src/features/plan/plan-preset-picker.css": {
+      "role": "index",
+      "sha256": "d1ac7448c51b0e4da0720dac737d89efef7a8dcbb9fb3d9cb7873ee59ed9b871",
+      "size": 800,
+      "normalized_sha256": "d1ac7448c51b0e4da0720dac737d89efef7a8dcbb9fb3d9cb7873ee59ed9b871"
+    },
     "web/src/features/plan/planBuilderModel.test.ts": {
       "role": "observe",
       "sha256": "cb93768ae5325706705059cde4db1662ab013ae4f41f7332c0b5fcfeb59726b8",
@@ -3362,6 +3374,12 @@
       "sha256": "0df9c30b1f1d22af3d6b0e086bde590973c5d6208d0c5090e1602c2fc491394c",
       "size": 3760,
       "normalized_sha256": "0df9c30b1f1d22af3d6b0e086bde590973c5d6208d0c5090e1602c2fc491394c"
+    },
+    "web/src/features/plan/planPresets.ts": {
+      "role": "index",
+      "sha256": "ef8f5185b3c78849a3b9e215c860eaa807e66177bb8f113735dd785b21268580",
+      "size": 4958,
+      "normalized_sha256": "ef8f5185b3c78849a3b9e215c860eaa807e66177bb8f113735dd785b21268580"
     },
     "web/src/features/workout/QuickSetForm.test.tsx": {
       "role": "observe",
@@ -3497,15 +3515,15 @@
     },
     "web/src/pages/PlansPage.test.tsx": {
       "role": "observe",
-      "sha256": "1672c9f03582faefdb8cf8480350604656bade87fbf0acc788ee5b84d58029a0",
-      "size": 2026,
-      "normalized_sha256": "1672c9f03582faefdb8cf8480350604656bade87fbf0acc788ee5b84d58029a0"
+      "sha256": "c27683dba3f24bd4944e80f46b90c72c1c82580a927d697855136a50b16d6dd9",
+      "size": 5377,
+      "normalized_sha256": "c27683dba3f24bd4944e80f46b90c72c1c82580a927d697855136a50b16d6dd9"
     },
     "web/src/pages/PlansPage.tsx": {
       "role": "index",
-      "sha256": "a5b08296377dabadd87bd13a2b9fea071145a9b08104cc852a6a78ed0714547e",
-      "size": 4826,
-      "normalized_sha256": "a5b08296377dabadd87bd13a2b9fea071145a9b08104cc852a6a78ed0714547e"
+      "sha256": "95beaee33e2c1e70a3fd99b192522134a5f290a30152542f22b3e05a9986806a",
+      "size": 5259,
+      "normalized_sha256": "95beaee33e2c1e70a3fd99b192522134a5f290a30152542f22b3e05a9986806a"
     },
     "web/src/pages/ProfilePage.tsx": {
       "role": "index",

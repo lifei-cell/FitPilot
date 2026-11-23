@@ -1,0 +1,50 @@
+.plan-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+}
+
+.plan-preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0e1211;
+}
+
+.plan-preset-card h3,
+.plan-preset-card p {
+  margin: 0;
+}
+
+.plan-preset-equipment {
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plan-preset-schedule,
+.plan-preset-description {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.plan-preset-description {
+  flex: 1;
+}
+
+.plan-preset-card button {
+  margin-top: 4px;
+}
+
+.plan-preset-error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}

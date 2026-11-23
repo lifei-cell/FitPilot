@@ -869,6 +869,9 @@ PlanDetailPanel.tsx[EU5S]: F:查询计划并显示详情，允许进入草案编
 plan-builder.css[FU3M]: F:定义草案元数据、训练日、动作字段与搜索选择的响应式表单布局 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDayEditor.tsx | A:- | S:-
 plan-detail-panel.css[FU3S]: F:定义计划详情的标题、状态、训练日及窄屏动作卡布局 | R:code:web/src/features/plan/PlanDetailPanel.tsx | A:- | S:-
 planBuilderModel.ts[DU5S]: F:管理稳定草稿键，从计划重建内容，校验并转换成有序写入载荷 | R:- | A:initialPlanDraft,planToDraft,validatePlanDraft,toPlanCreateInput | S:-
+PlanPresetPicker.tsx[EU5T]: F:展示预设的器械与训练频次，校验动作可用后交付可编辑草稿 | R:code:web/src/features/plan/planPresets.ts,code:web/src/features/plan/plan-preset-picker.css | A:PlanPresetPicker | S:缺任何动作只禁用对应预设，目录请求失败可重试
+plan-preset-picker.css[FU3T]: F:定义训练预设卡片的自适应列布局与加载错误控件样式 | R:code:web/src/features/plan/PlanPresetPicker.tsx | A:- | S:-
+planPresets.ts[DU5S]: F:定义内置训练安排并根据有效动作目录构建可提交的草稿 | R:code:src/main/resources/db/migration/V2__seed_exercises.sql,code:web/src/features/plan/planBuilderModel.ts | A:planPresets,loadPresetExercises,hasPresetExercises,presetToDraft | S:按英文动作名精确匹配分页目录，使用当前数据库动作 ID。预设强度字段留空待用户填写
 
 ===/<repository>/web/src/features/workout/===
 QuickSetForm.tsx[EU6S]: F:读取上次工作组并呈现快速输入，在修改与提交时按动作保存草稿 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:QuickSetForm | S:建议值只是预填；同一提交正文沿用尝试 UUID
@@ -887,7 +890,7 @@ CoachPage.tsx[EU7M]: F:管理 AI 教练会话、历史分页、消息、确认�
 DashboardPage.tsx[EU5S]: F:显示周训练数据、活动计划及继续训练快捷入口 | R:- | A:DashboardPage | S:-
 ExercisesPage.tsx[EU4S]: F:搜索动作目录并显示选定动作的文字要点与配套媒体 | R:code:web/src/features/exercise/ExerciseMediaPanel.tsx | A:ExercisesPage | S:窄屏选择动作后聚焦并滚动到详情，切换动作以记录 ID 重置媒体组件
 NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项和批量已读 | R:- | A:NotificationsPage | S:-
-PlansPage.tsx[EU5S]: F:展示计划列表，编排新建、详情以及激活操作与查询刷新 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx | A:PlansPage | S:-
+PlansPage.tsx[EU5S]: F:展示用户训练计划并编排预设套用、手动新建、详情和激活 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx,code:web/src/features/plan/PlanPresetPicker.tsx | A:PlansPage | S:套用只初始化表单，明确保存才创建草稿；保存期间阻止切换构建器或查看详情
 ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
 ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
 WorkoutsPage.tsx[EU7M]: F:编排开练、组编辑、同步冲突、终态提交、反馈及历史面板 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx | A:WorkoutsPage | S:旧训练结束后仍可导出其本机记录并开始新训练。反馈表单绑定打开时的训练 ID，训练写入后按前缀失效历史摘要和详情
