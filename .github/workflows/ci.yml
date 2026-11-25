@@ -34,7 +34,14 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: |
+            web/package-lock.json
+            integrations/pi-coach/package-lock.json
+      - name: Pi coach adapter tests
+        working-directory: integrations/pi-coach
+        run: |
+          npm ci --ignore-scripts
+          npm test
       - name: Load-test account isolation regression
         run: node --experimental-vm-modules --test load-test/v5-users.test.mjs
       - name: V22 delivery gate regression
@@ -68,8 +75,11 @@ jobs:
           JWT_SECRET: ci-jwt-secret-with-at-least-thirty-two-bytes
           OPERATIONS_TOKEN: ci-operations-token
           GRAFANA_ADMIN_PASSWORD: ci-grafana-password
+          FITPILOT_PI_BRIDGE_KEY: ci-pi-bridge-key
+          FITPILOT_PI_MODEL: ci-pi-model
         run: |
           docker compose config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.pi.yml config --quiet
           kubectl kustomize deploy/k8s/overlays/production >/tmp/fitpilot-production.yml
           kubectl kustomize deploy/k8s/overlays/production-migration >/tmp/fitpilot-migration.yml
           kubectl kustomize deploy/k8s/overlays/production-schema-status >/tmp/fitpilot-schema-status.yml
