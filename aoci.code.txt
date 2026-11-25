@@ -888,6 +888,9 @@ WorkoutExerciseGuide.tsx[EU5T]: F:在训练卡上展开动作要点、示意图�
 workout-exercise-guide.css[FU3T]: F:控制训练卡内教学入口的间距以及展开后内容的宽度和排版 | R:code:web/src/features/workout/WorkoutExerciseGuide.tsx | A:- | S:-
 WorkoutRestTimer.tsx[EU5T]: F:在训练动作下显示组间剩余时间，并提供重置与跳过入口 | R:code:web/src/features/workout/workout-rest-timer.css | A:WorkoutRestTimer | S:从绝对截止时间计算秒数，页面可见性变化和恢复时立即重算。归零后停止安排定时更新
 workout-rest-timer.css[FU3T]: F:定义组间计时的状态、数字排版和窄屏按钮换行 | R:code:web/src/features/workout/WorkoutRestTimer.tsx | A:- | S:-
+WorkoutProgressSummary.tsx[EU5T]: F:显示计划组数进度，并将焦点和视口定位到首个待练动作 | R:code:web/src/features/workout/workout-progress.css,code:web/src/features/workout/workoutProgress.ts | A:WorkoutProgressSummary,workoutExerciseHeadingId | S:没有正数计划组数时不展示总进度
+workout-progress.css[FU3T]: F:定义计划进度条及动作组数布局，为定位后的标题预留滚动偏移 | R:code:web/src/features/workout/WorkoutProgressSummary.tsx | A:- | S:-
+workoutProgress.ts[DB5T]: F:归集各动作的正式组数，计算整场目标完成度与首个未达标动作 | R:code:web/src/features/workout/workoutRecoveryStore.ts | A:workoutProgress | S:组须有完成时间且次数为正，热身组排除。总进度按各动作目标封顶，无目标动作只展示自身组数
 
 ===/<repository>/web/src/pages/===
 AuthPage.tsx[EU4S]: F:展示注册和登录表单，提交认证并反馈忙碌和错误状态 | R:code:web/src/auth/AuthContext.tsx | A:AuthPage | S:-
@@ -898,7 +901,7 @@ NotificationsPage.tsx[EU4T]: F:展示通知列表及未读状态，支持逐项�
 PlansPage.tsx[EU5S]: F:展示用户计划，编排预设套用、手动新建、详情、激活及活动计划开练入口 | R:code:web/src/features/plan/PlanBuilder.tsx,code:web/src/features/plan/PlanDetailPanel.tsx,code:web/src/features/plan/PlanPresetPicker.tsx,code:web/src/features/plan/activePlanQuery.ts | A:PlansPage | S:套用只初始化表单，明确保存才创建草稿；保存期间阻止切换构建器或查看详情
 ProfilePage.tsx[EU5M]: F:加载并保存用户资料和训练偏好，记录体测及显示最近数据 | R:- | A:ProfilePage | S:-
 ProgressPage.tsx[EU4S]: F:用图表呈现体重和动作负重、估算最大重量的进步趋势 | R:- | A:ProgressPage | S:-
-WorkoutsPage.tsx[EU7M]: F:呈现可选训练日与加载状态，编排动作教学、组编辑、休息计时、同步冲突、终态反馈及历史 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx,code:web/src/features/workout/WorkoutExerciseGuide.tsx,code:web/src/features/workout/WorkoutRestTimer.tsx | A:WorkoutsPage | S:组入本机队列后按动作快照计时，补传不重开。教学同时最多一项；已结束训练仍可导出本机记录；反馈绑定训练ID；写入使历史摘要及详情失效
+WorkoutsPage.tsx[EU7M]: F:编排训练日选择、动作教学、组编辑、进度及休息计时，以及离线同步、终态反馈和历史 | R:code:web/src/features/workout/useWorkoutRecovery.ts,code:web/src/features/workout/QuickSetForm.tsx,code:web/src/features/workout/WorkoutHistoryPanel.tsx,code:web/src/features/workout/WorkoutProgressSummary.tsx,code:web/src/features/workout/workoutProgress.ts | A:WorkoutsPage | S:进度使用含待同步组的快照。本机记组触发休息，补传不重开。教学同时最多一项；旧训练可导出本机记录；反馈绑定训练ID；写入使历史摘要和详情失效
 
 ===/<repository>/web/src/test/===
 render.tsx[TQ3T]: F:以统一查询配置和 Provider 挂载测试组件并返回客户端 | R:- | A:renderWithQueryClient,createTestQueryClient | S:-

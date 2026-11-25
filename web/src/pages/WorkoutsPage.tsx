@@ -19,7 +19,12 @@ import { exportRecovery } from "../features/workout/workoutRecoveryStore";
 import { QuickSetForm } from "../features/workout/QuickSetForm";
 import { WorkoutExerciseGuide } from "../features/workout/WorkoutExerciseGuide";
 import { WorkoutHistoryPanel } from "../features/workout/WorkoutHistoryPanel";
+import {
+  WorkoutProgressSummary,
+  workoutExerciseHeadingId,
+} from "../features/workout/WorkoutProgressSummary";
 import { WorkoutRestTimer } from "../features/workout/WorkoutRestTimer";
+import { workoutProgress } from "../features/workout/workoutProgress";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
 import { activePlanQuery } from "../features/plan/activePlanQuery";
@@ -43,6 +48,8 @@ export function WorkoutsPage() {
   const recovery = useWorkoutRecovery();
   const { active } = recovery;
   const workout = recovery.isClosed ? undefined : active.data;
+  const { items, plannedSets, completedPlannedSets, nextExercise } =
+    workoutProgress(workout?.exercises ?? []);
   const plan = useQuery({
     ...activePlanQuery,
     enabled: !active.data || recovery.isClosed,
@@ -168,18 +175,28 @@ export function WorkoutsPage() {
               </button>
             </div>
           </div>
+          <WorkoutProgressSummary
+            plannedSets={plannedSets}
+            completedPlannedSets={completedPlannedSets}
+            nextExercise={nextExercise}
+          />
           {feedbackWorkoutId === workout.id ? <WorkoutFeedbackForm key={feedbackWorkoutId}
             busy={finish.isPending || recording || !recovery.canFinish}
             onSubmit={(feedback) => finish.mutate({ id: feedbackWorkoutId, action: "complete", feedback })}
             onSkip={() => finish.mutate({ id: feedbackWorkoutId, action: "complete" })} /> : null}
           <div className="exercise-stack">
-            {workout.exercises.map((exercise, index) => (
+            {items.map(({ exercise, completed, target }, index) => (
               <article className="exercise-live" key={exercise.id}>
                 <div className="exercise-index">
                   {String(index + 1).padStart(2, "0")}
                 </div>
                 <div className="exercise-main">
-                  <h3>{exercise.exerciseName}</h3>
+                  <div className="workout-exercise-heading">
+                    <h3 id={workoutExerciseHeadingId(exercise.id)} tabIndex={-1}>
+                      {exercise.exerciseName}
+                    </h3>
+                    <span>正式组 {completed}{target > 0 ? ` / ${target}` : ""} 组</span>
+                  </div>
                   <p>
                     目标 {exercise.targetSets ?? "—"} 组 ×{" "}
                     {exercise.targetRepsMin ?? "—"}–

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-25T01:45:14Z",
+  "updated_at": "2026-11-25T01:54:41Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "970cbfe4f39ef4dbff3d3a227432d8123555a8e2d0202dfc4068efbfbd4cdcf5",
-      "size": 135417,
-      "normalized_sha256": "970cbfe4f39ef4dbff3d3a227432d8123555a8e2d0202dfc4068efbfbd4cdcf5"
+      "sha256": "f43ee38b16832d533e504702a46537857848ad6236137c0720657a0e741ab29b",
+      "size": 136254,
+      "normalized_sha256": "f43ee38b16832d533e504702a46537857848ad6236137c0720657a0e741ab29b"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3071,9 +3071,9 @@
     },
     "web/e2e-offline/mobile-recovery.spec.ts": {
       "role": "observe",
-      "sha256": "73f0b327b19bcada09a36d7683b7dacbcf8e564fdcbf30b4bd1097930e7dccfc",
-      "size": 7716,
-      "normalized_sha256": "73f0b327b19bcada09a36d7683b7dacbcf8e564fdcbf30b4bd1097930e7dccfc"
+      "sha256": "8702f32c273f6bac0bee96a7fec7ea964e30e6fd1d7b057400c7c44de0594fd6",
+      "size": 8054,
+      "normalized_sha256": "8702f32c273f6bac0bee96a7fec7ea964e30e6fd1d7b057400c7c44de0594fd6"
     },
     "web/e2e-offline/recovery.spec.ts": {
       "role": "observe",
@@ -3101,9 +3101,9 @@
     },
     "web/e2e/quick-set.spec.ts": {
       "role": "observe",
-      "sha256": "3fab12f5509c5ac5d30d6c610fae2dcc2d63f3fae6376e00008935e30215105f",
-      "size": 3377,
-      "normalized_sha256": "e8006833a08bde3bafd68e67aee442354a89baa8121d4fb85c62a75db6a7d725"
+      "sha256": "06b6d370aad1b8674f2ddb84a1bb9e6470ecc3bde069c0fa1116804c124f1fab",
+      "size": 5643,
+      "normalized_sha256": "0286654023543883e085839040f6dc205bbf8ac581d5fa04e0876d692dd9a0da"
     },
     "web/eslint.config.js": {
       "role": "index",
@@ -3423,6 +3423,12 @@
       "size": 4562,
       "normalized_sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2"
     },
+    "web/src/features/workout/WorkoutProgressSummary.tsx": {
+      "role": "index",
+      "sha256": "19f4450ef65918c9d66ee4f2a92b9809a6a815698cbf8607172a4aeebc8612fa",
+      "size": 1450,
+      "normalized_sha256": "19f4450ef65918c9d66ee4f2a92b9809a6a815698cbf8607172a4aeebc8612fa"
+    },
     "web/src/features/workout/WorkoutRestTimer.tsx": {
       "role": "index",
       "sha256": "e2233f08111f8c03e38e08d8b38677d1cddee05f7a90c0c4d42c495520b81524",
@@ -3465,6 +3471,12 @@
       "size": 926,
       "normalized_sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090"
     },
+    "web/src/features/workout/workout-progress.css": {
+      "role": "index",
+      "sha256": "987416248ec0d2b4d23b1a4f8267ac51f9720998500abaf7a5e7f8b0d88dac02",
+      "size": 888,
+      "normalized_sha256": "987416248ec0d2b4d23b1a4f8267ac51f9720998500abaf7a5e7f8b0d88dac02"
+    },
     "web/src/features/workout/workout-rest-timer.css": {
       "role": "index",
       "sha256": "1caae7974721c7c7f62f19541f98bfb5073e2735f75d2a936217b32d9e5fb011",
@@ -3476,6 +3488,12 @@
       "sha256": "e8d35e3e21ff67fcb517de0cfedf3821efd8ea738227f5a93f4492ea49c9fcbf",
       "size": 2111,
       "normalized_sha256": "e8d35e3e21ff67fcb517de0cfedf3821efd8ea738227f5a93f4492ea49c9fcbf"
+    },
+    "web/src/features/workout/workoutProgress.ts": {
+      "role": "index",
+      "sha256": "889d3095c184280538d4ae5dec4d5749326c710bd3ee6a1dc8fa3365430f6c3d",
+      "size": 746,
+      "normalized_sha256": "889d3095c184280538d4ae5dec4d5749326c710bd3ee6a1dc8fa3365430f6c3d"
     },
     "web/src/features/workout/workoutRecovery.test.ts": {
       "role": "observe",
@@ -3581,9 +3599,9 @@
     },
     "web/src/pages/WorkoutsPage.tsx": {
       "role": "index",
-      "sha256": "32495c7c6d96763822df728820d3ef01bf4187bc55210bc00a545e923d5c5800",
-      "size": 13411,
-      "normalized_sha256": "430d5db13d0858680259da8c2ccfb88079e815a72dd727b957da887fc701381b"
+      "sha256": "a30c56276a28b08d7f5b95e1b9fe2a2bb889cf3d14c554ac25a360ddd1577d11",
+      "size": 14205,
+      "normalized_sha256": "76298df19b15a7ba61fb262d5ad7a6d119603fd82a0a31400e0c30f2acb00d5d"
     },
     "web/src/styles.css": {
       "role": "index",

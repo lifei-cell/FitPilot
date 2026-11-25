@@ -57,3 +57,46 @@ test("手机宽度下沿用历史并单击完成，下一组预填且不自动�
   expect(saved[1]).toMatchObject({ weightKg: 62.5, reps: 8 });
   await expect(timer).toHaveText("01:30");
 });
+
+test("计划进度独立计算每个动作的正式组数，并能定位待练动作", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() =>
+    sessionStorage.setItem("fitpilot_access", "header.eyJzdWIiOiI5OSJ9.signature"),
+  );
+  const completedAt = "2026-09-12T08:01:00Z";
+  const set = { weightKg: 20, reps: 8, isWarmup: false, isFailure: false, completedAt };
+  const workout = {
+    id: 7, name: "训练进度", status: "IN_PROGRESS", startedAt: completedAt,
+    exercises: [
+      { id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1, targetSets: 1, sets: [
+        { ...set, id: 701, setNumber: 1 },
+        { ...set, id: 702, setNumber: 2 },
+      ] },
+      { id: 72, exerciseId: 2, exerciseName: "划船", sequence: 2, targetSets: 2, sets: [
+        { ...set, id: 703, setNumber: 1, isWarmup: true },
+        { ...set, id: 704, setNumber: 2, completedAt: null },
+      ] },
+      { id: 73, exerciseId: 3, exerciseName: "加练深蹲", sequence: 3, sets: [
+        { ...set, id: 705, setNumber: 1 },
+      ] },
+    ],
+  };
+  await page.route("**/api/v1/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const ok = (data: unknown) => route.fulfill({ json: { code: 0, data } });
+    if (path === "/api/v1/workouts/active/current") return ok(workout);
+    if (path.endsWith("/previous-sets")) return ok([]);
+    if (path === "/api/v1/workouts") return ok({ items: [], total: 0 });
+    return route.fulfill({ status: 404, json: { code: 30001, message: "training plan not found" } });
+  });
+
+  await page.goto("/workouts");
+  const bar = page.getByRole("progressbar", { name: "计划组数进度" });
+  await expect(bar).toHaveAttribute("max", "3");
+  await expect(bar).toHaveAttribute("value", "1");
+  await expect(page.getByText("正式组 2 / 1 组", { exact: true })).toBeVisible();
+  await expect(page.getByText("正式组 0 / 2 组", { exact: true })).toBeVisible();
+  await expect(page.getByText("正式组 1 组", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "定位待练动作：划船" }).click();
+  await expect(page.getByRole("heading", { name: "划船" })).toBeFocused();
+});

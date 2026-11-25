@@ -2,14 +2,14 @@ import { devices, expect, test } from "@playwright/test";
 
 const mobile = { ...devices["Pixel 5"], viewport: { width: 393, height: 851 } };
 
-function workout(state: { closed: boolean; sets: Record<string, unknown>[]; restSeconds?: number }) {
+function workout(state: { closed: boolean; sets: Record<string, unknown>[]; restSeconds?: number; targetSets?: number }) {
   return {
     id: 7,
     name: "移动端冲突训练",
     status: state.closed ? "COMPLETED" : "IN_PROGRESS",
     startedAt: "2026-09-12T08:00:00Z",
     exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1,
-      restSeconds: state.restSeconds, sets: state.sets }],
+      restSeconds: state.restSeconds, targetSets: state.targetSets, sets: state.sets }],
   };
 }
 
@@ -28,7 +28,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
     await installToken(context);
     const start = new Date("2026-09-12T08:00:00Z");
     await page.clock.setFixedTime(start);
-    const state = { closed: false, sets: [] as Record<string, unknown>[], restSeconds: 90 };
+    const state = { closed: false, sets: [] as Record<string, unknown>[], restSeconds: 90, targetSets: 2 };
     const receipts = new Map<string, Record<string, unknown>>();
     let loseNextAcknowledgement = true;
     const delay = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -47,7 +47,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
         const id = request.headers()["client-operation-id"];
         if (!receipts.has(id)) {
           const set = { ...request.postDataJSON(), id: 701 + state.sets.length,
-            setNumber: state.sets.length + 1, clientOperationId: id };
+            setNumber: state.sets.length + 1, completedAt: start.toISOString(), clientOperationId: id };
           receipts.set(id, set);
           state.sets.push(set);
         }
@@ -64,10 +64,13 @@ test.describe("移动端弱网与跨设备恢复", () => {
 
     await page.goto("/workouts");
     await expect(page.getByRole("heading", { name: "移动端冲突训练" })).toBeVisible();
+    const bar = page.getByRole("progressbar", { name: "计划组数进度" });
+    await expect(bar).toHaveAttribute("value", "0");
     await page.getByLabel("重量 kg", { exact: true }).fill("62.5");
     await page.getByLabel("次数", { exact: true }).fill("8");
     await page.getByRole("button", { name: "记录一组", exact: true }).click();
     await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
+    await expect(bar).toHaveAttribute("value", "1");
     const timer = page.getByRole("timer", { name: "组间休息剩余时间" });
     await expect(timer).toHaveText("01:30");
     await expect(page.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
@@ -80,6 +83,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
     await expect.poll(() => state.sets.length, { timeout: 20_000 }).toBe(1);
     await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("训练记录已同步");
     expect([...receipts.keys()]).toHaveLength(1);
+    await expect(bar).toHaveAttribute("value", "1");
     await expect(timer).toHaveText("00:50");
     await page.close();
   });
