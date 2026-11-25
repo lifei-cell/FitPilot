@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-23T12:21:18Z",
+  "updated_at": "2026-11-25T01:45:14Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -95,9 +95,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "2aa96c8ec0fb921b44a7e132fccd94d285b56678c0fa611e72ef14de2c76d1dc",
-      "size": 134941,
-      "normalized_sha256": "2aa96c8ec0fb921b44a7e132fccd94d285b56678c0fa611e72ef14de2c76d1dc"
+      "sha256": "970cbfe4f39ef4dbff3d3a227432d8123555a8e2d0202dfc4068efbfbd4cdcf5",
+      "size": 135417,
+      "normalized_sha256": "970cbfe4f39ef4dbff3d3a227432d8123555a8e2d0202dfc4068efbfbd4cdcf5"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -3071,9 +3071,9 @@
     },
     "web/e2e-offline/mobile-recovery.spec.ts": {
       "role": "observe",
-      "sha256": "536d96d1c50fae8eee6b8c2c6f1e432fc603abf4bc20a6faa924a7534a6955f4",
-      "size": 7172,
-      "normalized_sha256": "536d96d1c50fae8eee6b8c2c6f1e432fc603abf4bc20a6faa924a7534a6955f4"
+      "sha256": "73f0b327b19bcada09a36d7683b7dacbcf8e564fdcbf30b4bd1097930e7dccfc",
+      "size": 7716,
+      "normalized_sha256": "73f0b327b19bcada09a36d7683b7dacbcf8e564fdcbf30b4bd1097930e7dccfc"
     },
     "web/e2e-offline/recovery.spec.ts": {
       "role": "observe",
@@ -3101,9 +3101,9 @@
     },
     "web/e2e/quick-set.spec.ts": {
       "role": "observe",
-      "sha256": "f8545371fc4aaa4ae411171b40cdfb291f29b1988121e256d4de30268e3bbb6d",
-      "size": 2427,
-      "normalized_sha256": "b48a57eb06d345b5297720812d6505ddce0b8a251b39cfa8bc71803f9ea6f06b"
+      "sha256": "3fab12f5509c5ac5d30d6c610fae2dcc2d63f3fae6376e00008935e30215105f",
+      "size": 3377,
+      "normalized_sha256": "e8006833a08bde3bafd68e67aee442354a89baa8121d4fb85c62a75db6a7d725"
     },
     "web/eslint.config.js": {
       "role": "index",
@@ -3423,6 +3423,12 @@
       "size": 4562,
       "normalized_sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2"
     },
+    "web/src/features/workout/WorkoutRestTimer.tsx": {
+      "role": "index",
+      "sha256": "e2233f08111f8c03e38e08d8b38677d1cddee05f7a90c0c4d42c495520b81524",
+      "size": 2092,
+      "normalized_sha256": "e2233f08111f8c03e38e08d8b38677d1cddee05f7a90c0c4d42c495520b81524"
+    },
     "web/src/features/workout/WorkoutSetEditor.test.tsx": {
       "role": "observe",
       "sha256": "6e342cc2933f51452e586047800cb554849fbdac980ccebfc57b55b7ebecabbd",
@@ -3458,6 +3464,12 @@
       "sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090",
       "size": 926,
       "normalized_sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090"
+    },
+    "web/src/features/workout/workout-rest-timer.css": {
+      "role": "index",
+      "sha256": "1caae7974721c7c7f62f19541f98bfb5073e2735f75d2a936217b32d9e5fb011",
+      "size": 466,
+      "normalized_sha256": "1caae7974721c7c7f62f19541f98bfb5073e2735f75d2a936217b32d9e5fb011"
     },
     "web/src/features/workout/workout-set-editor.css": {
       "role": "index",
@@ -3569,9 +3581,9 @@
     },
     "web/src/pages/WorkoutsPage.tsx": {
       "role": "index",
-      "sha256": "5a67f440924e680b27d9f4280dbab202ec95d3c47456af66d741dc36e50898c0",
-      "size": 12243,
-      "normalized_sha256": "b7f591e4fe30d5940687c4ab07f7f2e71adb2d33e724ce22345e7e24a7466674"
+      "sha256": "32495c7c6d96763822df728820d3ef01bf4187bc55210bc00a545e923d5c5800",
+      "size": 13411,
+      "normalized_sha256": "430d5db13d0858680259da8c2ccfb88079e815a72dd727b957da887fc701381b"
     },
     "web/src/styles.css": {
       "role": "index",

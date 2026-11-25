@@ -2,13 +2,14 @@ import { devices, expect, test } from "@playwright/test";
 
 const mobile = { ...devices["Pixel 5"], viewport: { width: 393, height: 851 } };
 
-function workout(state: { closed: boolean; sets: Record<string, unknown>[] }) {
+function workout(state: { closed: boolean; sets: Record<string, unknown>[]; restSeconds?: number }) {
   return {
     id: 7,
     name: "移动端冲突训练",
     status: state.closed ? "COMPLETED" : "IN_PROGRESS",
     startedAt: "2026-09-12T08:00:00Z",
-    exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1, sets: state.sets }],
+    exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1,
+      restSeconds: state.restSeconds, sets: state.sets }],
   };
 }
 
@@ -25,7 +26,9 @@ test.describe("移动端弱网与跨设备恢复", () => {
   test("弱网延迟和响应丢失后保持本机队列并用原操作号重试", async ({ context, page }) => {
     test.setTimeout(60_000);
     await installToken(context);
-    const state = { closed: false, sets: [] as Record<string, unknown>[] };
+    const start = new Date("2026-09-12T08:00:00Z");
+    await page.clock.setFixedTime(start);
+    const state = { closed: false, sets: [] as Record<string, unknown>[], restSeconds: 90 };
     const receipts = new Map<string, Record<string, unknown>>();
     let loseNextAcknowledgement = true;
     const delay = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -65,13 +68,19 @@ test.describe("移动端弱网与跨设备恢复", () => {
     await page.getByLabel("次数", { exact: true }).fill("8");
     await page.getByRole("button", { name: "记录一组", exact: true }).click();
     await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
+    const timer = page.getByRole("timer", { name: "组间休息剩余时间" });
+    await expect(timer).toHaveText("01:30");
     await expect(page.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "重试同步" })).toBeEnabled();
 
+    await page.clock.setFixedTime(new Date(start.getTime() + 40_000));
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(timer).toHaveText("00:50");
     await page.getByRole("button", { name: "重试同步" }).click();
     await expect.poll(() => state.sets.length, { timeout: 20_000 }).toBe(1);
     await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("训练记录已同步");
     expect([...receipts.keys()]).toHaveLength(1);
+    await expect(timer).toHaveText("00:50");
     await page.close();
   });
 

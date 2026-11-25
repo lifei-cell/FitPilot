@@ -19,10 +19,18 @@ import { exportRecovery } from "../features/workout/workoutRecoveryStore";
 import { QuickSetForm } from "../features/workout/QuickSetForm";
 import { WorkoutExerciseGuide } from "../features/workout/WorkoutExerciseGuide";
 import { WorkoutHistoryPanel } from "../features/workout/WorkoutHistoryPanel";
+import { WorkoutRestTimer } from "../features/workout/WorkoutRestTimer";
 import { WorkoutSetEditor } from "../features/workout/WorkoutSetEditor";
 import { WorkoutFeedbackForm } from "../features/workout/WorkoutFeedbackForm";
 import { activePlanQuery } from "../features/plan/activePlanQuery";
 import { navigate } from "../components/AppShell";
+
+type WorkoutRest = {
+  workoutId: number;
+  exerciseId: number;
+  durationSeconds: number;
+  endsAt: number;
+};
 
 export function WorkoutsPage() {
   const client = useQueryClient();
@@ -30,9 +38,11 @@ export function WorkoutsPage() {
   const [error, setError] = useState("");
   const [feedbackWorkoutId, setFeedbackWorkoutId] = useState<number | null>(null);
   const [openGuideId, setOpenGuideId] = useState<number | null>(null);
+  const [rest, setRest] = useState<WorkoutRest | null>(null);
   const [showAdjustmentPrompt, setShowAdjustmentPrompt] = useState(false);
   const recovery = useWorkoutRecovery();
   const { active } = recovery;
+  const workout = recovery.isClosed ? undefined : active.data;
   const plan = useQuery({
     ...activePlanQuery,
     enabled: !active.data || recovery.isClosed,
@@ -68,6 +78,7 @@ export function WorkoutsPage() {
     onSuccess: (_, variables) => {
       recovery.finished(variables.id);
       setFeedbackWorkoutId(null);
+      setRest(null);
       if (variables.action === "complete") setShowAdjustmentPrompt(true);
       refresh();
     },
@@ -122,15 +133,15 @@ export function WorkoutsPage() {
       </Panel>}
       {recovery.error && <p role="alert" className="form-error">{recovery.error}</p>}
       {error && <p className="form-error error-banner">{error}</p>}
-      {active.data && !recovery.isClosed ? (
+      {workout ? (
         <Panel className="workout-live">
           <div className="live-head">
             <div>
               <Status value="IN_PROGRESS" />
-              <h2>{active.data.name}</h2>
+              <h2>{workout.name}</h2>
               <p>
                 开始于{" "}
-                {new Date(active.data.startedAt).toLocaleTimeString("zh-CN", {
+                {new Date(workout.startedAt).toLocaleTimeString("zh-CN", {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
@@ -141,7 +152,7 @@ export function WorkoutsPage() {
                 className="secondary-button danger"
                 disabled={recording || finish.isPending || !recovery.canFinish}
                 onClick={() =>
-                  finish.mutate({ id: active.data!.id, action: "cancel" })
+                  finish.mutate({ id: workout.id, action: "cancel" })
                 }
               >
                 <CircleStop size={16} />
@@ -150,19 +161,19 @@ export function WorkoutsPage() {
               <button
                 className="primary-button compact"
                 disabled={recording || finish.isPending || !recovery.canFinish}
-                onClick={() => setFeedbackWorkoutId(active.data!.id)}
+                onClick={() => setFeedbackWorkoutId(workout.id)}
               >
                 <CheckCircle2 size={17} />
                 完成训练
               </button>
             </div>
           </div>
-          {feedbackWorkoutId === active.data.id ? <WorkoutFeedbackForm key={feedbackWorkoutId}
+          {feedbackWorkoutId === workout.id ? <WorkoutFeedbackForm key={feedbackWorkoutId}
             busy={finish.isPending || recording || !recovery.canFinish}
             onSubmit={(feedback) => finish.mutate({ id: feedbackWorkoutId, action: "complete", feedback })}
             onSkip={() => finish.mutate({ id: feedbackWorkoutId, action: "complete" })} /> : null}
           <div className="exercise-stack">
-            {active.data.exercises.map((exercise, index) => (
+            {workout.exercises.map((exercise, index) => (
               <article className="exercise-live" key={exercise.id}>
                 <div className="exercise-index">
                   {String(index + 1).padStart(2, "0")}
@@ -199,28 +210,46 @@ export function WorkoutsPage() {
                         }
                         onSave={(payload) =>
                           updateSet.mutate({
-                            workoutId: active.data!.id,
+                            workoutId: workout.id,
                             setId: set.id,
                             payload,
                           })
                         }
                         onDelete={() =>
                           deleteSet.mutate({
-                            workoutId: active.data!.id,
+                            workoutId: workout.id,
                             setId: set.id,
                           })
                         }
                       />
                     ))}
                   </div>
-                  <QuickSetForm workoutId={active.data!.id} exercise={exercise}
+                  <QuickSetForm workoutId={workout.id} exercise={exercise}
                     busy={recording || finish.isPending || updateSet.isPending || deleteSet.isPending}
                     onSave={async (payload, idempotencyKey) => {
                       setRecording(true);
                       try {
-                        await recovery.saveSet(active.data!.id, exercise.id, payload, idempotencyKey);
+                        await recovery.saveSet(workout.id, exercise.id, payload, idempotencyKey);
+                        const duration = exercise.restSeconds ?? 0;
+                        setRest(duration > 0 ? {
+                          workoutId: workout.id,
+                          exerciseId: exercise.id,
+                          durationSeconds: duration,
+                          endsAt: Date.now() + duration * 1000,
+                        } : null);
                       } finally { setRecording(false); }
                     }} />
+                  {rest?.workoutId === workout.id && rest.exerciseId === exercise.id && (
+                    <WorkoutRestTimer
+                      durationSeconds={rest.durationSeconds}
+                      endsAt={rest.endsAt}
+                      onReset={() => setRest({
+                        ...rest,
+                        endsAt: Date.now() + rest.durationSeconds * 1000,
+                      })}
+                      onDismiss={() => setRest(null)}
+                    />
+                  )}
                 </div>
               </article>
             ))}
