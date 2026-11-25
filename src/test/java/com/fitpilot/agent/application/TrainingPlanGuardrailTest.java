@@ -1,6 +1,10 @@
 package com.fitpilot.agent.application;
 
+import com.fitpilot.plan.application.TrainingPlanValidationService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -9,11 +13,20 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TrainingPlanGuardrailTest {
-    private final TrainingPlanGuardrail guardrail=new TrainingPlanGuardrail(
-            new com.fitpilot.plan.application.TrainingPlanValidationService());
+    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private final TrainingPlanGuardrail guardrail = new TrainingPlanGuardrail(
+            new TrainingPlanValidationService(), factory.getValidator());
+
+    @AfterEach void closeFactory() { factory.close(); }
     @Test void acceptsBoundedStructuredPlan(){assertThat(guardrail.validate(plan(3,8,7,90,3))).isEmpty();}
     @Test void rejectsExcessiveVolumeRpeRestAndDuration(){
-        assertThat(guardrail.validate(plan(9,20,4,900,9))).contains("计划周期必须为 1-16 周","每周训练频率不得超过 6 天","单动作组数必须为 1-8 组","目标 RPE 不得低于 5","组间休息必须为 30-600 秒");
+        assertThat(guardrail.validate(plan(7,20,4,900,9))).contains("计划周期必须为 1-16 周","每周训练频率不得超过 6 天","单动作组数必须为 1-8 组","目标 RPE 不得低于 5","组间休息必须为 30-600 秒");
+    }
+    @Test void rejectsModelOutputOutsideThePlanRequestContract() {
+        var valid = plan(3, 8, 7, 90, 3);
+        var invalid = new TrainingPlanDtos.CreateRequest(valid.name(), null,
+                "Build full-body strength with a four-week gym program", valid.durationWeeks(), valid.days());
+        assertThat(guardrail.validate(invalid)).anyMatch(issue -> issue.startsWith("goal "));
     }
     private TrainingPlanDtos.CreateRequest plan(int days,int weeks,int rpe,int rest,int sets){
         return new TrainingPlanDtos.CreateRequest("test",null,"GENERAL_FITNESS",weeks,

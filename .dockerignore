@@ -14,5 +14,6 @@ web/dist
 web/coverage
 web/playwright-report
 web/test-results
+integrations/pi-coach/node_modules
 evaluation-reports
 release-evidence

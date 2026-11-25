@@ -1,13 +1,13 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-25T01:54:41Z",
+  "updated_at": "2026-11-25T03:16:06Z",
   "files": {
     ".dockerignore": {
       "role": "index",
-      "sha256": "bcdda62c0e70da71ba7cf080a0c284546136339286e4ce227228d3feff0309ea",
-      "size": 220,
-      "normalized_sha256": "bcdda62c0e70da71ba7cf080a0c284546136339286e4ce227228d3feff0309ea"
+      "sha256": "c475052b7e99fee65c3245eca0c0f7f572d08fe67250ddb4c5bc8040103a3a8a",
+      "size": 255,
+      "normalized_sha256": "c475052b7e99fee65c3245eca0c0f7f572d08fe67250ddb4c5bc8040103a3a8a"
     },
     ".env.example": {
       "role": "index",
@@ -89,15 +89,15 @@
     },
     "README.md": {
       "role": "index",
-      "sha256": "a7df50577522d4ccc0afbe61cc16d888b966355248570cf616aec87c543c08f7",
-      "size": 18064,
-      "normalized_sha256": "d52a7c1eea7c4db5c5635ac3f9e98b9fe9498e079b99371c4f725a6be98da573"
+      "sha256": "405ac8aa425bdb7bb00116c6f39b482e2438e59b9565d3f3452fb65680f31665",
+      "size": 18182,
+      "normalized_sha256": "3bedd1a9a54c1627ffb5d3514e967ae0b76f31ee07459a0874f517eb749757f6"
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "f43ee38b16832d533e504702a46537857848ad6236137c0720657a0e741ab29b",
-      "size": 136254,
-      "normalized_sha256": "f43ee38b16832d533e504702a46537857848ad6236137c0720657a0e741ab29b"
+      "sha256": "29820ae4119aed878bc5909a93ec29a6e24618f98d45276257e714e79b348828",
+      "size": 140046,
+      "normalized_sha256": "29820ae4119aed878bc5909a93ec29a6e24618f98d45276257e714e79b348828"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -380,6 +380,12 @@
       "sha256": "4be97412b373dcdac0e66b758d566fbbe947009d44d436d3faae08a83a7bd471",
       "size": 1516,
       "normalized_sha256": "4be97412b373dcdac0e66b758d566fbbe947009d44d436d3faae08a83a7bd471"
+    },
+    "docker-compose.pi.yml": {
+      "role": "index",
+      "sha256": "309fd903f524d4e3aee79de84fd93babe415247897326ff0627e48ab03b7fd14",
+      "size": 762,
+      "normalized_sha256": "309fd903f524d4e3aee79de84fd93babe415247897326ff0627e48ab03b7fd14"
     },
     "docker-compose.yml": {
       "role": "index",
@@ -1041,6 +1047,60 @@
       "size": 16158,
       "normalized_sha256": "1ac825fc3e3486329c7e7ccd6a9df0d1181327ef36b5b3a4dcec6eeda8546bab"
     },
+    "integrations/pi-coach/.gitignore": {
+      "role": "index",
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+      "size": 14,
+      "normalized_sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    "integrations/pi-coach/README.md": {
+      "role": "index",
+      "sha256": "e5f8fce60a6a007bcb5a87e9afba9046ffeaf9bfff50cc239fc565077909d502",
+      "size": 2242,
+      "normalized_sha256": "e5f8fce60a6a007bcb5a87e9afba9046ffeaf9bfff50cc239fc565077909d502"
+    },
+    "integrations/pi-coach/package-lock.json": {
+      "role": "observe",
+      "sha256": "66e7242998c3f86168b6d96478cb09d6e0dce551af5b3ffe606c20a393435c33",
+      "size": 45133,
+      "normalized_sha256": "66e7242998c3f86168b6d96478cb09d6e0dce551af5b3ffe606c20a393435c33"
+    },
+    "integrations/pi-coach/package.json": {
+      "role": "index",
+      "sha256": "4d6efd477f3dcb1d44b994dfb4f4ac340552d15387fbfbca7d5610bc83523b97",
+      "size": 439,
+      "normalized_sha256": "4d6efd477f3dcb1d44b994dfb4f4ac340552d15387fbfbca7d5610bc83523b97"
+    },
+    "integrations/pi-coach/src/cli.mjs": {
+      "role": "index",
+      "sha256": "c5be34814406bf6786e3bd67dcc996a9d9d06688c0cb45b978bd1d977b2705b7",
+      "size": 3111,
+      "normalized_sha256": "c5be34814406bf6786e3bd67dcc996a9d9d06688c0cb45b978bd1d977b2705b7"
+    },
+    "integrations/pi-coach/src/credentials.mjs": {
+      "role": "index",
+      "sha256": "cd1bf4c60c9ee7327c1461cc5a416a3adc89312affcec700183dc978b499255d",
+      "size": 2678,
+      "normalized_sha256": "cd1bf4c60c9ee7327c1461cc5a416a3adc89312affcec700183dc978b499255d"
+    },
+    "integrations/pi-coach/src/provider.mjs": {
+      "role": "index",
+      "sha256": "fc36231912b7f3958c67127499dac44ec031ea35ba563f11585c8388c8e48e07",
+      "size": 3819,
+      "normalized_sha256": "fc36231912b7f3958c67127499dac44ec031ea35ba563f11585c8388c8e48e07"
+    },
+    "integrations/pi-coach/src/server.mjs": {
+      "role": "index",
+      "sha256": "882e00ecc5d9b9a7842c32758246d52a90a9dd739eadca607fcc3e0a2bc79617",
+      "size": 3350,
+      "normalized_sha256": "882e00ecc5d9b9a7842c32758246d52a90a9dd739eadca607fcc3e0a2bc79617"
+    },
+    "integrations/pi-coach/test/adapter.test.mjs": {
+      "role": "index",
+      "sha256": "a4fcebfe19f9b0f268ec2fb30f4623dca8e147358a394b1fa729b47b7e67725c",
+      "size": 6596,
+      "normalized_sha256": "a4fcebfe19f9b0f268ec2fb30f4623dca8e147358a394b1fa729b47b7e67725c"
+    },
     "load-test/README.md": {
       "role": "index",
       "sha256": "225413d5115c839ee80f138f3ec8f2e39de53bf66c1d1f09b209c1d5c1fc60e7",
@@ -1343,9 +1403,9 @@
     },
     "src/main/java/com/fitpilot/agent/application/PlanProposalService.java": {
       "role": "index",
-      "sha256": "bbbab2d8922255a22712d8aa49e95c626dd66cdf6bea5ec4ff27b60efb76ed35",
-      "size": 10907,
-      "normalized_sha256": "bbbab2d8922255a22712d8aa49e95c626dd66cdf6bea5ec4ff27b60efb76ed35"
+      "sha256": "d813bc1a34773df5d0eb2e231be1b4915ecdb84c6d4abb7c3bdc947492830ae0",
+      "size": 11871,
+      "normalized_sha256": "d813bc1a34773df5d0eb2e231be1b4915ecdb84c6d4abb7c3bdc947492830ae0"
     },
     "src/main/java/com/fitpilot/agent/application/ToolExecutionService.java": {
       "role": "index",
@@ -1361,9 +1421,9 @@
     },
     "src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java": {
       "role": "index",
-      "sha256": "b1d387c28aeda6c1805d079373095ac4cfb73cfe2617a46212221cf4d4fcb815",
-      "size": 2177,
-      "normalized_sha256": "b1d387c28aeda6c1805d079373095ac4cfb73cfe2617a46212221cf4d4fcb815"
+      "sha256": "142fa2772657d4cbe63e94428acc0fbdffd08bce9608d30668b0464f815d51cc",
+      "size": 2526,
+      "normalized_sha256": "142fa2772657d4cbe63e94428acc0fbdffd08bce9608d30668b0464f815d51cc"
     },
     "src/main/java/com/fitpilot/agent/config/AgentProperties.java": {
       "role": "index",
@@ -1943,9 +2003,9 @@
     },
     "src/main/java/com/fitpilot/llm/application/LlmGateway.java": {
       "role": "index",
-      "sha256": "5137734de9275960371691a7cc26892fbebbb1ceae5d86d15e0d5d50fdc11a35",
-      "size": 6288,
-      "normalized_sha256": "5137734de9275960371691a7cc26892fbebbb1ceae5d86d15e0d5d50fdc11a35"
+      "sha256": "d0f68b7f32f2f16619fbb942f12f2bb1ca3fe1fcc4d61e64ec3522ddae0c234f",
+      "size": 6335,
+      "normalized_sha256": "d0f68b7f32f2f16619fbb942f12f2bb1ca3fe1fcc4d61e64ec3522ddae0c234f"
     },
     "src/main/java/com/fitpilot/llm/application/ModelRouter.java": {
       "role": "index",
@@ -1955,15 +2015,15 @@
     },
     "src/main/java/com/fitpilot/llm/application/PromptRegistry.java": {
       "role": "index",
-      "sha256": "e9beb06b0aecad7cbaed7d1660ae72ae7e975226ff87b59a1a89623973566dd5",
-      "size": 2384,
-      "normalized_sha256": "fc536607d13ec4a597256a6b4d6b5d48a52863839a9787bee9a36156d4dac613"
+      "sha256": "eabab6929bb5c06a81727c9fd0302bb91779978d1f25e1e291ffd211db71e0c0",
+      "size": 2910,
+      "normalized_sha256": "0b242b0c3e20e58d570569a7f05022ed336f6ccd5a7df230b8b27e32da2926b9"
     },
     "src/main/java/com/fitpilot/llm/config/LlmProperties.java": {
       "role": "index",
-      "sha256": "0c4790906c0b16a5f66184960527399d64a16e2c97b1d78ea425bfccdfa86a91",
+      "sha256": "1dbc8c4d6f62aff14cba9b679bbcdbd8f028751738e2908305addb4fa9015f1f",
       "size": 5054,
-      "normalized_sha256": "0c4790906c0b16a5f66184960527399d64a16e2c97b1d78ea425bfccdfa86a91"
+      "normalized_sha256": "1dbc8c4d6f62aff14cba9b679bbcdbd8f028751738e2908305addb4fa9015f1f"
     },
     "src/main/java/com/fitpilot/llm/controller/LlmOperationsController.java": {
       "role": "index",
@@ -2105,9 +2165,9 @@
     },
     "src/main/java/com/fitpilot/plan/dto/TrainingPlanDtos.java": {
       "role": "index",
-      "sha256": "8f4e6c699c7e2c325a15c5ae03f1f93955b87068e11ad2ce04af1ba6ed045c27",
-      "size": 2509,
-      "normalized_sha256": "8f4e6c699c7e2c325a15c5ae03f1f93955b87068e11ad2ce04af1ba6ed045c27"
+      "sha256": "3b254903b4cad4e026b49f6b7d9744a6336cfd3bd1b44fcd662dfb18ff940efd",
+      "size": 2536,
+      "normalized_sha256": "3b254903b4cad4e026b49f6b7d9744a6336cfd3bd1b44fcd662dfb18ff940efd"
     },
     "src/main/java/com/fitpilot/plan/infrastructure/TrainingPlanDayMapper.java": {
       "role": "index",
@@ -2495,9 +2555,9 @@
     },
     "src/main/resources/application.yml": {
       "role": "index",
-      "sha256": "f4d1fe1ea37d6438861e2f89c70a57c17f234483bcb1c3ce7e19851cff9ddccb",
+      "sha256": "a1bda8a0dce9a37f8eec36199c0552bb6e8060eaa2d7f086643e69fab05e7475",
       "size": 8122,
-      "normalized_sha256": "f0fe73a0dfb68994dfb5172d2bdd613f2f86cf74bc7a9175de3500c7ef64e568"
+      "normalized_sha256": "91bb38eea729857d6947dd3e00793afe6764069daa9dff1023082af751084709"
     },
     "src/main/resources/db/migration/V10__enforce_single_active_workout.sql": {
       "role": "index",
@@ -2723,9 +2783,9 @@
     },
     "src/test/java/com/fitpilot/agent/application/TrainingPlanGuardrailTest.java": {
       "role": "index",
-      "sha256": "ab62f0407a4811dfc48cd26a1152a1e13852151b3267609b92ad38aae89a14ef",
-      "size": 1287,
-      "normalized_sha256": "ab62f0407a4811dfc48cd26a1152a1e13852151b3267609b92ad38aae89a14ef"
+      "sha256": "a762adc8c47bf95a6ba9243182dc39c6c44a10431211cb7cd81890fb2774f260",
+      "size": 2015,
+      "normalized_sha256": "a762adc8c47bf95a6ba9243182dc39c6c44a10431211cb7cd81890fb2774f260"
     },
     "src/test/java/com/fitpilot/agent/memory/AgentSessionStoreTest.java": {
       "role": "index",

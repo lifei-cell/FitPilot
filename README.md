@@ -108,6 +108,8 @@ docker compose --profile observability up --build -d --wait
 
 Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。Compose 将 Actuator 管理端口隔离到仅本机可访问的 <http://localhost:9091/actuator/health>；`prod` profile 默认关闭 Swagger/OpenAPI。
 
+本地 AI 教练支持通过 Pi 使用已授权的 ChatGPT 订阅。 [接入说明](integrations/pi-coach/README.md)
+
 ### 演示数据
 
 演示数据仅用于本地 Docker 环境，采用显式脚本而非 Flyway 自动迁移，避免进入生产数据库。先启动 Compose 后执行：

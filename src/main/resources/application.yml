@@ -113,7 +113,7 @@ fitpilot:
     max-retry-after-ms: ${LLM_MAX_RETRY_AFTER_MS:2000}
     circuit-failure-threshold: ${LLM_CIRCUIT_FAILURE_THRESHOLD:5}
     circuit-open-seconds: ${LLM_CIRCUIT_OPEN_SECONDS:30}
-    prompt-version: ${LLM_PROMPT_VERSION:v5.1}
+    prompt-version: ${LLM_PROMPT_VERSION:v5.2}
     max-context-chars: ${LLM_MAX_CONTEXT_CHARS:12000}
     primary:
       name: primary

@@ -17,7 +17,7 @@ public class LlmProperties {
     private int maxRetryAfterMs = 2000;
     private int circuitFailureThreshold = 5;
     private int circuitOpenSeconds = 30;
-    private String promptVersion = "v5.1";
+    private String promptVersion = "v5.2";
     private int maxContextChars = 12000;
     private final Endpoint primary = new Endpoint("primary");
     private final Endpoint fallback = new Endpoint("fallback");

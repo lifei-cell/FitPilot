@@ -1,7 +1,7 @@
 #AOCI-CODE-VOLUME: 1
 
 ===/<repository>/===
-.dockerignore[FV3T]: F:排除后端镜像构建上下文中的本地产物、环境文件和前端依赖 | R:code:Dockerfile | A:- | S:-
+.dockerignore[FV3T]: F:排除后端镜像构建上下文中的本地产物、环境文件和前端及 Pi 依赖目录 | R:code:Dockerfile | A:- | S:-
 .env.example[FC5T]: F:提供本地 Compose 的数据库、凭证、限流、缓存、事件、LLM 和 RAG 环境变量样例 | R:- | A:EMBEDDING_PROVIDER,LLM_ENABLED | S:OpenAI 兼容 embedding 需返回 384 维
 .gitattributes[FQ5T]: F:固定实验原始证据和 AOCI 资产的跨平台检出字节 | R:- | A:docs/performance/evidence/**/*.json,aoci.txt,aoci.*.txt,.aoci/database/evidence/**/*.json | S:AOCI 按实际文件字节校验卷及证据摘要，Windows 自动转 CRLF 会使校验失败
 .gitignore[FV3T]: F:忽略本地构建、环境、证据输出和机器绑定的 Codex 配置 | R:- | A:.codex/config.toml | S:-
@@ -9,10 +9,11 @@
 .gitleaksignore[FS3T]: F:按历史提交、文件、规则和行号登记已知密钥扫描误报 | R:- | A:Gitleaks fingerprints | S:-
 AGENTS.md[SG5S]: F:规定 AOCI 会话加载、证据约束、机器批次和任务收尾流程 | R:- | A:aoci_rules,aoci_overview,aoci_maintain | S:上下文压缩后须重新绑定完整交付；旧收据不能证明模型当前认知
 Dockerfile[OV6T]: F:用两阶段镜像构建后端 JAR，以非 root 用户运行 Java 21 服务 | R:code:pom.xml | A:8080,9091 | S:容器存活检查走独立管理端口的 Actuator
-README.md[SG6M]: F:导航 FitPilot 模块化架构、功能保证、启动、测试与发布证据 | R:code:docs/project-structure.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
+README.md[SG6M]: F:导航 FitPilot 架构、业务保证、启动方式、ChatGPT 订阅接入与交付验证 | R:code:docs/project-structure.md,code:integrations/pi-coach/README.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
 docker-compose.dual-instance.yml[TR5T]: F:以共享 PostgreSQL、Redis 和 Kafka 的两个后端实例重放事件恢复场景 | R:code:docker-compose.yml,code:scripts/operations/run-dual-instance-event-recovery.ps1 | A:app-a,app-b | S:关闭缓存、限流和 AI，缩短 Outbox 轮询与领取超时以隔离实验
 docker-compose.yml[OV7M]: F:启动 FitPilot 本地应用、数据依赖，以及可选观测与故障模拟服务 | R:code:Dockerfile,code:.env.example | A:observability,fault | S:Kafka 禁用自动建主题并分别广播容器内外地址
 pom.xml[FV7S]: F:定义 Java 21 后端依赖、打包、单元/集成测试、覆盖率和 SBOM 门禁 | R:code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:全局行覆盖率至少 60%，选定核心包至少 70%，跳过测试另行阻断
+docker-compose.pi.yml[OV6T]: F:将本地应用的主模型端点指向宿主机 Pi 适配器 | R:code:docker-compose.yml,code:integrations/pi-coach/src/server.mjs | A:FITPILOT_PI_MODEL,FITPILOT_PI_BRIDGE_KEY,FITPILOT_PI_PORT | S:后端取消端口发布，Web 绑定回环地址。单次适配器截止早于 Java 请求截止，叠加层关闭同端点重试
 
 ===/<repository>/.github/workflows/===
 ci.yml[TQ7S]: F:在 PR 和主分支执行前后端质量门禁、V22 发布回归、清单渲染与制品扫描 | R:code:scripts/run-quality-gate.ps1,code:scripts/delivery/test-v22-rollout.ps1 | A:CI | S:同一引用的新运行取消旧运行，验证证据在失败时仍尝试上传
@@ -316,9 +317,9 @@ AgentWorkflowService.java[AA6S]: F:提供 HTTP 与 MCP 共用的会话、消息�
 ConfirmationService.java[AA8T]: F:锁定并验证用户待确认动作，重验计划规则，创建草稿并记录执行结果 | R:code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:confirm | S:成功时草案、动作终态和审计同事务。仅来源计划变更异常允许提交双方失效状态后返回冲突
 IntentRouter.java[AA6T]: F:记录 Agent 执行起点并用模型决策补充确定性意图回退 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java,code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:begin,decide,recordUsage | S:-
 PendingActionService.java[AA7S]: F:签发和轮换确认令牌，列出用户待办并授权及推进动作终态 | R:code:src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java | A:create,list,rotateToken,requireConfirmable,decide | S:只持久化令牌哈希。确认使用归属行锁和常量时间比较，终态更新丢失待确认状态时返回冲突
-PlanProposalService.java[AA7S]: F:用模型或规则构造创建与调整计划草案，经安全校验后交给待确认流程 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java | A:prepare | S:调整预检查只用于避免重复模型调用。并发落库冲突在事务外转为已有待确认调整的提示
+PlanProposalService.java[AA7M]: F:为创建与调整生成计划提议，经安全校验后交给待确认流程 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java,code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/exercise/application/ExerciseService.java | A:prepare | S:创建时将至多 50 条有效动作置于模型上下文前部。调整预检查避免重复调用，并发冲突在事务外转为待确认提示
 ToolExecutionService.java[AA6T]: F:执行与审计 Agent/MCP 读工具调用，跳过工作流中的写意图 | R:code:src/main/java/com/fitpilot/agent/application/AgentToolExecutor.java | A:executeReadTools,executeMcp | S:-
-TrainingPlanGuardrail.java[DA7T]: F:在通用计划校验外约束生成计划的周期、训练频次、周组数和动作范围 | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanValidationService.java | A:validate | S:提议生成和最终确认共用规则；周组数上限为 120
+TrainingPlanGuardrail.java[DA7T]: F:把计划请求字段约束和 Agent 的周期、频次及训练容量限制用于草案与确认 | R:code:src/main/java/com/fitpilot/plan/application/TrainingPlanValidationService.java,code:src/main/java/com/fitpilot/plan/dto/TrainingPlanDtos.java | A:validate | S:模型和持久化提议绕过控制器校验，需先验证 DTO 再访问嵌套动作。周正式组容量上限 120
 TrainingAdjustmentWorkflow.java[AA8S]: F:事务化创建调整提议与待确认动作，协调拒绝、确认和过期替换 | R:code:src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java,code:src/main/java/com/fitpilot/agent/application/PendingActionService.java,code:src/main/java/com/fitpilot/agent/application/ConfirmationService.java,code:src/main/java/com/fitpilot/plan/application/TrainingPlanService.java | A:create,reject,confirm,AlreadyPending | S:提议和动作连同待确认审计一起写入，唯一冲突回滚。先锁用户动作再决定提议，确认必须匹配同一条待确认关联且来源仍是当前活动版本
 
 ===/<repository>/src/main/java/com/fitpilot/agent/config/===
@@ -485,12 +486,12 @@ TwoLevelCache.java[RP8S]: F:组织 Caffeine、Redis 和数据库回源，处理�
 
 ===/<repository>/src/main/java/com/fitpilot/llm/application/===
 LlmAuditRetentionJob.java[RS4T]: F:按配置定期删除超过保留窗口的模型调用审计 | R:code:src/main/java/com/fitpilot/llm/infrastructure/LlmInvocationRepository.java | A:cleanup | S:-
-LlmGateway.java[AA8T]: F:为 Agent 意图、计划草案和分析答复提供模型调用与确定性回退 | R:code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java,code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:decide,generatePlan,answer | S:拒绝嵌套身份参数；写意图必须匹配完整的有序工具链
+LlmGateway.java[AA8T]: F:为 Agent 意图、计划草案和分析答复提供模型调用与规则回退 | R:code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java,code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:decide,generatePlan,answer | S:拒绝嵌套身份参数，写意图须匹配完整有序工具链。计划上下文延迟到启用模型后读取，构造或解析失败时回退
 ModelRouter.java[AA5T]: F:按推理任务选择端点的小型、中型或强模型 | R:- | A:model | S:-
-PromptRegistry.java[FA5T]: F:为意图、草案、问答、检索改写和偏好提取提供版本化提示 | R:- | A:version,system | S:提示将用户输入与检索证据作为不可信数据处理
+PromptRegistry.java[FA5T]: F:提供意图、草案、问答、检索改写和偏好提取的模型提示 | R:code:src/main/java/com/fitpilot/llm/application/LlmGateway.java,code:src/main/java/com/fitpilot/plan/dto/TrainingPlanDtos.java | A:version,system | S:写意图提示从网关有序列表构造。创建选择提供的有效动作，调整沿用现有上下文中的动作 ID
 
 ===/<repository>/src/main/java/com/fitpilot/llm/config/===
-LlmProperties.java[FA5T]: F:绑定模型端点、各任务模型、计价、预算、熔断及提示版本并验证配置 | R:- | A:fitpilot.llm | S:-
+LlmProperties.java[FA5T]: F:绑定模型端点、各任务模型、计价、预算、熔断及提示版本并验证配置 | R:code:src/main/resources/application.yml | A:fitpilot.llm | S:未设置中型模型时继承小型模型，未设置强模型时继承中型模型
 
 ===/<repository>/src/main/java/com/fitpilot/llm/controller/===
 LlmOperationsController.java[EO4T]: F:暴露模型网关状态和可按状态与模型过滤的调用审计 | R:code:src/main/java/com/fitpilot/llm/application/LlmGateway.java | A:/api/v1/operations/llm | S:-
@@ -540,7 +541,7 @@ TrainingPlanExercise.java[DB4T]: F:映射计划日的动作顺序、目标组数
 TrainingPlanValidator.java[DB5T]: F:验证计划日号、日内动作顺序唯一和次数区间次序 | R:- | A:validate | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/plan/dto/===
-TrainingPlanDtos.java[CB5T]: F:定义计划新建、版本编辑和层级详情的字段校验合同 | R:- | A:CreateRequest,UpdateRequest,PlanView | S:-
+TrainingPlanDtos.java[CB5T]: F:声明计划新建、编辑和层级详情的字段与校验合同 | R:- | A:CreateRequest,UpdateRequest,PlanView | S:创建与更新都拒绝训练日或动作列表内部的空项
 
 ===/<repository>/src/main/java/com/fitpilot/plan/infrastructure/===
 TrainingPlanDayMapper.java[PB3T]: F:提供训练日程记录的 MyBatis-Plus 数据访问映射 | R:code:src/main/java/com/fitpilot/plan/domain/TrainingPlanDay.java | A:- | S:-
@@ -663,7 +664,7 @@ WorkoutRepository.java[PB8S]: F:持久化训练快照与历史组，并为开练
 
 ===/<repository>/src/main/resources/===
 application-prod.yml[FO4T]: F:在生产 profile 关闭 API 文档并独立暴露健康、信息和指标 | R:- | A:MANAGEMENT_SERVER_PORT | S:-
-application.yml[FG7M]: F:配置 PostgreSQL、Redis、Kafka、Flyway、认证、观测、AI 与性能开关 | R:code:src/main/resources/application-prod.yml | A:application.yml | S:Kafka 使用 record ack 与 read_committed；默认关闭外部 LLM，启用 RAG 证据门槛
+application.yml[FG7M]: F:配置 PostgreSQL、Redis、Kafka、Flyway、认证、观测、AI 与性能开关 | R:code:src/main/resources/application-prod.yml,code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java | A:application.yml,LLM_PROMPT_VERSION | S:默认关闭外部 LLM，提示版本默认 v5.2，启用 RAG 证据门槛。Kafka 使用 record ack 与 read_committed
 
 ===/<repository>/src/main/resources/db/migration/===
 V10__enforce_single_active_workout.sql[FD6T]: F:以部分唯一索引强制每个用户最多一个进行中训练 | R:- | A:uk_workout_one_in_progress | S:-
@@ -712,7 +713,7 @@ TrainingAdjustmentEvidenceIT.java[TA6S]: F:在真实 PostgreSQL 验证训练量�
 
 ===/<repository>/src/test/java/com/fitpilot/agent/application/===
 AgentPlannerTest.java[TA4T]: F:验证规则规划器稳定选中接受数据集的精确工具序列 | R:code:src/main/java/com/fitpilot/agent/application/AgentPlanner.java | A:- | S:-
-TrainingPlanGuardrailTest.java[TA4T]: F:验证结构化计划通过及超周期、训练量、RPE 与休息约束拒绝 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:- | S:-
+TrainingPlanGuardrailTest.java[TA4T]: F:验证合格计划通过并拒绝超限训练量及不符合 DTO 合同的模型输出 | R:code:src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java | A:- | S:长文本训练目标的样例覆盖模型绕过 HTTP 表单校验的路径
 TrainingAdjustmentWorkflowIT.java[TA7M]: F:用真实 PostgreSQL 验证竞争创建的事务回滚、确认与拒绝互斥、成对失效和孤立动作拦截 | R:code:src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java,code:src/main/java/com/fitpilot/agent/application/ConfirmationService.java | A:- | S:使用 pg_blocking_pids 证明后发事务已等待，分别覆盖确认和拒绝先获得锁的顺序
 
 ===/<repository>/src/test/java/com/fitpilot/agent/memory/===
@@ -930,3 +931,17 @@ SchedulerIsolationTest.java[TW5T]: F:在真实 Spring 调度中验证普通定�
 ExerciseMediaPanel.tsx[EU5T]: F:展示选定动作的示意图、素材署名和哔哩哔哩教学播放器 | R:code:web/src/features/exercise/exerciseMediaCatalog.ts | A:ExerciseMediaPanel | S:用户点播后才挂载外站 iframe，收起即卸载。嵌入和跳转都使用同一分集号
 exercise-media-panel.css[FU3T]: F:约束动作图片和嵌入视频的宽高比、控件换行与署名样式 | R:code:web/src/features/exercise/ExerciseMediaPanel.tsx | A:- | S:透明白线示意图使用深色背景以保留可读性
 exerciseMediaCatalog.ts[FU5T]: F:映射内置动作的本地示意图、许可署名与哔哩哔哩视频分集 | R:code:src/main/resources/db/migration/V2__seed_exercises.sql,code:web/README.md | A:findExerciseMedia | S:用中英文名称共同匹配以兼容数据库 ID 差异，名称未匹配时不返回媒体
+
+===/<repository>/integrations/pi-coach/===
+.gitignore[FV2T]: F:排除 Pi 适配器本地安装的依赖目录 | R:- | A:node_modules/ | S:-
+README.md[SV5T]: F:说明本地 ChatGPT 授权、账号查模、WSL 启动、验证和撤销操作 | R:code:docker-compose.pi.yml,code:integrations/pi-coach/src/cli.mjs | A:npm run login,npm run models,npm run logout | S:适配器与容器共用桥接密钥，OAuth 凭证留在宿主机的用户状态目录
+package.json[FV5T]: F:声明本地 Pi 适配器的 Node 版本、依赖和运维命令 | R:code:integrations/pi-coach/src/cli.mjs,code:integrations/pi-coach/test/adapter.test.mjs | A:start,login,models,logout,test | S:-
+
+===/<repository>/integrations/pi-coach/src/===
+cli.mjs[EI6T]: F:执行 ChatGPT 授权、账号模型列表、注销与适配器启动 | R:code:integrations/pi-coach/src/credentials.mjs,code:integrations/pi-coach/src/provider.mjs,code:integrations/pi-coach/src/server.mjs | A:serve,login,logout,models | S:使用 FitPilot 应用身份与本机稳定设备标识。无交互终端时等待 OAuth 回调并支持取消
+credentials.mjs[PI7T]: F:为 Pi 的 OAuth 刷新和授权命令提供文件凭证存储 | R:code:integrations/pi-coach/src/cli.mjs | A:hostId,read,list,modify,delete | S:跨进程锁串行化改写，临时文件原子替换且凭证文件权限为 0600。注销保留设备标识
+provider.mjs[IA7S]: F:使用 Pi 的 OpenAI provider 查模并把 Responses 推理翻译成 Java 网关的完成响应 | R:code:integrations/pi-coach/src/credentials.mjs,code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiProviderTransport.java | A:createSubscriptionModels,listAccountModels,createCompletion,BridgeError | S:禁用 API Key 认证路径。只接受正常完成的文本流，结构化请求须得到 JSON 对象。限额映射为 429 并转发等待提示
+server.mjs[EN6T]: F:向 Java 网关提供带鉴权的非流式 Chat Completions 与存活检查 | R:code:integrations/pi-coach/src/provider.mjs,code:docker-compose.pi.yml | A:createCoachServer,/v1/chat/completions,/healthz | S:桥接密钥独立校验，仅接收配置模型的系统与用户消息。客户端断开或超时中止上游请求
+
+===/<repository>/integrations/pi-coach/test/===
+adapter.test.mjs[TA5S]: F:以本地 HTTP 和 Pi SDK 的 Responses 流桩验证协议转换、鉴权和故障边界 | R:code:integrations/pi-coach/src/provider.mjs,code:integrations/pi-coach/src/server.mjs,code:integrations/pi-coach/src/credentials.mjs | A:npm test | S:替身覆盖流中限额、非 JSON 和中断；凭证测试并发写入和注销后设备标识连续性
