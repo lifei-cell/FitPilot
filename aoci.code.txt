@@ -818,7 +818,7 @@ holdout-v1.json[TA4T]: F:固定 MiniLM 留出题的类别、预期来源及具�
 ===/<repository>/web/===
 .dockerignore[FV3T]: F:缩小 Web 镜像上下文，排除依赖、产物、缓存和本地 Wrangler 状态 | R:code:web/Dockerfile | A:- | S:-
 .gitignore[FV3T]: F:让 Git 忽略 Web 的依赖、测试输出、环境和部署运行文件 | R:- | A:- | S:-
-Dockerfile[OV5T]: F:用 Node 构建前端和公共静态资源，再交给无特权 Nginx 镜像托管 | R:code:web/nginx.conf,code:web/package.json,code:web/src/features/exercise/exerciseMediaCatalog.ts | A:8080,/healthz | S:动作示意图通过构建阶段复制 public 随产物发布，前端资源映射依赖这些同源文件
+Dockerfile[OV5T]: F:用 Node 构建 Web 和公共静态资源，以固定多架构摘要的无特权 Nginx 镜像托管 | R:code:web/nginx.conf,code:web/package.json,code:web/src/features/exercise/exerciseMediaCatalog.ts | A:8080,/healthz | S:动作示意图随 public 进入产物，前端同源媒体映射依赖这些文件
 README.md[SU3T]: F:记录 Web 启动、相对 API、测试入口与动作媒体来源及许可 | R:code:web/package.json,code:web/src/features/exercise/exerciseMediaCatalog.ts | A:- | S:-
 eslint.config.js[FQ4T]: F:配置 TypeScript ESLint、React Hooks 与未用变量的检查规则 | R:- | A:- | S:-
 index.html[EU3T]: F:定义中文页面壳、视口、品牌元数据与 React 模块入口 | R:code:web/src/main.tsx | A:#root | S:-

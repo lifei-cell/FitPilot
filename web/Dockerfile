@@ -8,7 +8,7 @@ COPY public ./public
 COPY .openai ./.openai
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.31.4-alpine3.24-slim@sha256:d668aa123a6ec3216ba5ae6b398ae8001d5e81d3142d3659e20354fd0c3c3125
+FROM nginx/nginx-unprivileged:1.31.10-alpine3.24-slim@sha256:f4afc48254dc77ea692ec6979d220e5b1176331c636a4d51c502ffdded6789bd
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /workspace/dist /usr/share/nginx/html
 EXPOSE 8080
