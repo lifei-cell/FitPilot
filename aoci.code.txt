@@ -16,10 +16,10 @@ pom.xml[FV7S]: F:管理 Java 21 Spring Boot 4 后端依赖、打包、测试、�
 docker-compose.pi.yml[OV6T]: F:将本地应用的主模型端点指向宿主机 Pi 适配器 | R:code:docker-compose.yml,code:integrations/pi-coach/src/server.mjs | A:FITPILOT_PI_MODEL,FITPILOT_PI_BRIDGE_KEY,FITPILOT_PI_PORT | S:后端取消端口发布，Web 绑定回环地址。单次适配器截止早于 Java 请求截止，叠加层关闭同端点重试
 
 ===/<repository>/.github/workflows/===
-ci.yml[TQ7S]: F:在 PR 和主分支验证前后端、Pi 教练适配器、V22 发布门禁及 Compose/Kubernetes 清单，并扫描依赖与镜像 | R:code:scripts/run-quality-gate.ps1,code:scripts/delivery/test-v22-rollout.ps1,code:integrations/pi-coach/test/adapter.test.mjs,code:docker-compose.pi.yml | A:CI,verification-evidence | S:同一引用的新运行取消旧运行，失败时仍尝试上传验证证据。Pi 测试用 SDK 替身隔离订阅端点
+ci.yml[TQ7S]: F:在 PR 和主分支验证前后端、Pi、V22 发布门禁和部署清单，并扫描依赖与镜像 | R:code:scripts/run-quality-gate.ps1,code:scripts/delivery/test-v22-rollout.ps1,code:integrations/pi-coach/test/adapter.test.mjs,code:docker-compose.pi.yml | A:CI,verification-evidence | S:同一引用的新运行取消旧运行，失败时仍尝试上传证据。后端门禁使用 Maven Central 与对应的缓存命名空间。Pi 测试以 SDK 替身隔离订阅端点
 deploy.yml[OV7S]: F:手动以不可变镜像执行生产交付并归档探测、迁移和部署证据 | R:code:scripts/delivery/run-delivery-gate.ps1 | A:Production Delivery Gate | S:生产交付串行且不中断正在运行的门禁，回滚演练默认关闭
 model-evaluation.yml[TA5T]: F:定时或手动启动 Compose，运行真实模型与 RAG 验收并归档证据 | R:code:scripts/evaluation/run-evaluations.ps1 | A:Real Model Evaluation | S:先检查操作令牌及主模型必要配置；结束总是清理容器和卷
-release.yml[OV7S]: F:构建 CI 验证过的当前主分支后端与 Web 镜像，发布 digest 清单和来源证明 | R:code:.github/workflows/ci.yml | A:Release Image | S:成功的 CI revision 必须仍与 origin/main 一致才能发布
+release.yml[OV7S]: F:复验通过 CI 的当前主分支，构建后端与 Web 镜像并发布 digest 清单和来源证明 | R:code:.github/workflows/ci.yml,code:scripts/run-quality-gate.ps1 | A:Release Image | S:成功的 CI revision 必须仍与 origin/main 一致才能发布，复验与 CI 共用 Maven Central 的缓存命名空间
 
 ===/<repository>/.mvn/===
 maven.config[FV4T]: F:把 Maven 下载缓存和镜像配置绑定到仓库内路径 | R:code:.mvn/settings.xml | A:maven.repo.local | S:-

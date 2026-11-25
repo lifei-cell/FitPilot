@@ -58,12 +58,13 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .mvn/repository
-          key: maven-${{ runner.os }}-${{ hashFiles('pom.xml') }}
-          restore-keys: maven-${{ runner.os }}-
+          key: maven-central-${{ runner.os }}-${{ hashFiles('pom.xml') }}
+          restore-keys: maven-central-${{ runner.os }}-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
+          settings-path: ${{ runner.temp }}/fitpilot-maven
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
@@ -71,6 +72,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - name: Verify release candidate
         shell: pwsh
+        env:
+          MAVEN_ARGS: --settings ${{ runner.temp }}/fitpilot-maven/settings.xml
         run: ./scripts/run-quality-gate.ps1
       - name: Build image for security gate
         run: docker build --build-arg APP_VERSION=main --build-arg GIT_REVISION=${{ needs.select-revision.outputs.revision }} -t fitpilot:release-candidate .
