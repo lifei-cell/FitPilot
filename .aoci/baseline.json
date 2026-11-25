@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-25T08:40:11Z",
+  "updated_at": "2026-11-25T14:37:34Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -89,15 +89,15 @@
     },
     "README.md": {
       "role": "index",
-      "sha256": "405ac8aa425bdb7bb00116c6f39b482e2438e59b9565d3f3452fb65680f31665",
-      "size": 18182,
-      "normalized_sha256": "3bedd1a9a54c1627ffb5d3514e967ae0b76f31ee07459a0874f517eb749757f6"
+      "sha256": "a552c8fa08321d82de55894b64beb7aebfd9310b1dd2cf57919c39bb267016ab",
+      "size": 18181,
+      "normalized_sha256": "ef4e6e910ae22968bffc1004a6af8713ebc33dbc086706d45b43068d74866552"
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "6561cc4cb3ba1798d869cbce4ede4f702165334f1f32f00356450bed97911ee8",
-      "size": 140220,
-      "normalized_sha256": "6561cc4cb3ba1798d869cbce4ede4f702165334f1f32f00356450bed97911ee8"
+      "sha256": "4acd8d5c57e0720720879557665fa082b97d778dae1b9afa4119cd30d9ef21e5",
+      "size": 140515,
+      "normalized_sha256": "4acd8d5c57e0720720879557665fa082b97d778dae1b9afa4119cd30d9ef21e5"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -1163,9 +1163,9 @@
     },
     "pom.xml": {
       "role": "index",
-      "sha256": "ec008ee75a1ea24f3db673242c5494d86168c150de3d33db16f26db444ad09e3",
-      "size": 11768,
-      "normalized_sha256": "ec008ee75a1ea24f3db673242c5494d86168c150de3d33db16f26db444ad09e3"
+      "sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4",
+      "size": 12621,
+      "normalized_sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4"
     },
     "scripts/README.md": {
       "role": "index",
@@ -1337,9 +1337,9 @@
     },
     "src/main/java/com/fitpilot/FitPilotApplication.java": {
       "role": "index",
-      "sha256": "4ad7a2437cf9846d6e56c3956f9b5aacc3418c31e50a6528b10edce33075eaa4",
-      "size": 862,
-      "normalized_sha256": "4ad7a2437cf9846d6e56c3956f9b5aacc3418c31e50a6528b10edce33075eaa4"
+      "sha256": "90273b0be99e3fcc7c3262eac7db464bcb72ec309efbb894bc3f6b41aba67a8f",
+      "size": 854,
+      "normalized_sha256": "90273b0be99e3fcc7c3262eac7db464bcb72ec309efbb894bc3f6b41aba67a8f"
     },
     "src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentDtos.java": {
       "role": "index",
@@ -1607,9 +1607,9 @@
     },
     "src/main/java/com/fitpilot/common/operations/OperationsAuthenticationFilter.java": {
       "role": "index",
-      "sha256": "2d47ef602722ecead750ff849e13e681279afc3e61815b35244529b138e77532",
-      "size": 2814,
-      "normalized_sha256": "2d47ef602722ecead750ff849e13e681279afc3e61815b35244529b138e77532"
+      "sha256": "56e8381a4e77357b428a0576badf3dad6fdd884e2d25f8208bcef7bf943b74b4",
+      "size": 2865,
+      "normalized_sha256": "56e8381a4e77357b428a0576badf3dad6fdd884e2d25f8208bcef7bf943b74b4"
     },
     "src/main/java/com/fitpilot/common/operations/OperationsProperties.java": {
       "role": "index",
@@ -2555,9 +2555,9 @@
     },
     "src/main/resources/application.yml": {
       "role": "index",
-      "sha256": "a1bda8a0dce9a37f8eec36199c0552bb6e8060eaa2d7f086643e69fab05e7475",
-      "size": 8122,
-      "normalized_sha256": "91bb38eea729857d6947dd3e00793afe6764069daa9dff1023082af751084709"
+      "sha256": "1e2e339c5f6149ef989db6ace6ed046111fd9766869644d67a1e6f674e24ff37",
+      "size": 8242,
+      "normalized_sha256": "8e21b35bc842f94a5d7371795b341593910431fca008538c0c7227dad3703b37"
     },
     "src/main/resources/db/migration/V10__enforce_single_active_workout.sql": {
       "role": "index",
@@ -2723,39 +2723,39 @@
     },
     "src/test/java/com/fitpilot/FitPilotAgentProductMetricsIT.java": {
       "role": "index",
-      "sha256": "955d4b98ef54111660a1371ecc285523f430fc59e1c74c1a07501d4a0e44a26a",
-      "size": 11692,
-      "normalized_sha256": "955d4b98ef54111660a1371ecc285523f430fc59e1c74c1a07501d4a0e44a26a"
+      "sha256": "2c038f7db81da040b8b14d36d79025818203600327d05e6cc177fa5d6f88a07b",
+      "size": 11687,
+      "normalized_sha256": "2c038f7db81da040b8b14d36d79025818203600327d05e6cc177fa5d6f88a07b"
     },
     "src/test/java/com/fitpilot/FitPilotApiIT.java": {
       "role": "index",
-      "sha256": "39f45521bf4493365b31035af35516fa9c7ee3722fdc12830f33d570b622018c",
-      "size": 45887,
-      "normalized_sha256": "2d0be7f69fbc56a40ae9088371295915b51990416aa973a499aaeb40f9c70341"
+      "sha256": "1324b2793820ec62341c7b779b9d88ebbdffe14de8379f3ec7dc11d04a010a82",
+      "size": 45882,
+      "normalized_sha256": "c038281c7eb5a743e014f49e306af640f9a2f3500f4f246e1c20b23cb61ef083"
     },
     "src/test/java/com/fitpilot/FitPilotEventFlowIT.java": {
       "role": "index",
-      "sha256": "798ae2dd3ea618f5552e3d48c9b5f52dcce3742aedbe7637b242b41915195987",
-      "size": 8516,
-      "normalized_sha256": "798ae2dd3ea618f5552e3d48c9b5f52dcce3742aedbe7637b242b41915195987"
+      "sha256": "a3f85a13060c059809afaed5c42e4e41cb7af85050a910bdbc408285c112dbdb",
+      "size": 8511,
+      "normalized_sha256": "a3f85a13060c059809afaed5c42e4e41cb7af85050a910bdbc408285c112dbdb"
     },
     "src/test/java/com/fitpilot/FitPilotLlmFlowIT.java": {
       "role": "index",
-      "sha256": "f5251209d32652e8f805e6baef42525733ae0a32289a4e112c3b23e72f60c09c",
-      "size": 7822,
-      "normalized_sha256": "f5251209d32652e8f805e6baef42525733ae0a32289a4e112c3b23e72f60c09c"
+      "sha256": "a033d54ba0ae9d34596e060a36579dc7ad8390fd8bafd422924073a9a136ab95",
+      "size": 7817,
+      "normalized_sha256": "a033d54ba0ae9d34596e060a36579dc7ad8390fd8bafd422924073a9a136ab95"
     },
     "src/test/java/com/fitpilot/FitPilotRagFlowIT.java": {
       "role": "index",
-      "sha256": "98becde6bb3837e51f4689eb125d355dd710d82d8adb60c4c627df3d50410368",
-      "size": 25832,
-      "normalized_sha256": "98becde6bb3837e51f4689eb125d355dd710d82d8adb60c4c627df3d50410368"
+      "sha256": "391356fb59aea96c9597e6da0ae304632d850508e5c504a622ff9be1d3182e00",
+      "size": 25827,
+      "normalized_sha256": "391356fb59aea96c9597e6da0ae304632d850508e5c504a622ff9be1d3182e00"
     },
     "src/test/java/com/fitpilot/FitPilotRedisDegradationIT.java": {
       "role": "index",
-      "sha256": "7a5bd333f42d9301ade4144644f72836346f11dcd341d7f524f4b6c9ae8d3ef0",
-      "size": 3636,
-      "normalized_sha256": "7a5bd333f42d9301ade4144644f72836346f11dcd341d7f524f4b6c9ae8d3ef0"
+      "sha256": "ffc4a7d1703c90af8b6f27b3692a9cead0f7f8383c2e290a1f4fce6d6127fbe7",
+      "size": 3631,
+      "normalized_sha256": "ffc4a7d1703c90af8b6f27b3692a9cead0f7f8383c2e290a1f4fce6d6127fbe7"
     },
     "src/test/java/com/fitpilot/agent/adjustment/TrainingAdjustmentEvidenceIT.java": {
       "role": "index",
@@ -2969,9 +2969,9 @@
     },
     "src/test/java/com/fitpilot/observability/FitPilotMetricsTest.java": {
       "role": "index",
-      "sha256": "6e894da06895b82e5b166929e55980d223d53346e6fa194528802e438078ac5d",
-      "size": 1247,
-      "normalized_sha256": "6e894da06895b82e5b166929e55980d223d53346e6fa194528802e438078ac5d"
+      "sha256": "fdab12d81f9727bde98be9df3a29534e0dc67c901e3f73b35a85887dd5e46a23",
+      "size": 2268,
+      "normalized_sha256": "fdab12d81f9727bde98be9df3a29534e0dc67c901e3f73b35a85887dd5e46a23"
     },
     "src/test/java/com/fitpilot/performance/WorkoutWriteLoadBenchmark.java": {
       "role": "index",

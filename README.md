@@ -1,6 +1,6 @@
 # FitPilot V6.0
 
-FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
+FitPilot V6 是一个 Java 21 + Spring Boot 4 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
 
 > 当前本地功能验收基线：`9bd259c7f4469826d094da1add6ef4bcad604a25`（2026-09-22，Flyway V20）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
 
@@ -82,7 +82,7 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
 
 ## 技术栈
 
-- Java 21、Spring Boot 3.5、Spring MVC、Validation、Spring Security JWT
+- Java 21、Spring Boot 4.0、Spring MVC、Validation、Spring Security JWT
 - MyBatis-Plus、PostgreSQL + pgvector、Elasticsearch、Flyway、Redis、Caffeine、Kafka
 - Micrometer、OpenTelemetry、Prometheus、Grafana、Tempo、Loki
 - SpringDoc OpenAPI、JUnit 5、Mockito、Testcontainers、JaCoCo、CycloneDX

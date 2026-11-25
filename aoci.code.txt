@@ -9,10 +9,10 @@
 .gitleaksignore[FS3T]: F:按历史提交、文件、规则和行号登记已知密钥扫描误报 | R:- | A:Gitleaks fingerprints | S:-
 AGENTS.md[SG5S]: F:规定 AOCI 会话加载、证据约束、机器批次和任务收尾流程 | R:- | A:aoci_rules,aoci_overview,aoci_maintain | S:上下文压缩后须重新绑定完整交付；旧收据不能证明模型当前认知
 Dockerfile[OV6T]: F:用两阶段镜像构建后端 JAR，以非 root 用户运行 Java 21 服务 | R:code:pom.xml | A:8080,9091 | S:容器存活检查走独立管理端口的 Actuator
-README.md[SG6M]: F:导航 FitPilot 架构、业务保证、启动方式、ChatGPT 订阅接入与交付验证 | R:code:docs/project-structure.md,code:integrations/pi-coach/README.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
+README.md[SG6M]: F:概述 FitPilot 的 Spring Boot 4 架构、训练和教练流程、启动及交付验证 | R:code:docs/project-structure.md,code:integrations/pi-coach/README.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
 docker-compose.dual-instance.yml[TR5T]: F:以共享 PostgreSQL、Redis 和 Kafka 的两个后端实例重放事件恢复场景 | R:code:docker-compose.yml,code:scripts/operations/run-dual-instance-event-recovery.ps1 | A:app-a,app-b | S:关闭缓存、限流和 AI，缩短 Outbox 轮询与领取超时以隔离实验
 docker-compose.yml[OV7M]: F:启动 FitPilot 本地应用、数据依赖，以及可选观测与故障模拟服务 | R:code:Dockerfile,code:.env.example | A:observability,fault | S:Kafka 禁用自动建主题并分别广播容器内外地址
-pom.xml[FV7S]: F:定义 Java 21 后端依赖、打包、单元/集成测试、覆盖率和 SBOM 门禁 | R:code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:全局行覆盖率至少 60%，选定核心包至少 70%，跳过测试另行阻断
+pom.xml[FV7S]: F:管理 Java 21 Spring Boot 4 后端依赖、打包、测试、覆盖率和 SBOM 门禁 | R:code:src/main/resources/application.yml,code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:Jackson 2 兼容模块配合 MVC 配置保留既有 API 序列化。全局行覆盖率至少 60%，核心包至少 70%，跳过测试另行阻断
 docker-compose.pi.yml[OV6T]: F:将本地应用的主模型端点指向宿主机 Pi 适配器 | R:code:docker-compose.yml,code:integrations/pi-coach/src/server.mjs | A:FITPILOT_PI_MODEL,FITPILOT_PI_BRIDGE_KEY,FITPILOT_PI_PORT | S:后端取消端口发布，Web 绑定回环地址。单次适配器截止早于 Java 请求截止，叠加层关闭同端点重试
 
 ===/<repository>/.github/workflows/===
@@ -302,7 +302,7 @@ run-production-validation.ps1[TQ5S]: F:执行本机生产基线验证，编排 M
 test-observability.ps1[TO5T]: F:验证 Compose 观测数据与目标离线告警，重新启动应用核对恢复 | R:code:deploy/monitoring/prometheus/alerts.yml | A:observability-validation.json | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/===
-FitPilotApplication.java[EG5T]: F:启动 Spring Boot，注册各业务 Mapper 并开启定时任务 | R:- | A:main | S:关闭 Spring 默认用户服务自动配置
+FitPilotApplication.java[EG5T]: F:启动 Spring Boot 4，扫描各业务 Mapper 并启用定时任务 | R:- | A:main | S:关闭 Spring 默认用户服务自动配置
 
 ===/<repository>/src/main/java/com/fitpilot/agent/adjustment/===
 TrainingAdjustmentDtos.java[CA4T]: F:定义训练调整的分析证据、提议和历史视图合同 | R:- | A:Evidence,Context,AdjustmentProposal,AdjustmentView | S:-
@@ -385,7 +385,7 @@ GlobalExceptionHandler.java[EG5T]: F:将业务、校验、授权和未处理异�
 IdempotencyRequest.java[CP5T]: F:用 Servlet 请求属性把幂等键和请求指纹传给业务服务 | R:code:src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFilter.java | A:from,ATTRIBUTE | S:-
 
 ===/<repository>/src/main/java/com/fitpilot/common/operations/===
-OperationsAuthenticationFilter.java[MI7T]: F:为运维路径验证独立操作令牌并建立 OPERATIONS 身份 | R:code:src/main/java/com/fitpilot/common/security/SecureTokenMatcher.java,code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:X-Operations-Token | S:令牌未配置或无法匹配时拒绝，即使请求携带用户 JWT
+OperationsAuthenticationFilter.java[MI7T]: F:按 Servlet 路径模式匹配运维请求，验证独立令牌并建立 OPERATIONS 身份 | R:code:src/main/java/com/fitpilot/common/security/SecureTokenMatcher.java,code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:X-Operations-Token | S:令牌未配置或无法匹配时拒绝，即使请求携带用户 JWT
 OperationsProperties.java[FI4T]: F:绑定运维 API 的独立访问令牌配置 | R:- | A:fitpilot.operations.token | S:-
 OperationsSecurityConfig.java[FI5T]: F:关闭操作令牌过滤器的容器级自动注册 | R:code:src/main/java/com/fitpilot/common/security/SecurityConfig.java | A:operationsAuthenticationFilterRegistration | S:过滤器由 Spring Security 链执行
 
@@ -664,7 +664,7 @@ WorkoutRepository.java[PB8S]: F:持久化训练快照与历史组，并为开练
 
 ===/<repository>/src/main/resources/===
 application-prod.yml[FO4T]: F:在生产 profile 关闭 API 文档并独立暴露健康、信息和指标 | R:- | A:MANAGEMENT_SERVER_PORT | S:-
-application.yml[FG7M]: F:配置 PostgreSQL、Redis、Kafka、Flyway、认证、观测、AI 与性能开关 | R:code:src/main/resources/application-prod.yml,code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java | A:application.yml,LLM_PROMPT_VERSION | S:默认关闭外部 LLM，提示版本默认 v5.2，启用 RAG 证据门槛。Kafka 使用 record ack 与 read_committed
+application.yml[FG7M]: F:配置 PostgreSQL、Redis、Kafka、Flyway、认证、观测、AI 与性能开关 | R:code:pom.xml,code:src/main/resources/application-prod.yml,code:src/main/java/com/fitpilot/llm/application/PromptRegistry.java | A:application.yml,LLM_PROMPT_VERSION,OTEL_TRACING_EXPORT_ENABLED | S:MVC 优先 Jackson 2 并省略空字段。OTLP 追踪导出与外部 LLM 默认关闭。提示版本默认 v5.2 并启用 RAG 证据门槛。Kafka 使用 record ack 与 read_committed
 
 ===/<repository>/src/main/resources/db/migration/===
 V10__enforce_single_active_workout.sql[FD6T]: F:以部分唯一索引强制每个用户最多一个进行中训练 | R:- | A:uk_workout_one_in_progress | S:-
@@ -770,7 +770,7 @@ LlmGatewayTest.java[TA5T]: F:验证模型网关接受允许的结构并拒绝身
 OpenAiCompatibleClientTest.java[TA6S]: F:用本地 HTTP 桩测试模型重试、备用端点、共享截止时间、限并发和半开 | R:code:src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/observability/===
-FitPilotMetricsTest.java[TO4T]: F:验证 Agent、Tool、LLM、RAG 和 Outbox 统计能写入指标注册表 | R:code:src/main/java/com/fitpilot/observability/FitPilotMetrics.java | A:- | S:-
+FitPilotMetricsTest.java[TO4T]: F:验证核心业务指标写入注册表，以及应用配置的 OTLP 追踪开关和默认端点 | R:code:src/main/java/com/fitpilot/observability/FitPilotMetrics.java,code:src/main/resources/application.yml | A:- | S:-
 
 ===/<repository>/src/test/java/com/fitpilot/performance/===
 WorkoutWriteLoadBenchmark.java[TP5M]: F:对真实隔离数据库施加多用户、同训练写及操作回执重放，输出性能和正确性证据 | R:code:scripts/performance/run-workout-write-load.ps1 | A:- | S:-
