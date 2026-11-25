@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-25T08:35:18Z",
+  "updated_at": "2026-11-25T08:40:11Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -59,9 +59,9 @@
     },
     ".gitleaksignore": {
       "role": "index",
-      "sha256": "be9f31b11267eae9fefa0e78016a1a19f44c204f3c66a0bf11b0462375dfdca1",
-      "size": 911,
-      "normalized_sha256": "be9f31b11267eae9fefa0e78016a1a19f44c204f3c66a0bf11b0462375dfdca1"
+      "sha256": "841f14249c53af5102bd6a2fe665ae5c9586d29b1e4fb5d1ba5cf58040099ef3",
+      "size": 1094,
+      "normalized_sha256": "841f14249c53af5102bd6a2fe665ae5c9586d29b1e4fb5d1ba5cf58040099ef3"
     },
     ".mvn/maven.config": {
       "role": "index",
