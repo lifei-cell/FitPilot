@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-11-19T00:38:46Z",
-  "updated_at": "2026-11-25T15:07:29Z",
+  "updated_at": "2026-11-26T04:08:36Z",
   "files": {
     ".dockerignore": {
       "role": "index",
@@ -89,15 +89,15 @@
     },
     "README.md": {
       "role": "index",
-      "sha256": "a552c8fa08321d82de55894b64beb7aebfd9310b1dd2cf57919c39bb267016ab",
-      "size": 18181,
-      "normalized_sha256": "ef4e6e910ae22968bffc1004a6af8713ebc33dbc086706d45b43068d74866552"
+      "sha256": "3910b1ddd9b8fba8e8c6c445c3a5bb1c8e460bc325987a6cf00a37b781f0b4c9",
+      "size": 18314,
+      "normalized_sha256": "73d6c3ff3f901d8229ac265303581fd5bdba238ec8386bebd84f31cd9d336fb3"
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "b0e45774931f20998991af0c3c9607bc24623fec8d1469205ba56dc6afe6a6a5",
-      "size": 140636,
-      "normalized_sha256": "b0e45774931f20998991af0c3c9607bc24623fec8d1469205ba56dc6afe6a6a5"
+      "sha256": "75f6a1a3339ddf5861f8849b7f106d073ecd1b9778d71bd0dd55e49925faf41e",
+      "size": 140778,
+      "normalized_sha256": "75f6a1a3339ddf5861f8849b7f106d073ecd1b9778d71bd0dd55e49925faf41e"
     },
     "aoci.database.txt": {
       "role": "index",
@@ -1166,6 +1166,12 @@
       "sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4",
       "size": 12621,
       "normalized_sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4"
+    },
+    "release-evidence/device-e852033/web-dist/favicon.svg": {
+      "role": "observe",
+      "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+      "size": 712,
+      "normalized_sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7"
     },
     "scripts/README.md": {
       "role": "index",

@@ -9,7 +9,7 @@
 .gitleaksignore[FS3T]: F:按历史提交、文件、规则和行号登记已知密钥扫描误报 | R:- | A:Gitleaks fingerprints | S:-
 AGENTS.md[SG5S]: F:规定 AOCI 会话加载、证据约束、机器批次和任务收尾流程 | R:- | A:aoci_rules,aoci_overview,aoci_maintain | S:上下文压缩后须重新绑定完整交付；旧收据不能证明模型当前认知
 Dockerfile[OV6T]: F:用两阶段镜像构建后端 JAR，以非 root 用户运行 Java 21 服务 | R:code:pom.xml | A:8080,9091 | S:容器存活检查走独立管理端口的 Actuator
-README.md[SG6M]: F:概述 FitPilot 的 Spring Boot 4 架构、训练和教练流程、启动及交付验证 | R:code:docs/project-structure.md,code:integrations/pi-coach/README.md | A:- | S:本地验收、精确 SHA 远端证据和生产演练分别绑定各自版本
+README.md[SG6M]: F:介绍力量训练、弱网恢复和 AI 教练的功能，并提供架构、本地启动、测试和交付证据入口 | R:code:docs/project-structure.md,code:docker-compose.yml,code:integrations/pi-coach/README.md,code:docs/runbooks/release-rollback.md | A:- | S:CI 与镜像发布证据绑定各自提交；移动浏览器自动化之外仍需真机验收，生产另走手动交付门禁
 docker-compose.dual-instance.yml[TR5T]: F:以共享 PostgreSQL、Redis 和 Kafka 的两个后端实例重放事件恢复场景 | R:code:docker-compose.yml,code:scripts/operations/run-dual-instance-event-recovery.ps1 | A:app-a,app-b | S:关闭缓存、限流和 AI，缩短 Outbox 轮询与领取超时以隔离实验
 docker-compose.yml[OV7M]: F:启动 FitPilot 本地应用、数据依赖，以及可选观测与故障模拟服务 | R:code:Dockerfile,code:.env.example | A:observability,fault | S:Kafka 禁用自动建主题并分别广播容器内外地址
 pom.xml[FV7S]: F:管理 Java 21 Spring Boot 4 后端依赖、打包、测试、覆盖率和 SBOM 门禁 | R:code:src/main/resources/application.yml,code:src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java | A:mvn verify | S:Jackson 2 兼容模块配合 MVC 配置保留既有 API 序列化。全局行覆盖率至少 60%，核心包至少 70%，跳过测试另行阻断

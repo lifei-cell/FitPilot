@@ -1,16 +1,19 @@
 # FitPilot V6.0
 
-FitPilot V6 是一个 Java 21 + Spring Boot 4 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
+FitPilot 是一个面向力量训练的 Web 应用。用户可以按计划训练、在弱网下记录训练组并在联网后补传，也可以回看历史、趋势和个人纪录。AI 教练根据训练记录和知识库回答问题、提出计划调整，用户确认后保存为新草案。
 
-> 当前本地功能验收基线：`9bd259c7f4469826d094da1add6ef4bcad604a25`（2026-09-22，Flyway V20）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
+> 2026-11-26，试用版候选已合入 `main`（`e9371b3`），合并提交的 CI 已通过。Android 和 iOS 真机验收待执行。 [PR #1](https://github.com/lifei-cell/FitPilot/pull/1) · [主分支 CI](https://github.com/lifei-cell/FitPilot/actions/runs/45751732022)
+
+## 主要功能
+
+- **计划与开练**支持套用预设或手动创建计划。激活后可按训练日开练，系统会保存本次训练的动作和目标快照。
+- **训练记录**支持图文与视频教学、沿用上次组记录快速录入、组间计时和进度查看。训练结束后可回看历史、负重趋势和个人纪录。
+- **弱网恢复**会在浏览器保存训练草稿和待同步组，联网后用同一操作 ID 补传。服务端用数据库回执去重，跨设备冲突时保留本地记录并暂停补传。 [恢复机制](docs/release/workout-auto-recovery.md)
+- **AI 教练**支持持久化会话、带引用的知识问答和基于训练反馈的计划调整。 [AI 产品能力](docs/architecture/v6-ai-product.md)
 
 ## 架构
 
 目录入口：[项目结构与维护规则](docs/project-structure.md) · [文档导航](docs/README.md) · [脚本导航](scripts/README.md) · [Web 开发](web/README.md)。
-
-训练记录体验更新：[沿用上次记录与单击完成一组](docs/release/quick-set-recording.md)（2026-09-12，独立记录本地验证与能力边界）。
-
-训练可靠性更新：[自动保存、恢复与离线记录](docs/release/workout-auto-recovery.md)（V19，2026-09-13，含部署顺序与离线边界）。
 
 训练并发控制：[统一写入锁协议](docs/release/workout-write-concurrency.md)（2026-09-17，含事务、行锁、唯一约束的职责与并发验证）。
 
@@ -82,7 +85,8 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
 
 ## 技术栈
 
-- Java 21、Spring Boot 4.0、Spring MVC、Validation、Spring Security JWT
+- Java 21、Spring Boot 4.0.10、Spring MVC、Validation、Spring Security JWT
+- React 19、TypeScript、Vite、TanStack Query
 - MyBatis-Plus、PostgreSQL + pgvector、Elasticsearch、Flyway、Redis、Caffeine、Kafka
 - Micrometer、OpenTelemetry、Prometheus、Grafana、Tempo、Loki
 - SpringDoc OpenAPI、JUnit 5、Mockito、Testcontainers、JaCoCo、CycloneDX
@@ -90,14 +94,21 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
 
 ## 一键启动
 
-1. 复制 `.env.example` 为 `.env`，替换数据库密码、至少 32 字节的 JWT 密钥及运维 Token。
-2. 启动并验证：
+在仓库根目录运行。需要可用的 Docker Engine 和 Docker Compose v2。首次启动时复制环境模板，并在 `.env` 中设置 `DB_PASSWORD`、`JWT_SECRET`（至少 32 字节）和 `OPERATIONS_TOKEN`。
 
 ```powershell
-docker compose up --build -d
-docker compose ps
-curl.exe http://localhost:9091/actuator/health
+Copy-Item .env.example .env
 ```
+
+保存配置后，启动并验证服务。
+
+```powershell
+docker compose up --build --wait
+curl.exe -fsS http://localhost:4173/healthz
+curl.exe -fsS http://localhost:9091/actuator/health/readiness
+```
+
+打开 [训练 Web](http://localhost:4173) 注册并登录。开发环境提供 [Swagger](http://localhost:8080/swagger-ui.html)，Actuator 的 `9091` 端口仅绑定本机。`prod` profile 默认关闭 Swagger/OpenAPI。
 
 启动完整可观测栈：
 
@@ -106,9 +117,7 @@ $env:OTEL_TRACING_EXPORT_ENABLED = "true"
 docker compose --profile observability up --build -d --wait
 ```
 
-Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。Compose 将 Actuator 管理端口隔离到仅本机可访问的 <http://localhost:9091/actuator/health>；`prod` profile 默认关闭 Swagger/OpenAPI。
-
-本地 AI 教练支持通过 Pi 使用已授权的 ChatGPT 订阅。 [接入说明](integrations/pi-coach/README.md)
+默认使用规则工作流，训练流程可以直接体验。需要本地模型推理时，可以通过 Pi 接入已授权的 ChatGPT 订阅。 [Pi 接入说明](integrations/pi-coach/README.md)
 
 ### 演示数据
 
@@ -173,12 +182,14 @@ mvn spring-boot:run
 - 所有运维 API 统一使用 `OPERATIONS_TOKEN` 和 `X-Operations-Token`，采用常量时间比较且不记录 Token。
 - LLM 审计脱敏并默认保留 30 天；Prompt、模型、Token、费用、时延与降级状态可追踪。
 - PR 使用 Epley 公式，支持最大重量、Estimated 1RM、3/5/8/10RM、单组最大容量。
-- Flyway V1-V20 管理全部表、外键、查询索引、业务幂等与评测任务生命周期，并保留 50 个动作种子；V19 增加训练组离线回执，V20 增加 Outbox 领取 token。
+- Flyway 迁移覆盖 V1–V23。V19 增加训练组离线回执，V20 增加 Outbox 领取 token，V21 为知识索引增加版本写入保护，V22 隔离在线知识与评测语料，V23 为训练完成事件关联个人纪录消费回执增加索引。
 - Agent 产品价值指标覆盖 D7 会话留存、建议决策漏斗、确认转化、规则降级、单次成功成本，以及训练调整前后的完成率、疼痛、容量和 PR；通过受保护 Operations API、Prometheus 与 Grafana 展示。
 - 写请求可携带 `Idempotency-Key`，Redis 原子占位并回放成功响应。
 - API 和登录分别使用 Redis Lua Token Bucket；Lua compare-and-delete 安全释放分布式锁。
 
 ## 测试
+
+在仓库根目录执行统一质量门禁。需要 PowerShell、Java 21、Maven、Node.js 22.13 或更高版本以及可供 Testcontainers 使用的 Docker Engine。
 
 ```powershell
 ./scripts/run-quality-gate.ps1
@@ -188,12 +199,13 @@ mvn spring-boot:run
 
 `mvn verify` 额外执行 pgvector、Elasticsearch、Redis、Kafka Testcontainers E2E 和 Mock OpenAI-compatible 端到端链路。ArchUnit 自动阻断 Controller 直连 Mapper、领域层反向依赖基础设施、跨模块绕过 Application Service/领域事件以及业务模块循环依赖。Maven Enforcer 禁止 `skipTests`、`skipITs`、`maven.test.skip`，Surefire/Failsafe 要求测试集非空，最终门禁解析两类 XML 报告并要求跳过数严格为 0；同时阻断整体行覆盖率低于 60% 或关键包低于 70% 的构建。
 
-当前本地统一门禁已通过：43 个 Surefire/Failsafe XML 报告、74 个单元测试加 48 个集成测试，共 122 项，失败 0、错误 0、跳过 0；Testcontainers 实际启动 PostgreSQL/pgvector、Redis、Kafka 和 Elasticsearch，Flyway V1-V20、CycloneDX SBOM 与 JaCoCo 门禁通过，后端行覆盖率 85.75%。Web 通过 ESLint、TypeScript、44 个 Vitest/RTL 测试、生产构建、8 个常规 Playwright Chromium 场景和 3 个离线恢复场景，行覆盖率 76.26%。原始结论见 [V20 当前功能验收](docs/release/v20-functional-validation.md)。
+主分支合并提交 `e9371b3` 的 CI 通过了 80 个后端单元测试和 63 个集成测试，失败、错误、跳过均为 0。Web 通过了 51 个 Vitest 测试、9 个常规 Playwright 场景和 3 个离线恢复场景。3 个 Pi 适配器测试和 V22 发布门禁回归也已通过。 [CI 日志与产物](https://github.com/lifei-cell/FitPilot/actions/runs/45751732022)
 
 前端也可单独执行：
 
 ```powershell
 cd web
+npm ci
 npm run lint          # ESLint
 npm run typecheck     # TypeScript
 npm run test:coverage # Vitest / RTL / MSW
@@ -211,17 +223,18 @@ V6 的持久化会话、训练计划调节与 RAG 治理见 [AI 产品价值闭�
 
 ## 交付门禁
 
-`CI` 执行零跳过测试、CycloneDX SBOM 依赖扫描、Gitleaks、Trivy 镜像扫描和构建验证；只有最新 `main` 提交的 CI 全部成功后，`Release` 才发布 GHCR 多架构镜像并归档不可变 digest 清单，过期 CI 结果不能覆盖发布标签；`Production Delivery Gate` 只接受 digest 与精确 Kubernetes context，依次执行隔离备份恢复、Migration、Rollout、Rollback/候选恢复和两阶段密钥轮换。
+`CI` 检查测试、构建、部署清单，并执行 Gitleaks、基于 CycloneDX SBOM 的依赖扫描及 Trivy 镜像扫描。`Release Image` 仅发布已通过 CI 且仍为最新 `main` 的 revision，成功时归档后端与 Web 的 GHCR 镜像 digest 和构建证明。
 
-| 证据层 | revision | 状态 | 原始报告 |
-|---|---|---|---|
-| 当前 V20 本地功能验收 | `9bd259c7f4469826d094da1add6ef4bcad604a25` | `PASS`：122 个后端测试零跳过、V1-V20 迁移、Web 44 个组件测试与 11 个浏览器场景通过 | [V20 当前功能验收](docs/release/v20-functional-validation.md) |
-| 当前 V20 精确 SHA 远端 CI / Release / GHCR | 以 `origin/main` 和 `refs/notes/release-evidence` 为准 | CI、Release、镜像 digest、SBOM 与 provenance 通过后，将不可变证据写入对应提交的 Git Note，避免回填证据改变发布 revision | [远端发布验收与读取方式](docs/release/p1-delivery-validation.md) |
-| V18 精确 SHA 远端 CI / Release / GHCR | `c55e26d52fa74010f9d9467911aa2de3e7de3b9d`（修复 revision，包含 `b3d708a`） | `PASS`：CI Run `34465034299`、Release Run `34465790273`、GHCR Digest、SBOM 和 provenance 均按精确 SHA 核验；b3d708a 的旧 CI 失败及 Netty 修复过程见报告 | [远端发布验收](docs/release/p1-delivery-validation.md) |
-| 本机 Kind 交付演练 | `1d98621891ff92d98ad57c77ff212015b641681f` | `PASS`：Migration、Rollout、Rollback、备份恢复和双密钥轮换脚本已演练 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#本机-kubernetes-演练历史-pass) |
-| 真实生产集群 | 无已执行 revision | `SKIPPED`：未执行 Production Delivery Gate，不代表通过或阻塞 | [V6 远端发布验收](docs/release/p1-delivery-validation.md#production-delivery-gateskipped) |
+| 验收 | Revision | 状态与证据 |
+|---|---|---|
+| 试用版主分支 CI | `e9371b3` | 测试、构建与安全扫描通过。[主分支 CI](https://github.com/lifei-cell/FitPilot/actions/runs/45751732022) |
+| GHCR 镜像发布 | `e9371b3` | 发布进度与成功后的 digest 清单见 [Release Image](https://github.com/lifei-cell/FitPilot/actions/runs/45752749934)。 |
+| Android / iOS 真机 | 试用版 | 移动 Chromium 已覆盖弱网、离线恢复和跨设备冲突。物理设备上的锁屏、进程终止与系统存储回收待验收。[真机执行卡](docs/release/workout-recovery-device-validation-2026-09-19.md#真机执行卡) |
+| 真实生产集群 | — | 待执行生产交付门禁。[首次外网部署](docs/runbooks/first-public-deploy.md) |
 
-当前本地功能验收 revision 为 `9bd259c`；远端闭环必须读取当前 `origin/main` 对应的 `refs/notes/release-evidence`，不能复用 V18 或更早 revision 的 CI/GHCR 结果。Kind 演练仍只绑定历史 revision `1d98621`，Production Delivery Gate 仍为 `SKIPPED`，项目不得表述为已在真实生产集群上线。
+`Production Delivery Gate` 手动触发，要求不可变镜像 digest 和精确 Kubernetes context。首次跨越 V22 或接管兼容性未验证的旧后端时，先停止旧后端和评测 Worker，再执行迁移与上线。回滚演练只适用于已验证兼容的旧镜像，备份恢复与密钥轮换通过工作流选项执行。 [发布与回滚](docs/runbooks/release-rollback.md)
+
+历史数据见 [V20 本地验收](docs/release/v20-functional-validation.md) 和 [历史 CI、GHCR、Kind 演练及 Git Note 查询](docs/release/p1-delivery-validation.md)。
 
 在没有生产凭据时，可用一次性 Kind 集群真实执行同一套脚本：
 
