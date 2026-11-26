@@ -13,8 +13,8 @@ import {
   clearToken,
   storeToken,
 } from "../api/client";
-import { clearAgentSession } from "../agent/sessionStorage";
-import { clearPendingAction } from "../agent/pendingActionStorage";
+import { clearAgentSession } from "../features/agent/storage/sessionStorage";
+import { clearPendingAction } from "../features/agent/storage/pendingActionStorage";
 import { useQueryClient } from "@tanstack/react-query";
 
 type AuthContextValue = {

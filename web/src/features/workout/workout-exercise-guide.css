@@ -1,0 +1,17 @@
+.workout-exercise-guide {
+  margin-block: 8px 12px;
+}
+
+.workout-exercise-guide-content {
+  max-width: 480px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.workout-exercise-guide-content > p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}

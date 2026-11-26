@@ -4,6 +4,16 @@ namespace: fitpilot
 resources:
   - ../../base
 patches:
+  - target: {version: v1, kind: ConfigMap, name: fitpilot-config}
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: fitpilot-migration-config
+  - target: {group: batch, version: v1, kind: Job, name: fitpilot-migrate}
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: fitpilot-migration-config
   - patch: |-
       apiVersion: apps/v1
       kind: Deployment

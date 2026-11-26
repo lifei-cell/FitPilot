@@ -27,6 +27,10 @@ Markdown / Text ──────→│ Parser + Parent/Child Split│
 
 文档写入和 Chunk/Embedding 落库在同一 PostgreSQL 事务中完成。Elasticsearch 不是真源：同步索引失败不会丢失文档，后台任务会重试 `PENDING/FAILED` 文档，人工也可触发重建。
 
+线上检索和运维知识库接口使用 `live` 语料范围。评测每次执行、重试或切换实验配置都分配独立范围，普通评测中的内置样本和反馈样本也分别摄取。反馈样本使用评测创建时冻结的线上文档版本。PostgreSQL 向量召回与原文回读、Elasticsearch 词法召回均强制匹配范围，`category` 在范围内继续作为可选筛选条件。
+
+V22 通过[发布门禁](../runbooks/release-rollback.md)停止旧应用实例及其评测任务，再执行迁移并启动新版。历史评测文档迁入隔离范围，现有线上文档排队重建词法索引。重建完成前，缺少范围字段的旧 Elasticsearch 条目会被排除，PostgreSQL 向量召回仍可使用。V22 首次迁移失败或候选上线失败时前滚修复，旧版查询会跨语料范围。
+
 ## 检索与排序
 
 1. 查询经过 NFKC、小写化、英文词元和中文单字/双字词元归一化。
@@ -71,7 +75,7 @@ DELETE /api/v1/operations/rag/documents/{id}
 }
 ```
 
-相同 `externalId` 再次摄取会原子替换 PostgreSQL Chunk、递增版本并重建 Elasticsearch 文档，不会产生重复知识。
+同一语料范围内再次摄取相同 `externalId` 会原子替换 PostgreSQL Chunk、递增版本并重建 Elasticsearch 文档。
 
 ## 关键配置
 

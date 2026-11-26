@@ -1,0 +1,147 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/user_profile",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "user_profile",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('user_profile_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "gender",
+      "native_type": "smallint",
+      "canonical_type": "smallint",
+      "nullable": true
+    },
+    {
+      "ordinal": 4,
+      "name": "birthday",
+      "native_type": "date",
+      "canonical_type": "date",
+      "nullable": true
+    },
+    {
+      "ordinal": 5,
+      "name": "height_cm",
+      "native_type": "numeric(5,2)",
+      "canonical_type": "numeric",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "training_experience_months",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 7,
+      "name": "training_goal",
+      "native_type": "character varying(32)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 8,
+      "name": "weekly_frequency",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 9,
+      "name": "preferred_duration_minutes",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 10,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 11,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "user_profile_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "user_profile_user_id_key",
+      "columns": [
+        "user_id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "user_profile_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "user_profile_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "user_profile_user_id_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        }
+      ]
+    }
+  ]
+}

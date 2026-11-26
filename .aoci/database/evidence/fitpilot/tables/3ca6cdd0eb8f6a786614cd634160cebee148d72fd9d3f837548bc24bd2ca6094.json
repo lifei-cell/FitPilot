@@ -1,0 +1,313 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/knowledge_document",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "knowledge_document",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "external_id",
+      "native_type": "character varying(160)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "title",
+      "native_type": "character varying(300)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "category",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "source_url",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "source_license",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "format",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "content_hash",
+      "native_type": "character(64)",
+      "canonical_type": "character",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "raw_content",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": false
+    },
+    {
+      "ordinal": 10,
+      "name": "metadata",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false,
+      "default_expression": "'{}'::jsonb"
+    },
+    {
+      "ordinal": 11,
+      "name": "index_status",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'PENDING'::character varying"
+    },
+    {
+      "ordinal": 12,
+      "name": "index_error",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 13,
+      "name": "version",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "1"
+    },
+    {
+      "ordinal": 14,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 15,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 16,
+      "name": "indexed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 17,
+      "name": "publisher",
+      "native_type": "character varying(200)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 18,
+      "name": "trust_level",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'COMMUNITY'::character varying"
+    },
+    {
+      "ordinal": 19,
+      "name": "effective_from",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 20,
+      "name": "expires_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 21,
+      "name": "lifecycle_status",
+      "native_type": "character varying(24)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'ACTIVE'::character varying"
+    },
+    {
+      "ordinal": 22,
+      "name": "deleted_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 23,
+      "name": "index_claim_token",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": true
+    },
+    {
+      "ordinal": 24,
+      "name": "index_slot_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 25,
+      "name": "corpus_scope",
+      "native_type": "character varying(48)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'live'::character varying"
+    }
+  ],
+  "primary_key": {
+    "name": "knowledge_document_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "uk_knowledge_document_corpus_external",
+      "columns": [
+        "corpus_scope",
+        "external_id"
+      ]
+    }
+  ],
+  "foreign_keys": [],
+  "checks": [
+    {
+      "name": "knowledge_document_corpus_scope_check",
+      "expression": "CHECK ((corpus_scope::text = ANY (ARRAY['live'::character varying, 'legacy-evaluation'::character varying]::text[])) OR corpus_scope::text ~ '^evaluation:[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'::text)"
+    },
+    {
+      "name": "knowledge_document_format_check",
+      "expression": "CHECK (format::text = ANY (ARRAY['MARKDOWN'::character varying, 'TEXT'::character varying]::text[]))"
+    },
+    {
+      "name": "knowledge_document_index_slot_count_check",
+      "expression": "CHECK (index_slot_count \u003e= 0)"
+    },
+    {
+      "name": "knowledge_document_index_status_check",
+      "expression": "CHECK (index_status::text = ANY (ARRAY['PENDING'::character varying, 'INDEXING'::character varying, 'INDEXED'::character varying, 'FAILED'::character varying]::text[]))"
+    },
+    {
+      "name": "knowledge_document_lifecycle_status_check",
+      "expression": "CHECK (lifecycle_status::text = ANY (ARRAY['ACTIVE'::character varying, 'EXPIRED'::character varying, 'REVOKED'::character varying, 'DELETE_PENDING'::character varying, 'DELETED'::character varying]::text[]))"
+    },
+    {
+      "name": "knowledge_document_trust_level_check",
+      "expression": "CHECK (trust_level::text = ANY (ARRAY['OFFICIAL'::character varying, 'INTERNAL'::character varying, 'PROFESSIONAL'::character varying, 'COMMUNITY'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_knowledge_document_category",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "category"
+        }
+      ]
+    },
+    {
+      "name": "idx_knowledge_document_index_retry",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "index_status"
+        },
+        {
+          "position": 2,
+          "column": "updated_at"
+        }
+      ],
+      "predicate": "index_status::text = ANY (ARRAY['PENDING'::character varying, 'FAILED'::character varying]::text[])"
+    },
+    {
+      "name": "idx_knowledge_document_retrievable",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "lifecycle_status"
+        },
+        {
+          "position": 2,
+          "column": "expires_at"
+        },
+        {
+          "position": 3,
+          "column": "category"
+        }
+      ]
+    },
+    {
+      "name": "knowledge_document_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "uk_knowledge_document_corpus_external",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "corpus_scope"
+        },
+        {
+          "position": 2,
+          "column": "external_id"
+        }
+      ]
+    }
+  ]
+}

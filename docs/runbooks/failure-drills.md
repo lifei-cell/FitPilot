@@ -6,7 +6,7 @@
 
 ```powershell
 docker compose --env-file .env.example up -d --wait
-./scripts/invoke-failure-drills.ps1 -OperationsToken change-me-operations-token -IncludeLlm
+./scripts/operations/invoke-failure-drills.ps1 -OperationsToken change-me-operations-token -IncludeLlm
 ```
 
 脚本按顺序验证：Redis 中断时 Readiness 保持 `UP`，并在 15 秒预算内完成 50 次 PostgreSQL 回源；Kafka 中断时业务提交与 outbox 补发；Elasticsearch 中断时 `VECTOR_ONLY` 检索；主 LLM 中断时备用模型接管；双 LLM 中断时 `RULE_WORKFLOW` 接管。每个基础设施服务都在 `finally` 中恢复。

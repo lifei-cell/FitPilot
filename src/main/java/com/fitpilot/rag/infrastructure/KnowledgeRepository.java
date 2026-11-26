@@ -3,6 +3,9 @@ package com.fitpilot.rag.infrastructure;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
+import com.fitpilot.rag.domain.RagCorpus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -30,42 +33,44 @@ public class KnowledgeRepository {
     }
 
     @Transactional
-    public UUID replace(DocumentWrite document, List<KnowledgeModels.StoredChunk> chunks) {
-        Existing existing = jdbc.query("SELECT id, version FROM knowledge_document WHERE external_id=? FOR UPDATE",
-                rs -> rs.next() ? new Existing(rs.getObject(1, UUID.class), rs.getInt(2)) : null,
-                document.externalId());
-        UUID id = existing == null ? document.id() : existing.id();
+    public DocumentVersion replace(DocumentWrite document, List<KnowledgeModels.StoredChunk> chunks,
+                                   RagCorpus corpus) {
+        int childCount = (int) chunks.stream().filter(chunk -> "CHILD".equals(chunk.chunkType())).count();
         String metadata = writeJson(document.metadata());
-        if (existing == null) {
-            jdbc.update("""
-                    INSERT INTO knowledge_document(id, external_id, title, category, source_url, source_license,
-                      format, content_hash, raw_content, metadata, publisher, trust_level, effective_from, expires_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?)
-                    """, id, document.externalId(), document.title(), document.category(), document.sourceUrl(),
-                    document.sourceLicense(), document.format(), document.contentHash(), document.rawContent(), metadata,
-                    document.publisher(), document.trustLevel(), document.effectiveFrom(), document.expiresAt());
-        } else {
-            jdbc.update("DELETE FROM rag_deletion_task WHERE document_id=? AND status IN ('PENDING','FAILED','SUCCEEDED')", id);
+        DocumentVersion written = jdbc.queryForObject("""
+                INSERT INTO knowledge_document(id, external_id, corpus_scope, title, category, source_url,
+                  source_license, format, content_hash, raw_content, metadata, publisher, trust_level,
+                  effective_from, expires_at, index_slot_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?)
+                ON CONFLICT (corpus_scope, external_id) DO UPDATE SET
+                  title=excluded.title, category=excluded.category, source_url=excluded.source_url,
+                  source_license=excluded.source_license, format=excluded.format, content_hash=excluded.content_hash,
+                  raw_content=excluded.raw_content, metadata=excluded.metadata, index_status='PENDING', index_error=NULL,
+                  indexed_at=NULL, index_claim_token=NULL,
+                  index_slot_count=greatest(knowledge_document.index_slot_count, excluded.index_slot_count),
+                  version=knowledge_document.version+1, publisher=excluded.publisher, trust_level=excluded.trust_level,
+                  effective_from=excluded.effective_from, expires_at=excluded.expires_at,
+                  lifecycle_status='ACTIVE', deleted_at=NULL, updated_at=CURRENT_TIMESTAMP
+                RETURNING id, version
+                """, (rs, row) -> new DocumentVersion(rs.getObject(1, UUID.class), rs.getInt(2)),
+                document.id(), document.externalId(), corpus.key(), document.title(), document.category(),
+                document.sourceUrl(), document.sourceLicense(), document.format(), document.contentHash(),
+                document.rawContent(), metadata, document.publisher(), document.trustLevel(),
+                document.effectiveFrom(), document.expiresAt(), childCount);
+        UUID id = written.id();
+        if (written.version() > 1) {
+            jdbc.update("DELETE FROM rag_deletion_task WHERE document_id=?", id);
             jdbc.update("DELETE FROM knowledge_chunk WHERE document_id=?", id);
-            jdbc.update("""
-                    UPDATE knowledge_document SET title=?, category=?, source_url=?, source_license=?, format=?,
-                      content_hash=?, raw_content=?, metadata=?::jsonb, index_status='PENDING', index_error=NULL,
-                      indexed_at=NULL, version=?, publisher=?, trust_level=?, effective_from=?, expires_at=?,
-                      lifecycle_status='ACTIVE', deleted_at=NULL, updated_at=CURRENT_TIMESTAMP WHERE id=?
-                    """, document.title(), document.category(), document.sourceUrl(), document.sourceLicense(),
-                    document.format(), document.contentHash(), document.rawContent(), metadata, existing.version() + 1,
-                    document.publisher(), document.trustLevel(), document.effectiveFrom(), document.expiresAt(), id);
         }
-        int version = existing == null ? 1 : existing.version() + 1;
         jdbc.update("""
                 INSERT INTO knowledge_document_revision(id,document_id,version,title,category,source_url,source_license,
                   publisher,trust_level,effective_from,expires_at,format,content_hash,raw_content,metadata)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?::jsonb)
-                """, UUID.randomUUID(), id, version, document.title(), document.category(), document.sourceUrl(),
+                """, UUID.randomUUID(), id, written.version(), document.title(), document.category(), document.sourceUrl(),
                 document.sourceLicense(), document.publisher(), document.trustLevel(), document.effectiveFrom(),
                 document.expiresAt(), document.format(), document.contentHash(), document.rawContent(), metadata);
         for (KnowledgeModels.StoredChunk chunk : chunks) insertChunk(id, chunk);
-        return id;
+        return written;
     }
 
     private void insertChunk(UUID documentId, KnowledgeModels.StoredChunk chunk) {
@@ -78,13 +83,14 @@ public class KnowledgeRepository {
                 chunk.embedding() == null ? null : vectorLiteral(chunk.embedding()), chunk.content().length());
     }
 
-    public Optional<KnowledgeModels.Document> findDocument(UUID id) {
-        return jdbc.query("SELECT * FROM knowledge_document WHERE id=?", this::singleDocument, id);
+    public Optional<KnowledgeModels.Document> findDocument(UUID id, RagCorpus corpus) {
+        return jdbc.query("SELECT * FROM knowledge_document WHERE id=? AND corpus_scope=?",
+                this::singleDocument, id, corpus.key());
     }
 
     public List<KnowledgeModels.Document> listDocuments(int limit) {
-        return jdbc.query("SELECT * FROM knowledge_document ORDER BY updated_at DESC LIMIT ?",
-                (rs, row) -> mapDocument(rs), limit);
+        return jdbc.query("SELECT * FROM knowledge_document WHERE corpus_scope=? ORDER BY updated_at DESC LIMIT ?",
+                (rs, row) -> mapDocument(rs), RagCorpus.LIVE.key(), limit);
     }
 
     public int countChunks(UUID documentId, String type) {
@@ -94,100 +100,98 @@ public class KnowledgeRepository {
         return count == null ? 0 : count;
     }
 
-    public List<UUID> retryCandidates(int limit) {
+    public List<DocumentVersion> retryCandidates(int limit) {
         return jdbc.query("""
-                SELECT id FROM knowledge_document
-                WHERE index_status IN ('PENDING', 'FAILED')
-                  AND lifecycle_status='ACTIVE' AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
-                   OR (index_status='INDEXING' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '5 minutes')
+                SELECT id,version FROM knowledge_document
+                WHERE lifecycle_status='ACTIVE' AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
+                  AND corpus_scope<>'legacy-evaluation'
+                  AND (index_status IN ('PENDING', 'FAILED')
+                    OR (index_status='INDEXING' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '5 minutes'))
                 ORDER BY updated_at LIMIT ?
-                """, (rs, row) -> rs.getObject(1, UUID.class), limit);
+                """, (rs, row) -> new DocumentVersion(rs.getObject(1, UUID.class), rs.getInt(2)), limit);
     }
 
-    public boolean markIndexing(UUID id) {
-        return jdbc.update("""
-                UPDATE knowledge_document SET index_status='INDEXING', index_error=NULL, updated_at=CURRENT_TIMESTAMP
-                WHERE id=? AND lifecycle_status='ACTIVE' AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
-                  AND (index_status IN ('PENDING', 'FAILED', 'INDEXED')
+    @Transactional
+    public Optional<IndexClaim> claimIndexing(DocumentVersion document, boolean reindex) {
+        UUID token = UUID.randomUUID();
+        Integer slotCount = jdbc.query("""
+                UPDATE knowledge_document SET index_status='INDEXING', index_error=NULL, index_claim_token=?,
+                  updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND version=? AND lifecycle_status='ACTIVE'
+                  AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
+                  AND (index_status IN ('PENDING', 'FAILED') OR (? AND index_status='INDEXED')
                   OR (index_status='INDEXING' AND updated_at < CURRENT_TIMESTAMP - INTERVAL '5 minutes'))
-                """, id) == 1;
+                RETURNING index_slot_count
+                """, rs -> rs.next() ? rs.getInt(1) : null, token, document.id(), document.version(), reindex);
+        if (slotCount == null) return Optional.empty();
+        return Optional.of(new IndexClaim(document, token, slotCount, chunksForIndex(document)));
     }
 
-    public void markIndexed(UUID id) {
-        jdbc.update("""
+    public boolean markIndexed(IndexClaim claim) {
+        return jdbc.update("""
                 UPDATE knowledge_document SET index_status='INDEXED', indexed_at=CURRENT_TIMESTAMP,
-                  index_error=NULL, updated_at=CURRENT_TIMESTAMP WHERE id=?
-                """, id);
+                  index_error=NULL, index_claim_token=NULL, updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND version=? AND lifecycle_status='ACTIVE'
+                  AND index_status='INDEXING' AND index_claim_token=?
+                """, claim.document().id(), claim.document().version(), claim.token()) == 1;
     }
 
-    public void markFailed(UUID id, Throwable failure) {
+    public boolean markFailed(IndexClaim claim, Throwable failure) {
         String message = failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage();
-        jdbc.update("""
-                UPDATE knowledge_document SET index_status='FAILED', index_error=?, updated_at=CURRENT_TIMESTAMP
-                WHERE id=?
-                """, message.substring(0, Math.min(1000, message.length())), id);
+        return jdbc.update("""
+                UPDATE knowledge_document SET index_status='FAILED', index_error=?, index_claim_token=NULL,
+                  updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND version=? AND lifecycle_status='ACTIVE'
+                  AND index_status='INDEXING' AND index_claim_token=?
+                """, message.substring(0, Math.min(1000, message.length())), claim.document().id(),
+                claim.document().version(), claim.token()) == 1;
     }
 
-    public void resetPending(UUID id) {
-        jdbc.update("""
-                UPDATE knowledge_document SET index_status='PENDING', index_error=NULL, updated_at=CURRENT_TIMESTAMP
-                WHERE id=?
-                """, id);
-    }
-
-    public List<KnowledgeModels.IndexChunk> chunksForIndex(UUID documentId) {
+    private List<KnowledgeModels.IndexChunk> chunksForIndex(DocumentVersion document) {
         return jdbc.query("""
                 SELECT c.id, c.document_id, d.title, d.category, c.heading, c.content, c.lexical_text,
-                       d.source_url, d.source_license, d.publisher, d.trust_level, d.version, d.expires_at
+                       d.source_url, d.source_license, d.publisher, d.trust_level, d.version, d.expires_at,
+                       d.corpus_scope
                 FROM knowledge_chunk c JOIN knowledge_document d ON d.id=c.document_id
-                WHERE c.document_id=? AND c.chunk_type='CHILD' AND d.lifecycle_status='ACTIVE'
-                  AND (d.expires_at IS NULL OR d.expires_at>CURRENT_TIMESTAMP) ORDER BY c.ordinal
+                WHERE c.document_id=? AND d.version=? AND c.chunk_type='CHILD' ORDER BY c.ordinal
                 """, (rs, row) -> new KnowledgeModels.IndexChunk(
                 rs.getObject(1, UUID.class), rs.getObject(2, UUID.class), rs.getString(3), rs.getString(4),
                 rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9),
                 rs.getString(10), rs.getString(11), rs.getInt(12),
-                rs.getTimestamp(13) == null ? null : rs.getTimestamp(13).toLocalDateTime()), documentId);
+                rs.getTimestamp(13) == null ? null : rs.getTimestamp(13).toLocalDateTime(), rs.getString(14)),
+                document.id(), document.version());
     }
 
-    public List<KnowledgeModels.SearchHit> vectorSearch(float[] embedding, String category, int limit) {
+    public List<KnowledgeModels.SearchHit> vectorSearch(float[] embedding, String category, int limit,
+                                                        RagCorpus corpus) {
         String vector = vectorLiteral(embedding);
-        if (category == null || category.isBlank()) {
-            return jdbc.query("""
-                    SELECT c.id, 1 - (c.embedding <=> ?::vector) AS score
-                    FROM knowledge_chunk c JOIN knowledge_document d ON d.id=c.document_id
-                    WHERE c.chunk_type='CHILD' AND c.embedding IS NOT NULL AND d.lifecycle_status='ACTIVE'
-                      AND (d.effective_from IS NULL OR d.effective_from<=CURRENT_TIMESTAMP)
-                      AND (d.expires_at IS NULL OR d.expires_at>CURRENT_TIMESTAMP)
-                    ORDER BY c.embedding <=> ?::vector LIMIT ?
-                    """, (rs, row) -> new KnowledgeModels.SearchHit(
-                    rs.getObject(1, UUID.class), rs.getDouble(2)), vector, vector, limit);
-        }
+        String categoryFilter = category == null || category.isBlank() ? null : category;
         return jdbc.query("""
                 SELECT c.id, 1 - (c.embedding <=> ?::vector) AS score
                 FROM knowledge_chunk c JOIN knowledge_document d ON d.id=c.document_id
                 WHERE c.chunk_type='CHILD' AND c.embedding IS NOT NULL
-                  AND LOWER(d.category)=LOWER(?)
-                  AND d.lifecycle_status='ACTIVE'
+                  AND d.corpus_scope=? AND d.lifecycle_status='ACTIVE'
+                  AND (CAST(? AS text) IS NULL OR LOWER(d.category)=LOWER(?))
                   AND (d.effective_from IS NULL OR d.effective_from<=CURRENT_TIMESTAMP)
                   AND (d.expires_at IS NULL OR d.expires_at>CURRENT_TIMESTAMP)
                 ORDER BY c.embedding <=> ?::vector LIMIT ?
                 """, (rs, row) -> new KnowledgeModels.SearchHit(rs.getObject(1, UUID.class), rs.getDouble(2)),
-                vector, category, vector, limit);
+                vector, corpus.key(), categoryFilter, categoryFilter, vector, limit);
     }
 
-    public Map<UUID, KnowledgeModels.ChunkContext> contexts(List<UUID> chunkIds) {
+    public Map<UUID, KnowledgeModels.ChunkContext> contexts(List<UUID> chunkIds, RagCorpus corpus) {
         if (chunkIds.isEmpty()) return Map.of();
         List<KnowledgeModels.ChunkContext> rows = namedJdbc.query("""
                 SELECT c.id, p.id, d.id, d.title, d.category, c.heading, c.content, p.content,
                        d.source_url, d.source_license, d.publisher, d.trust_level, d.version, d.expires_at
                 FROM knowledge_chunk c
-                JOIN knowledge_chunk p ON p.id=c.parent_chunk_id
+                JOIN knowledge_chunk p ON p.id=c.parent_chunk_id AND p.document_id=c.document_id
                 JOIN knowledge_document d ON d.id=c.document_id
                 WHERE c.id IN (:ids)
-                  AND d.lifecycle_status='ACTIVE'
+                  AND d.corpus_scope=:scope AND d.lifecycle_status='ACTIVE'
                   AND (d.effective_from IS NULL OR d.effective_from<=CURRENT_TIMESTAMP)
                   AND (d.expires_at IS NULL OR d.expires_at>CURRENT_TIMESTAMP)
-                """, Map.of("ids", chunkIds), (rs, row) -> new KnowledgeModels.ChunkContext(
+                """, Map.of("ids", chunkIds, "scope", corpus.key()), (rs, row) -> new KnowledgeModels.ChunkContext(
                 rs.getObject(1, UUID.class), rs.getObject(2, UUID.class), rs.getObject(3, UUID.class),
                 rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8),
                 rs.getString(9), rs.getString(10), rs.getString(11), rs.getString(12), rs.getInt(13),
@@ -198,18 +202,21 @@ public class KnowledgeRepository {
     }
 
     @Transactional
-    public boolean requestDelete(UUID id) {
-        int changed = jdbc.update("""
-                UPDATE knowledge_document SET lifecycle_status='DELETE_PENDING',index_status='PENDING',updated_at=CURRENT_TIMESTAMP
-                WHERE id=? AND lifecycle_status NOT IN ('DELETE_PENDING','DELETED')
-                """, id);
-        if (changed == 0) return false;
+    public boolean requestDelete(UUID id, RagCorpus corpus) {
+        Integer version = jdbc.query("""
+                UPDATE knowledge_document SET lifecycle_status='DELETE_PENDING',index_status='PENDING',
+                  index_claim_token=NULL,updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND corpus_scope=? AND lifecycle_status NOT IN ('DELETE_PENDING','DELETED')
+                RETURNING version
+                """, rs -> rs.next() ? rs.getInt(1) : null, id, corpus.key());
+        if (version == null) return false;
         jdbc.update("DELETE FROM knowledge_chunk WHERE document_id=?", id);
         jdbc.update("""
-                INSERT INTO rag_deletion_task(id,document_id) VALUES (?,?)
-                ON CONFLICT(document_id) DO UPDATE SET status='PENDING',next_attempt_at=CURRENT_TIMESTAMP,
+                INSERT INTO rag_deletion_task(id,document_id,document_version) VALUES (?,?,?)
+                ON CONFLICT(document_id) DO UPDATE SET id=excluded.id,document_version=excluded.document_version,
+                  status='PENDING',attempt_count=0,next_attempt_at=CURRENT_TIMESTAMP,
                   last_error=NULL,updated_at=CURRENT_TIMESTAMP
-                """, UUID.randomUUID(), id);
+                """, UUID.randomUUID(), id, version);
         return true;
     }
 
@@ -253,7 +260,6 @@ public class KnowledgeRepository {
             UUID id, String externalId, String title, String category, String sourceUrl, String sourceLicense,
             String format, String contentHash, String rawContent, Map<String, String> metadata, String publisher,
             String trustLevel, LocalDateTime effectiveFrom, LocalDateTime expiresAt) {}
-    private record Existing(UUID id, int version) {}
 
     private String lifecycle(ResultSet rs) throws SQLException {
         String status = rs.getString("lifecycle_status");

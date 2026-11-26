@@ -1,10 +1,12 @@
 # FitPilot V6.0
 
-FitPilot V6 是一个 Java 21 + Spring Boot 3 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
+FitPilot V6 是一个 Java 21 + Spring Boot 4 的 AI Native 健身训练产品。在完整训练业务、高性能数据路径、事件驱动、Hybrid RAG 和单 Agent Workflow 之上，V6 增加跨设备 Agent 会话、可解释训练计划调整及 RAG 治理反馈闭环；保持模块化单体，不引入 Multi-Agent。
 
 > 当前本地功能验收基线：`9bd259c7f4469826d094da1add6ef4bcad604a25`（2026-09-22，Flyway V20）。版本、测试与发布结论必须分别绑定下文的本地验收报告、远端发布 revision 和 Production Delivery Gate 状态，不能跨证据层复用。
 
 ## 架构
+
+目录入口：[项目结构与维护规则](docs/project-structure.md) · [文档导航](docs/README.md) · [脚本导航](scripts/README.md) · [Web 开发](web/README.md)。
 
 训练记录体验更新：[沿用上次记录与单击完成一组](docs/release/quick-set-recording.md)（2026-09-12，独立记录本地验证与能力边界）。
 
@@ -80,7 +82,7 @@ Prompt Registry + Model Router → Primary → Fallback → RULE_WORKFLOW
 
 ## 技术栈
 
-- Java 21、Spring Boot 3.5、Spring MVC、Validation、Spring Security JWT
+- Java 21、Spring Boot 4.0、Spring MVC、Validation、Spring Security JWT
 - MyBatis-Plus、PostgreSQL + pgvector、Elasticsearch、Flyway、Redis、Caffeine、Kafka
 - Micrometer、OpenTelemetry、Prometheus、Grafana、Tempo、Loki
 - SpringDoc OpenAPI、JUnit 5、Mockito、Testcontainers、JaCoCo、CycloneDX
@@ -106,12 +108,14 @@ docker compose --profile observability up --build -d --wait
 
 Swagger（仅开发环境）：<http://localhost:8080/swagger-ui.html>。Compose 将 Actuator 管理端口隔离到仅本机可访问的 <http://localhost:9091/actuator/health>；`prod` profile 默认关闭 Swagger/OpenAPI。
 
+本地 AI 教练支持通过 Pi 使用已授权的 ChatGPT 订阅。 [接入说明](integrations/pi-coach/README.md)
+
 ### 演示数据
 
 演示数据仅用于本地 Docker 环境，采用显式脚本而非 Flyway 自动迁移，避免进入生产数据库。先启动 Compose 后执行：
 
 ```powershell
-.\scripts\seed-demo-data.ps1
+.\scripts\development\seed-demo-data.ps1
 ```
 
 然后使用 `demo_athlete` / `FitPilotDemo2026!` 登录。脚本可重复执行，只维护该演示账号的数据；包含已激活的训练计划、5 次已完成训练、趋势指标、个人纪录、通知和一篇待索引的卧推知识库样例。
@@ -240,7 +244,7 @@ docker compose up --build -d
 ## 历史 V5 生产验证
 
 ```powershell
-./scripts/run-production-validation.ps1
+./scripts/production-validation/run-production-validation.ps1
 ```
 
 脚本执行 Maven/Testcontainers、完整 observability 在线联调与真实告警演练、30 分钟混合流量、5 分钟突发流量、运行时资源采集和隔离环境清理，并生成 [P0 生产验收报告](docs/release/p0-production-validation.md)。性能结果见 [V5 验证报告](docs/performance/v5-production-validation.md)，远端门禁见 [V5 发布清单](docs/release/v5-validation.md)。该报告记录的是 V5/Flyway V9 历史性能基线，不替代 V6/V14 功能验收，也不能外推为真实生产容量。

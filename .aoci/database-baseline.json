@@ -1,0 +1,507 @@
+{
+  "version": "database-evidence-baseline/v1",
+  "sources": [
+    {
+      "source_id": "fitpilot",
+      "engine": "postgresql",
+      "database": "fitpilot",
+      "namespaces": [
+        "public"
+      ],
+      "include_namespaces": [],
+      "exclude_namespaces": [],
+      "include_tables": [],
+      "exclude_tables": [
+        "flyway_schema_history"
+      ],
+      "case_semantics": {
+        "identifier_case": "preserve_quoted_fold_unquoted_lower"
+      },
+      "evidence_version": "database-evidence/v1",
+      "source_snapshot_sha256": "b2d0b876295c9a100d1f3845149e293cc8e9364865de700c0603425ef2c6d441",
+      "tables": [
+        {
+          "object_ref": "database://fitpilot/public/agent_eval_result",
+          "table_evidence_sha256": "42a89f8cd383837dcec17a09d8832cc7fe57a0ef6da62c3abe085e4f022617c6",
+          "component_hashes": {
+            "columns": "771462d3ba8a34b7e789713bf4f71eddfdd919d3b9be6e0915578e05f1209b1e",
+            "primary_key": "01eab77bed6e730a6704799d99ede58eb2acf74590bae09330167f2e755c7ba4",
+            "unique_constraints": "143f87560e46615fb033b282aad29cd49254edf2e0c2524752dc38f3963b1efc",
+            "foreign_keys": "40ce875ac3ed560cc048a4299243174188758b4539de403719cb1b2cc7d113db",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "d8329ffd0422287a47074563e4b68abbfcf36bad2f8b25f9439998d935e190e9",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_eval_run",
+          "table_evidence_sha256": "bb36c6821d481220a38be6643211a7d8209b1eb2bd74428d1091916f56bdd53c",
+          "component_hashes": {
+            "columns": "f58dfd20bcdf21c7f04789e5a875f66fe0ba67978a15b604df56c3b50d2bc704",
+            "primary_key": "d7b465a6444e158d4de961cbc7a6b1b8d9456a65578151304034a42659cc239d",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "0555d19f573b2926ebc7c958769e90d828db2de187a85daaa3eccd3c557f800f",
+            "indexes": "7ce3d8be46917e5a299e74532d66aba29e591d824d3b3ea6817a80967ad2e885",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_execution",
+          "table_evidence_sha256": "6ab3e99cf40264001a54264d9006a82e8e2951a67c949c1eaf43c2108ca6017a",
+          "component_hashes": {
+            "columns": "70110f4e70e2e7829e620d6c0fefd52fc39f99bee3398c3511cb54f45e7d9e51",
+            "primary_key": "d250a6a721f2f15cbc3e8354e7f11fa5966689484657ce8e4fc34eb652ba4bb2",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "712e657b235a0d429506f940c14396292c1f2b1577d2cde5b3f71aa299c1aa76",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "9905274687876837e5cd4078b65f5f823e850682f214ea25154f3f5f91de98c2",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_memory",
+          "table_evidence_sha256": "611ba3028848b5dafe80afec2df1569bfaa62633c8f7e9e7577f0183d5532971",
+          "component_hashes": {
+            "columns": "1d728e83f085468bea35c27bc0105f199aeed72559263ee02f6d5e13897f65d9",
+            "primary_key": "8eb52a1dfb1ecedb5246ebd067d24541a596b5ba92aa40a68d36b147169d7f62",
+            "unique_constraints": "0e37ab75b91914e4e0a01f4ca0380c7fc9120f45007a510a8d49b1ca20aacb41",
+            "foreign_keys": "bef1b08dc69d2380db3959c486f92a1fa5d1a8da288bcd1c984b3f95671acd53",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "f001892a7d6c6ed453026e946de1da735f490d8f61b0a4b6c81fab8f0606fdf6",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_message",
+          "table_evidence_sha256": "6fe58ebc9b03f4f765b10def811239596f8c3a5260f6c8c6bf1e5a7b0587198a",
+          "component_hashes": {
+            "columns": "7010bc80385630d5a07bebf1bd24ab0bc7de92af3e6e2b41bca2d1390dc464e9",
+            "primary_key": "3c8eb217c8cff2ca1e5a96b555a9188daa303365023b02381310af2e1991d6ca",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "3d43101f36030b1fc495eb53c7af791701fc01bbf319079881529e46dfe942b2",
+            "checks": "4bd99dc5ec19320efce52bc787ab053d2ca81fbc7a8bca8a9e63f7aab60f037a",
+            "indexes": "3e900827ec0912c0d7cdf1bef91758e426d8084f18d4a60206565a3c1eb25346",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_pending_action",
+          "table_evidence_sha256": "da8083ae62169b658a07388b223cdd373cf222762c4acf6cde34e4f666eece89",
+          "component_hashes": {
+            "columns": "33f22a1898036b77b950e440305de2ce6f742fed91f2a2488efe084cc8b84861",
+            "primary_key": "afbdddcf74d4d15f2fc008f42491e9f7e2e626caa41570a11187d5314bfd6fc6",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "afb57512e0188f3d20887d7d0bb36055fb06c29888eda9599a467bf2d7165610",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "2a69b0a3885e954631333d971bcfb053f9da4f8697048417f816b3f51791c670",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_session",
+          "table_evidence_sha256": "0c13ab9d8369f882a42ba0d4132796e406dc351990ef806ab6541f86891d0197",
+          "component_hashes": {
+            "columns": "d6c091448dcb9c983ac0ce3b2311a70e6f857700cbade9655989105d5bb41ea7",
+            "primary_key": "5d8d85c10f57c974f974dceb6302d5d377efdee9646f5e22bcb82d43942f764c",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "47c68e0973a2a2fa3b98c75ee0cadfbc868f5c44948f88e92012e0237c778d8f",
+            "checks": "2320d71cec14e7b3c68b6ab86f292258ca69e7c1e699be1b57dd14658201be10",
+            "indexes": "50dbb86cf071f27f9ccda24d7229f55b2757620bc9eb4d8da3accb860a792a71",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/agent_tool_call",
+          "table_evidence_sha256": "62d42a0b7112690a30c176a2229d13a9ba118f77e36b7581cea2932bc5973999",
+          "component_hashes": {
+            "columns": "51da0a293b6f3d56bdc481c2ab6ecf4f0e79054842b2b677189f4138825b0ad0",
+            "primary_key": "668bf2bf12aecd4e015d827421d06e015a830747330a2d543ee4988bce2c7c9a",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "d1f5b3059d6c7e2f991bfe2342b13bd8edebcf625b0555acc88a1fd38ec7468d",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "7f01c4040d736e4f9811d06d6e6f6b5f79c0c8bdde64236140cb6b0f49418208",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/body_metric",
+          "table_evidence_sha256": "b779413d8e6db3743b09a8b36eb4354507b53cb2771c8f31b247982e6b50a06e",
+          "component_hashes": {
+            "columns": "9376c84d2e429a22e7aed2bee9b11f936fb2b03404762e04241a78f5cc3092b4",
+            "primary_key": "379595b89febf82d8fcecb7769421ca678f0d7e1ed784f31b2f72fcf14bac0ca",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "9feb72f8429e93d36024a94894bccb0c55ed6408d5360432b0544b1d7b673733",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "17eaae5610a7e27e72574677089e8814b7e2a747be18f14fc3a6491d276ecd78",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/dead_letter_event",
+          "table_evidence_sha256": "6eb6ebda2c3943a71bc10e1cdbbaf8004f04085269122ac5f1ecee0e045d5fdd",
+          "component_hashes": {
+            "columns": "25539d92178b05fe49ea14857a91ccf9c7f2747f6c2b8c8357daf02dbe5fed35",
+            "primary_key": "d5db028a710ccb1a6e325b754fba1b5e1b1950ec28dc9282fade0f86fbbbcfb2",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "0f61b996841537aeb1de62a0ec79ae3802452635a489fe0b675edb41388e6602",
+            "indexes": "0f321e208b6e88220cd0b43955cb935ae731aad6cfc60aae1dfa5e91a2f8bcc2",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/exercise",
+          "table_evidence_sha256": "6a9242f059639b3c45d9c53f954de785a4ce101ad5d4698e0a5e7fca9b13b484",
+          "component_hashes": {
+            "columns": "230f9a2c048b2a2e42da47a7bf6e26417faa316a737603cdffc1e96307db2426",
+            "primary_key": "c471c11b6b060fba8a7777b4fd16efd1e92c8218a26f8b7cb95073b52c4a70d3",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "41ed137f156034a227996d44a8fd248643a48aeb3fb928c3692b63668ecf6737",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/knowledge_chunk",
+          "table_evidence_sha256": "057e28199793554b7c18e4f4919ba4713d2701ac9b099a7a1cdff881161b24ac",
+          "component_hashes": {
+            "columns": "2cc53d2984d479857c9142f841d9219d09511204da31f02d07b0956acb7cfc83",
+            "primary_key": "13255e26bf6e74bdab3dfad000d152e0c1b4268a2cc30061a62b33dbb00728be",
+            "unique_constraints": "3a44cc3e3ecdd1d7d54d72a609554eb234f834d2dde5068c75750b2bab00cc32",
+            "foreign_keys": "b3b9aff4c12e02e576c84d73d61d91a44a3c37fd6cb0d687ca147c42550d9358",
+            "checks": "3d3e19c3d62f0a8fa100693b1e4d3639ea6372823c265eed909cfe9c7d55c4b6",
+            "indexes": "f2a32099e5917f9e7b36f3fdb5959120820bb65e92b7498d85530ac9a2a641ff",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/knowledge_document",
+          "table_evidence_sha256": "3ca6cdd0eb8f6a786614cd634160cebee148d72fd9d3f837548bc24bd2ca6094",
+          "component_hashes": {
+            "columns": "f6f28c695201adba0247bc7784717e5419d0e1e80f30d778dbc4a9f4c30990e5",
+            "primary_key": "dca6c98b46c068cf9701f3d361caa2e6a0a256e73d85d6c7f4a21c44e05c12a1",
+            "unique_constraints": "fbb4c3024b260b16e8c179dc42d9d8e0574a6a9f76e6482e399f80cafa1e30a4",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "30c652cdb56f74756ec03c5a42b032bc052256a56700c563b4bc717eb668f456",
+            "indexes": "3d2286f1bdc77b55b8f00920d8408461bdcb8ad66f1b7129308c36c064b40d1d",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/knowledge_document_revision",
+          "table_evidence_sha256": "d67eca8d940674d091da25ce950bc77d900fcecc45fa57d3da4a6987544321ce",
+          "component_hashes": {
+            "columns": "aa6f07bbaf5b61933668ab88651626b68c92607b8e34640e28bcb84f7d8e8677",
+            "primary_key": "8e81d77da9ff4510392ca449046f5791da2d9f343a677d60c40475734e154a95",
+            "unique_constraints": "c70df28d672602f31a9add2ec2abd7070ef8f347b5803743114e67ff65201f03",
+            "foreign_keys": "9e7a770518a8aa153453ad172eade4f2e4fa3f48863bf4cd054e652689f68cd0",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "dffc5a4aca5f4c1204fc0c48d70cfc4a525b5722279f1c34d6bc4bbde925ea2e",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/llm_invocation",
+          "table_evidence_sha256": "529c89ef958a0565fdc2a39447b271e8cde17c1175b2aa4f1ebde53a4e4617f9",
+          "component_hashes": {
+            "columns": "8786f7021a676238b8f0915fe17599ef9e25b2130f6b813c44480f02b8dbd18a",
+            "primary_key": "128213880df882c6af683f48192c1f70427f3ebe55b0b0aa9bd83c022c847ead",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "b76f8310a9170605e0bc366a27978eb7556f36d807081e63d81d31b0afcdadc8",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "d9466d9945f9c231aa3cb5f69e3ddc77b38b81f101f8eca0cc47993fe9368f52",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/outbox_event",
+          "table_evidence_sha256": "204af8b455fbefedae96ba5f0a5216448c59bfdf1ac167072e79086380a2ba65",
+          "component_hashes": {
+            "columns": "eb61c22cd8a68ec61d90880a45b1e9048d1f3c96f5b69f0f2217d0c82f7d101e",
+            "primary_key": "ec0033c1ac2d7d2547a23092852e48a92fe946f22c4b69bc041ae02417c3067e",
+            "unique_constraints": "707e54113b0f24b247b5e2ca488de2ba1ae17b16d2b0fb0bebd217b2c654830d",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "e6dc523f18ce3db125131699e8c1eb18dadd26dffe7445b55668aeebe97ce352",
+            "indexes": "5b1ce4e1da4adfd7695c11710a4d3d43600a804c1676c2f57989679ed20ef046",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/personal_record",
+          "table_evidence_sha256": "8eebfa65624cb6c334c439a4fc42708bc0eae104e803983b6d89dd0aabd05b90",
+          "component_hashes": {
+            "columns": "864d1bec567c554f2db02551937f5cb993458383924a270ced382e67f84c03e7",
+            "primary_key": "d885a3f672829d82d78376042dde1045b02c840319f2ac2a9ab7456e657845b5",
+            "unique_constraints": "819788ef44ebff7781bac38561febb09343e3b50fadfb90e5e1fe7f9c96ea0cb",
+            "foreign_keys": "7c49135a030c03c97894b0aea736cb141eb0af0e2fbab326e28cb00a71018403",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "f9cf8874b0c9c76bb7aa2e55dd5a8c39a7f0eda212d2207f2c342bed9d472817",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/plan_adjustment",
+          "table_evidence_sha256": "4989dc925963f5f84e06f446899454914c42377bd3075d5c6eacadd603c5853c",
+          "component_hashes": {
+            "columns": "298f6c1b271f508f1bf846b107c1bfe9ef3200b6c396b13c9edc0d8c06068ff3",
+            "primary_key": "3d8cdfd044edaa0fa9d2b629e8da15f678ad9ed3bb0827f8ad92680727f8808b",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "66cc96586c6448f7d89720d15491ec0f26079b7a5d1be96d5069d522978a47a7",
+            "checks": "97677b468dd9926b3f4353fddf37655259d3c2121427c1a15d2389875de9242f",
+            "indexes": "78adb98c5351708302ab331953f3bdc7cced095608064e2eddeffd666444b898",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/processed_event",
+          "table_evidence_sha256": "c0792f372893ee0c4ec5708655f2007df8ac77e2ea1022e3ccce8de77b7f5aa9",
+          "component_hashes": {
+            "columns": "7fe424b8a9de0b7a53fcbc4f2435fd90a998fd0abf450debfc0edaaf572277a4",
+            "primary_key": "123af687051ce89c854de83f05e7e9d02b1aa87ab8cad0354c339b54540fac19",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "5dacd4376ab34a8cb0fd6e2e5f20649c043e299b353740dc782a13f0dc83a1e2",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_deletion_task",
+          "table_evidence_sha256": "c4de7e60f652d6fd65bfa61e4661c3237f43e1dc9b06ca1a7616c1e4f1d37b70",
+          "component_hashes": {
+            "columns": "75f27bec88ce7066b89aa9d7eb6759832aacfb1e41c5468e2f3e335005d06930",
+            "primary_key": "e576c0c2d589562dcf5af4e20e6bf91cabf27edd162a1991d16570060661ba45",
+            "unique_constraints": "f37d53961b7bf8dbf0b41414378cbc26b3832d7db0cde4d2fdb918d7abdd25a3",
+            "foreign_keys": "7fa41ba56a7dacbb75f7dc33b8328680a702ef2889392c27c548f9a3d241325f",
+            "checks": "d4f16e7553037c786311d9ba75c68dbb3215215540a581d6a6630e81de916045",
+            "indexes": "7d70d1b0d33cb1b8561a406e7742d890d3f646e53daa1e09542a975047900084",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_dynamic_eval_case",
+          "table_evidence_sha256": "810270597bf392fc02b09ef043720afb0d96c1662d7992931d6f5453524fb096",
+          "component_hashes": {
+            "columns": "3f4c29b25b25e9df0332853a54db8bd295bac14e333de6b699effe9e6e4de2d7",
+            "primary_key": "35b63958d3538fde36c25028a98d6bdd0b0ae37ca6055e4e2d2fff4dbb3ec6f0",
+            "unique_constraints": "e6ca23cb21fe21b337462a59c11ea6b23d4ace5b1ad2193f3cc6e8d6aa8b526d",
+            "foreign_keys": "6ecaaf9d67bfa3550df3710c81c9476f265466982fed6f54d5c91d9f728b20f3",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "91fe194b75b3b228b1223051c88e1ff848dbfeee04b6aa3d3e1735f7fa653a77",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_eval_result",
+          "table_evidence_sha256": "5e26fc7d2409cf7f502af594474b1d4fd99f1f3cfda62c36413e97b238eabe7f",
+          "component_hashes": {
+            "columns": "4af11505eb1d8e5d5e26275c2935839049a664b3a7b500b906c069126792ce4c",
+            "primary_key": "765dd4da2c336a89b7efd6d2add0ee83d1f79b7cbcee13d85c809508e96058b1",
+            "unique_constraints": "8266fa265aab792a763e91202edb2f431964836aa9ec6ed657f694ffac6464f9",
+            "foreign_keys": "1328a1feb8fe9d4781ac7d8081162513040c974959006a4fdb7b668f78406d3c",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "450fa84bc072a68e5af06175c9c74970a52f47b997e246eb7a3344acf8c1986f",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_eval_run",
+          "table_evidence_sha256": "60690ef2749965e2f2c95ba181b8841ab3fa5a044b131286610471d2576d94b8",
+          "component_hashes": {
+            "columns": "683b3778bd238247354c6fa9b507a4f154c489278ea333c68cce05510b49e6f6",
+            "primary_key": "75c5ef6acdc681604fd9243ebf84146a58f0d88849193b62dc2ab2f8ce2c14a3",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "1018c386791aa04d6aaa4ce06c410af02ac9e20492802fd75fc69f8912379cc2",
+            "indexes": "48c69bf4ece263752303b7659bad7541eb4eb6b4ee7ed2ec6000a9707fca9626",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_feedback",
+          "table_evidence_sha256": "1605826cf54862bd4cc2e932fa7cd8013cc23142cbbae91271ad62b4f431fc90",
+          "component_hashes": {
+            "columns": "6b629645cd72f68a6dc4b0ef0658d7af20ac4ec78941100446c571c3fa8370d3",
+            "primary_key": "27813fc027ffabafee8b53478f35d73652c1c7e9adb6fc64fffe0aae65d3db7d",
+            "unique_constraints": "16136c841ed51cfbef5c901bbfa8a603e02aa91a1ac6b099edf5a1c49e70a4fc",
+            "foreign_keys": "74e916338e862af2a64c3143c9f6f5e69c46c3d59c41eaf283987f476005433c",
+            "checks": "65b0a4dc4805a8d361c80448ade76bcc17e5cb026f7bc850951874a67e94cfb3",
+            "indexes": "7fd0ce4f403b06989e2d22ba236094107399afa7614befaa71d7993868d041b2",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/rag_retrieval",
+          "table_evidence_sha256": "bacd71dd51b0c6f22fa8dbc0a7102427b3006fb4cc8c634c71c174ea33ab7922",
+          "component_hashes": {
+            "columns": "ac9170af76ddfcbf4b72ae2002e27fc3b5bd5e9ba2af2609774e8e1c6c88c5c0",
+            "primary_key": "73b45245b20d687914656acf8028127b2b4f9398d18e461d8408a72e0326eca1",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "f7301a882af57f822c5fabfef1c06b2ee3cd6587fa545a12b19518af642ae2c0",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "e1c278d6288490fde7edea683ad3b4a2db41bd191b63e11088543ba753331598",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/training_plan",
+          "table_evidence_sha256": "5a081f792a94475277cb49b38bb4b46602adfa40c2d7f6e4961013a610f04fa2",
+          "component_hashes": {
+            "columns": "bc7a59894d51d457204580517410f5021a6c35ba4fab719b19cb2eaf2373caba",
+            "primary_key": "535038a6f2f4c586c02de0716a14366701959f9a1c5be352b351529214dccdba",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "d0800502b3a4021211dcb5a6d4acc91b3aaac1935f72f4beceae46781a79e52b",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "1825190c3e5de90bc981ed36501ed0d704f2397328ce6be190e87e91dcd30111",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/training_plan_day",
+          "table_evidence_sha256": "23f499bb209e95401da6782cbfc607b3a20fcc37990c12e5fcb40db3af166d19",
+          "component_hashes": {
+            "columns": "ed6c8f77433e1af6b17cbc9ef4ac2e4deda2c89709d15b6aa7040936dfddbcad",
+            "primary_key": "39f2562653355bbd1e7d040144df3725060dab99d95be484da4a344415849b52",
+            "unique_constraints": "99387c36fc51f5880bd56e056b6f8d937f26efff24dfe9b0e828653f9dc59156",
+            "foreign_keys": "c893b53645db7facf0641f7f2c49f392ee359afb5266e0ee8a7e7077ea29114e",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "b80103df5f619088d5a373ca6e0c9482b7162857544754b706adc733cc0ae3a6",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/training_plan_exercise",
+          "table_evidence_sha256": "8e17497b55c7f84c42370792e534d48575d1372d40aa63fd5ae08f8cc512044b",
+          "component_hashes": {
+            "columns": "50b77ecaaac214e7b822dea63c10dc5270cf560dbbe46ab93808f316e6de8436",
+            "primary_key": "5e66f219b76d5f7ed0095b9674d4eaaaaa4b7aa8bbb8c6f5787b70e6997d3f9d",
+            "unique_constraints": "048f0a0ae5cc0fdb725d2128806c7e8bb93a460cc118ed6a29f526b64c25e8b7",
+            "foreign_keys": "70635b81d2ddafac78aea07e93e41152a59bed30feeeba4aa58b3f8d2c907937",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "c5b453c2e4c8b7c7bc518e4b664da0a598264cce71213d35b953756702e691cc",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/user_notification",
+          "table_evidence_sha256": "7023aeab7a6bb6412f27f9da8c29b9add7a7b1caf09475100364c9fa987c5310",
+          "component_hashes": {
+            "columns": "92ec50c62395786a5752a3d92b479abf5d40cb1991a02c2fef5ef948fcbcca98",
+            "primary_key": "55f534ea3da5933da524fbf7fe78599314a27eea6353eb497919adda6116cbe7",
+            "unique_constraints": "ca4cf000079f1ad8e4c33c16cdd9875e5a1ce39d9644cc11bb8421b7960ad268",
+            "foreign_keys": "85a82f43d7652c6607f7d4c2ec2d9db3e326af723b878819f55ffc808283b0fd",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "b01e49f5fc15a3df681d7da9de5c57bf1528d0877861ae2167fecabb018cd89d",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/user_profile",
+          "table_evidence_sha256": "fc77e285a29c39f95e0ce2324d40429891c1a55d6028116719e0ff69ead79a01",
+          "component_hashes": {
+            "columns": "9613fef4736a3d886915eb0438bd5b027d477a01800ad0b200c473decec99c8c",
+            "primary_key": "b8d177761af195987ee666e91f09068532c535dfe825172a591f3851b50cca8c",
+            "unique_constraints": "0587c21b92ced5d96a40d333bc269466d4a00fe847b60569cb3c93e141ce5da3",
+            "foreign_keys": "94b806e7b6a187dbc50c4818284e47ad32e76777a4afc75bb3077939fd468186",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "0fd6d3b8a2d55ba6d4c05218302057a340047df04108fae560b2669af2e76e13",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/users",
+          "table_evidence_sha256": "2c1c08145d26324249facae56f8a5d5e5b20d1ef000f1bb69c581ace21cdbf14",
+          "component_hashes": {
+            "columns": "17508e15e14b8524dbad0bdec1832da132d401b3d815c3849ed16d0f91b44a18",
+            "primary_key": "d2c4cb3998067e6bae51e2cc9cb9ddda49a9cb2c527355b9f897165fefb59f07",
+            "unique_constraints": "2dd164941645fa531c287ff8e7fdee5fc44c69ee4d4206b4248f80097c547f4b",
+            "foreign_keys": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "checks": "2e90ac020b42dccce8d443a032b97fe3b3d37a8811269142a5471e5ae37a004e",
+            "indexes": "ee342e1e0ec1d00a2783f9bf0ad05f873b2387f4a0a79023f4e654deb92f8d1b",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout",
+          "table_evidence_sha256": "e7c6b7d513681f286f9dcdaf42cd4b0433d620fa34e36e10725d5bf8a2efc438",
+          "component_hashes": {
+            "columns": "2c51464c6ef19b568bf08298550e8d3e49988d70dc4d2e67d8a50b632651145a",
+            "primary_key": "56c4e839a0bda800a903a6cd449d74abef84785a23f9a51c0f852bdfc2630b65",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "f297a7dda4054a27e680924c930ddc8c08f146b50683034b2b125dcf2c1c9c8b",
+            "checks": "3879183fd79105c28d171d363b41bc261b9179dd13d1caefd1390c3433b4f629",
+            "indexes": "f52e7d2ba85e0deb1a617f826abc267a572055907bb66e9a1fcdb211a1bbd778",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout_analytics_projection",
+          "table_evidence_sha256": "11afa4daa3b5f0da524d6ed40348b0f144051200702b4b83c813ad364695c18a",
+          "component_hashes": {
+            "columns": "b3666a38114224829730f87c195f85b1479d05fd7c9214ffce977f3297af0b11",
+            "primary_key": "f9b8ce7e6e1fdf0259216beff1ce27fbcd80dfab406e897deacd04a90d6ef706",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "e115b08d52569d80e1dfcf33c7243c0b4d0dfb50b06cde82a78541f921a47379",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "606fa5b0e06dbc192441b8fe69adfddfec8da9c0de342a1b16354aa15ffd16f2",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout_exercise",
+          "table_evidence_sha256": "acc2d4e70b40f69fc3439f2269c5b448cfb74134fcc35d838b44894145a2d294",
+          "component_hashes": {
+            "columns": "ef79ad38607c265593dcc6144299d26d90b9fae98fe750522c8e50830b11d0af",
+            "primary_key": "1e4363a589c294b3047e20dbb1ec7ef77ae04c3b74e6dcfb31717f89b4cd0d77",
+            "unique_constraints": "87d43f54f34c200daf5c0ad885ae24ac0eb8ec471ad38f5580913e51c0b69cb0",
+            "foreign_keys": "c9b70ea4b76670d274f0b2b1b3bc2e27a0bcd31df3d03f9df6082a6611dc46b8",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "7c4d53fa7367628027741ac721c4c07db7d5470c00669c73fb1aece09213c9ca",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout_feedback",
+          "table_evidence_sha256": "51e132f75fadfb26e8546eb41b00b798ed00419e4b16560d03cb14508c129923",
+          "component_hashes": {
+            "columns": "95b94f0dea6c74f7f4979ef4b2c3515996efe7671ed5bba96b1af18a637dd298",
+            "primary_key": "10202d4893e571ea42f0a65876354269460c078b951ef784ee71e6f6a810ffc2",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "5fd749fec8a7b5d45fe8bde5ad5dc66a7945a30015ecc19f3f66244f1324c719",
+            "checks": "c1072ad57f281fccfc8f758f87f1ab6e163ea306518ac095446e23cea4ba8b76",
+            "indexes": "69a8237d23075c4216b8337cc065ce7e92eb642e2535a23772902f13660b0d4b",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout_set",
+          "table_evidence_sha256": "c84c47f857241bc18eea4453ced6ff1a8e4b05d73d5a9001470943dfcc920706",
+          "component_hashes": {
+            "columns": "50efd10dad63754e0d4646ce5b41df39efd4dac98165b2530b6a56aa95486dd7",
+            "primary_key": "112d508147914d5645a4f049079233e6e486385ccaadba72645f7ff6d2740b87",
+            "unique_constraints": "f48fcbec1e91cbd165f19a9d70cdf003bce4b5e4e3cc6d030989a4b8d75d1bed",
+            "foreign_keys": "141d33e3f7dbdc64674020d5ecc12d38623a49b2b7b6419567d837423fa62ab0",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "775679ee5513f2c35202f02994f1ed63da3f15cbc2a4c151c9ee2285a6d6069d",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        },
+        {
+          "object_ref": "database://fitpilot/public/workout_set_receipt",
+          "table_evidence_sha256": "ded3e2b1bf38c7a6bf1566a4c969a1140915af174bf9a281cba1b388bc37ae6f",
+          "component_hashes": {
+            "columns": "adfc9a9e94ccab580710dc6e8d0295ca49889e15a15be61adc72516eb0fa79da",
+            "primary_key": "5f0624f856af1141baf98f6eb653d412429e5bb3eb7c5ca20e7776d176fb03dc",
+            "unique_constraints": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "foreign_keys": "70c6da0658a95f26f8923d4d5138f637cc3de76b53b7dfce7378b9e997abacf9",
+            "checks": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+            "indexes": "b40073743db1851f2653f74c3962a3796df1bdf12a85fcb9443aa5a1dc7638af",
+            "partition": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+          }
+        }
+      ]
+    }
+  ]
+}

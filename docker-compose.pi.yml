@@ -1,0 +1,18 @@
+services:
+  app:
+    ports: !override []
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      LLM_ENABLED: "true"
+      LLM_REQUEST_TIMEOUT_SECONDS: "22"
+      LLM_TOTAL_TIMEOUT_SECONDS: "23"
+      LLM_MAX_RETRIES: "0"
+      LLM_PRIMARY_URL: "http://host.docker.internal:${FITPILOT_PI_PORT:-4194}/v1/chat/completions"
+      LLM_PRIMARY_API_KEY: ${FITPILOT_PI_BRIDGE_KEY:?Set the FitPilot Pi adapter key}
+      LLM_PRIMARY_SMALL_MODEL: ${FITPILOT_PI_MODEL:?Select a ChatGPT model for FitPilot}
+      LLM_PRIMARY_MEDIUM_MODEL: ${FITPILOT_PI_MODEL:?Select a ChatGPT model for FitPilot}
+      LLM_PRIMARY_STRONG_MODEL: ${FITPILOT_PI_MODEL:?Select a ChatGPT model for FitPilot}
+  web:
+    ports: !override
+      - "127.0.0.1:4173:8080"

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WorkoutCompletedEventHandler {
-    static final String PR_CONSUMER = "fitpilot-pr-projector-v1";
+    public static final String PR_CONSUMER = "fitpilot-pr-projector-v1";
     static final String ANALYTICS_CONSUMER = "fitpilot-analytics-projector-v1";
 
     private final EventEnvelopeReader reader;

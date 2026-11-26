@@ -10,7 +10,7 @@
 
 ## 场景与结果
 
-运行：`./scripts/run-outbox-backlog.ps1 -RunId final-concurrent-20260917 -BatchSize 100`。实验使用真实 `WorkoutService.complete` 写状态与 Outbox，实际 Kafka Broker，两个 Relay 对象，以及生产 PR、Analytics、Notification Handler；数据库 Inbox 与业务唯一约束保持开启。实验先创建 Topic，确认启动时可获取 Kafka cluster ID，再注入 Broker 中断。
+运行：`./scripts/performance/run-outbox-backlog.ps1 -RunId final-concurrent-20260917 -BatchSize 100`。实验使用真实 `WorkoutService.complete` 写状态与 Outbox，实际 Kafka Broker，两个 Relay 对象，以及生产 PR、Analytics、Notification Handler；数据库 Inbox 与业务唯一约束保持开启。实验先创建 Topic，确认启动时可获取 Kafka cluster ID，再注入 Broker 中断。
 
 | 场景 | 故障和负载 | 最老积压年龄 | 恢复至 Outbox 清空且投影追平 | 数据护栏 |
 |---|---|---:|---:|---|

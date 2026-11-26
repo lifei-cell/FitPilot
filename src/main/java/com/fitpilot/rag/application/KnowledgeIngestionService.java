@@ -3,6 +3,7 @@ package com.fitpilot.rag.application;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.domain.RagTuningProfile;
 import com.fitpilot.rag.dto.RagDtos;
 import com.fitpilot.rag.embedding.EmbeddingProvider;
@@ -53,6 +54,11 @@ public class KnowledgeIngestionService {
 
     /** Offline evaluations may supply an immutable chunk profile; live ingestion keeps configured defaults. */
     public RagDtos.DocumentView ingest(RagDtos.IngestDocumentRequest request, RagTuningProfile profile) {
+        return ingest(request, profile, RagCorpus.LIVE);
+    }
+
+    public RagDtos.DocumentView ingest(RagDtos.IngestDocumentRequest request, RagTuningProfile profile,
+                                       RagCorpus corpus) {
         validateMetadata(request.metadata());
         validateGovernance(request);
         String format = request.format().toUpperCase(Locale.ROOT);
@@ -83,20 +89,20 @@ public class KnowledgeIngestionService {
                 request.content(), request.metadata() == null ? Map.of() : Map.copyOf(request.metadata()),
                 blankToNull(request.publisher()), request.trustLevel() == null ? "COMMUNITY" : request.trustLevel(),
                 request.effectiveFrom(), request.expiresAt());
-        UUID documentId = repository.replace(write, chunks);
-        indexing.indexNow(documentId);
-        return view(documentId);
+        KnowledgeModels.DocumentVersion written = repository.replace(write, chunks, corpus);
+        indexing.indexNow(written);
+        return view(written.id(), corpus);
     }
 
     public RagDtos.DocumentView reindex(UUID id) {
-        require(id);
-        if (!indexing.reindex(id)) {
+        KnowledgeModels.Document original = require(id);
+        if (!indexing.reindex(new KnowledgeModels.DocumentVersion(id, original.version()))) {
             KnowledgeModels.Document document = require(id);
             throw new BusinessException(ErrorCode.KNOWLEDGE_INDEX_FAILED,
                     document.indexError() == null ? "knowledge indexing failed" : document.indexError(),
                     HttpStatus.SERVICE_UNAVAILABLE);
         }
-        return view(id);
+        return view(id, RagCorpus.LIVE);
     }
 
     public List<RagDtos.DocumentView> list(int limit) {
@@ -106,8 +112,11 @@ public class KnowledgeIngestionService {
     }
 
     public void delete(UUID id) {
-        require(id);
-        if (!repository.requestDelete(id)) throw notFound();
+        delete(id, RagCorpus.LIVE);
+    }
+
+    public void delete(UUID id, RagCorpus corpus) {
+        if (!repository.requestDelete(id, corpus)) throw notFound();
     }
 
     public List<RagDtos.RevisionView> revisions(UUID id) { require(id); return governance.revisions(id); }
@@ -122,13 +131,14 @@ public class KnowledgeIngestionService {
     }
 
     public RagDtos.DeleteStatus deleteStatus(UUID id) {
+        require(id);
         RagDtos.DeleteStatus status = governance.deleteStatus(id);
         if (status == null) throw notFound();
         return status;
     }
 
-    private RagDtos.DocumentView view(UUID id) {
-        KnowledgeModels.Document document = require(id);
+    private RagDtos.DocumentView view(UUID id, RagCorpus corpus) {
+        KnowledgeModels.Document document = repository.findDocument(id, corpus).orElseThrow(this::notFound);
         return toView(document, repository.countChunks(id, "PARENT"), repository.countChunks(id, "CHILD"));
     }
 
@@ -141,7 +151,7 @@ public class KnowledgeIngestionService {
     }
 
     private KnowledgeModels.Document require(UUID id) {
-        return repository.findDocument(id).orElseThrow(this::notFound);
+        return repository.findDocument(id, RagCorpus.LIVE).orElseThrow(this::notFound);
     }
 
     private BusinessException notFound() {

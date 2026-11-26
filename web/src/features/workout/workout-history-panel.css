@@ -1,0 +1,56 @@
+.workout-history-list,
+.workout-history-exercises ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.workout-history-list > li {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.workout-history-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  color: #9ca5a0;
+  font-size: 12px;
+}
+
+.workout-history-name {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.workout-history-name strong,
+.workout-history-exercises strong {
+  color: #f4f7f3;
+}
+
+.workout-history-exercises {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.workout-history-exercises h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.workout-history-exercises li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 6px 0;
+  color: #9ca5a0;
+  font-size: 12px;
+}

@@ -29,7 +29,8 @@ function Invoke-K6([string]$Script, [string]$Report, [string[]]$Environment) {
 function Remove-ReportSecrets([string]$Path) {
     $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
     if ($null -ne $report.setup_data) {
-        $report.setup_data.PSObject.Properties.Remove("token")
+        # Account pools contain multiple access tokens; omit all setup data.
+        $report.PSObject.Properties.Remove("setup_data")
     }
     $report | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $Path -Encoding utf8NoBOM
 }

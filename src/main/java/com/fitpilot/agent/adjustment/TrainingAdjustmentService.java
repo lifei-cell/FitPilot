@@ -58,8 +58,16 @@ public class TrainingAdjustmentService {
         } else if (completion >= 0.85 && metrics.averageFatigue() <= 6 && metrics.latestPain() <= 2
                 && metrics.averageRpe() >= 6 && metrics.averageRpe() <= 8.5
                 && metrics.personalRecords() == 0 && Math.abs(volumeChange) <= 0.05) {
-            rule = "PROGRESS";
-            reasons.add("完成率稳定且恢复良好，但容量和 PR 趋势进入平台期");
+            if (metrics.previousVolume() <= 0) {
+                rule = "INSUFFICIENT_DATA";
+                reasons.add("前一个 14 天窗口缺少可比较的训练量，暂缓进阶建议");
+            } else if (!metrics.prProjectionComplete()) {
+                rule = "INSUFFICIENT_DATA";
+                reasons.add("部分训练的个人纪录尚未核实，暂缓进阶建议");
+            } else {
+                rule = "PROGRESS";
+                reasons.add("完成率稳定且恢复良好，但容量和 PR 趋势进入平台期");
+            }
         } else {
             rule = "NO_CHANGE";
             reasons.add("当前负荷、完成率与恢复信号平衡，建议保持计划");
@@ -149,26 +157,11 @@ public class TrainingAdjustmentService {
                 analysis.source().version(), analysis.rule(), analysis.evidence(), analysis.reasons(), plan);
     }
 
-    public void record(long userId, TrainingAdjustmentDtos.AdjustmentProposal proposal, UUID pendingActionId,
-                       String model, boolean degraded, String promptVersion) {
-        repository.create(proposal, userId, pendingActionId, model, degraded, promptVersion);
-    }
     public boolean hasPending(long userId, long sourcePlanId) { return repository.hasPending(userId, sourcePlanId); }
 
     public void recordDecision(long userId, Analysis analysis) {
         repository.createDecision(UUID.randomUUID(), userId, analysis.source().id(), analysis.source().version(),
                 analysis.rule(), analysis.evidence(), analysis.reasons());
-    }
-
-    public TrainingPlanDtos.PlanView confirm(long userId, TrainingAdjustmentDtos.AdjustmentProposal proposal) {
-        if (!plans.isCurrentActiveVersion(userId, proposal.sourcePlanId(), proposal.sourcePlanVersion())) {
-            repository.stale(proposal.adjustmentId());
-            throw new BusinessException(ErrorCode.PLAN_ADJUSTMENT_STALE,
-                    "active plan changed; regenerate the adjustment", HttpStatus.CONFLICT);
-        }
-        TrainingPlanDtos.PlanView draft = plans.create(userId, proposal.plan());
-        repository.accept(proposal.adjustmentId(), draft.id());
-        return draft;
     }
 
     public PageResult<TrainingAdjustmentDtos.AdjustmentView> list(long userId, long page, long size) {
@@ -179,13 +172,6 @@ public class TrainingAdjustmentService {
         if (value == null) throw new BusinessException(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,
                 "adjustment not found", HttpStatus.NOT_FOUND);
         return value;
-    }
-
-    public void reject(long userId, UUID adjustmentId) {
-        if (!repository.reject(adjustmentId, userId)) {
-            throw new BusinessException(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED,
-                    "adjustment already processed or not found", HttpStatus.CONFLICT);
-        }
     }
 
     private int weeklySets(TrainingPlanDtos.PlanView plan) {

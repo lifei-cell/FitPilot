@@ -15,5 +15,5 @@
 故障演练命令：
 
 ```powershell
-./scripts/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
+./scripts/operations/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
 ```

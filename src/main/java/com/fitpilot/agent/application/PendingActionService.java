@@ -69,6 +69,12 @@ public class PendingActionService {
         return pending;
     }
 
+    void decide(long userId, UUID actionId, AgentRepository.PendingDecision decision) {
+        if (!repository.decidePending(actionId, userId, decision)) {
+            throw error(ErrorCode.AGENT_ACTION_ALREADY_PROCESSED, "action already processed", HttpStatus.CONFLICT);
+        }
+    }
+
     public String subjectHash(long userId) {
         return hash("user:" + userId).substring(0, 16);
     }

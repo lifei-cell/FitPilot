@@ -1,18 +1,18 @@
 package com.fitpilot.agent.adjustment;
 
-import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.plan.application.TrainingPlanService;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import com.fitpilot.exercise.application.ExerciseService;
 import com.fitpilot.exercise.dto.ExerciseView;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class TrainingAdjustmentServiceTest {
@@ -25,7 +25,7 @@ class TrainingAdjustmentServiceTest {
     void blocksProgressionWhenRecentPainIsElevated() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                8, 70, 72, 7.5, 6, 5.0, 4, 10000, 10000, 0));
+                8, 70, 72, 7.5, 6, 5.0, 4, 10000, 10000, 0, false));
 
         var analysis = service.analyze(7);
 
@@ -37,7 +37,7 @@ class TrainingAdjustmentServiceTest {
     void createsADecreasedWorkloadWithinGuardrailBounds() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                8, 70, 72, 9.1, 6, 8.2, 1, 9000, 10000, 0));
+                8, 70, 72, 9.1, 6, 8.2, 1, 9000, 10000, 0, false));
 
         var analysis = service.analyze(7);
         var proposal = service.deterministicPlan(analysis);
@@ -47,42 +47,34 @@ class TrainingAdjustmentServiceTest {
         assertThat(proposal.name()).contains("AI 调整草案");
     }
 
-    @Test
-    void rejectsConfirmationWhenActivePlanVersionChanged() {
-        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(false);
-        var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
-                "PROGRESS", evidence(), List.of("平台期"), createRequest());
+    @ParameterizedTest
+    @CsvSource({"0, true, 前一个 14 天窗口", "10000, false, 个人纪录尚未核实"})
+    void declinesProgressionWithoutComparableVolumeAndCompletePrProjection(
+            double previousVolume, boolean prComplete, String reason) {
+        when(plans.active(7)).thenReturn(plan(1));
+        when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
+                12, 80, 81, 7.2, 6, 5, 1, 10000, previousVolume, 0, prComplete));
 
-        assertThatThrownBy(() -> service.confirm(7, proposal)).isInstanceOf(BusinessException.class)
-                .hasMessageContaining("active plan changed");
-        verify(repository).stale(proposal.adjustmentId());
-        verify(plans).isCurrentActiveVersion(7, 42, 1);
-        verify(plans, never()).active(anyLong());
-        verify(plans, never()).create(anyLong(), any());
-    }
+        var analysis = service.analyze(7);
 
-    @Test
-    void acceptsConfirmationAfterDatabaseVersionCheck() {
-        when(plans.isCurrentActiveVersion(7, 42, 1)).thenReturn(true);
-        var proposal = new TrainingAdjustmentDtos.AdjustmentProposal(java.util.UUID.randomUUID(), 42, 1,
-                "PROGRESS", evidence(), List.of("平台期"), createRequest());
-        when(plans.create(7, proposal.plan())).thenReturn(plan(1));
-
-        assertThat(service.confirm(7, proposal)).isEqualTo(plan(1));
-        verify(repository).accept(proposal.adjustmentId(), 42);
-        verify(plans, never()).active(anyLong());
+        assertThat(analysis.rule()).isEqualTo("INSUFFICIENT_DATA");
+        assertThat(analysis.proposalAllowed()).isFalse();
+        assertThat(analysis.reasons()).singleElement().asString().contains(reason);
     }
 
     @Test
     void replacementRequiresCitationAndMatchingPrimaryMuscle() {
         when(plans.active(7)).thenReturn(plan(1));
         when(repository.metrics(7)).thenReturn(new TrainingAdjustmentRepository.Metrics(
-                12, 80, 81, 7.2, 6, 5, 1, 10000, 10000, 0));
+                12, 80, 81, 7.2, 6, 5, 1, 10000, 10000, 0, true));
         ExerciseView source = exercise(1, "CHEST");
         ExerciseView replacement = exercise(99, "CHEST");
         when(exercises.findActive(1)).thenReturn(java.util.Optional.of(source));
         when(exercises.findActive(99)).thenReturn(java.util.Optional.of(replacement));
-        var proposal = service.deterministicPlan(service.analyze(7));
+        var analysis = service.analyze(7);
+        assertThat(analysis.rule()).isEqualTo("PROGRESS");
+        assertThat(analysis.proposalAllowed()).isTrue();
+        var proposal = service.deterministicPlan(analysis);
         var firstDay = proposal.days().getFirst();
         var first = firstDay.exercises().getFirst();
         var changed = new TrainingPlanDtos.ExerciseRequest(99L, first.sequence(), first.targetSets(),
@@ -95,9 +87,9 @@ class TrainingAdjustmentServiceTest {
                                     .mapToObj(i -> i == 0 ? changed : day.exercises().get(i)).toList()) : day;
                 }).toList());
 
-        assertThat(service.validate(service.analyze(7), changedPlan, false))
+        assertThat(service.validate(analysis, changedPlan, false))
                 .contains("动作替换必须引用有效知识来源");
-        assertThat(service.validate(service.analyze(7), changedPlan, true))
+        assertThat(service.validate(analysis, changedPlan, true))
                 .doesNotContain("动作替换必须引用有效知识来源", "动作替换必须匹配原动作的主要肌群");
     }
 
@@ -109,17 +101,6 @@ class TrainingAdjustmentServiceTest {
                                         3, 8, 12, BigDecimal.valueOf(7.5), 90, null)).toList())).toList();
         return new TrainingPlanDtos.PlanView(42, "力量计划", null, "STRENGTH", 8, 3, "ACTIVE", version,
                 LocalDate.now().minusWeeks(4), null, days);
-    }
-
-    private TrainingAdjustmentDtos.Evidence evidence() {
-        return new TrainingAdjustmentDtos.Evidence(28, 8, .9, 70, 72, .97, 7.5, 6, 5, 1,
-                10000, 10000, 0, 0);
-    }
-
-    private TrainingPlanDtos.CreateRequest createRequest() {
-        return new TrainingPlanDtos.CreateRequest("草案", null, "STRENGTH", 8, List.of(
-                new TrainingPlanDtos.DayRequest(1, "训练", null, List.of(
-                        new TrainingPlanDtos.ExerciseRequest(1L, 1, 3, 8, 12, BigDecimal.valueOf(7), 90, null)))));
     }
 
     private ExerciseView exercise(long id, String muscle) {

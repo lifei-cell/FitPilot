@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,7 +24,8 @@ import java.util.List;
 public class OperationsAuthenticationFilter extends OncePerRequestFilter {
     public static final String ROLE = "ROLE_OPERATIONS";
     private static final String TOKEN_HEADER = "X-Operations-Token";
-    private static final AntPathRequestMatcher OPERATIONS = new AntPathRequestMatcher("/api/v1/operations/**");
+    private static final PathPatternRequestMatcher OPERATIONS =
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/operations/**");
 
     private final OperationsProperties properties;
     private final ObjectMapper objectMapper;

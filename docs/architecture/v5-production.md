@@ -33,6 +33,8 @@ Agent Workflow
 
 `EvaluationService` 作为运维 API 门面创建任务；`EvaluationTaskScheduler` 处理租约、心跳、恢复和取消；`AgentEvaluationRunner`、`RagEvaluationRunner` 分别执行数据集；`EvaluationMetricCalculator` 负责纯指标计算，`EvaluationReportService` 生成最终报告并执行回归门禁。
 
+评测心跳和恢复使用 `evaluationHeartbeatScheduler`。Outbox 投递、RAG 索引重试等未指定调度器的定时任务使用独立的 `taskScheduler`，避免 Kafka 或 Elasticsearch 等待占满评测的调度线程。评测执行仍由有界工作线程池处理。
+
 门禁：Tool Selection ≥95%、Task Success ≥95%、违规率为 0；RAG Recall@5 ≥85%、MRR ≥0.75，并校验引用属于本次检索上下文。CI 使用 Mock OpenAI-compatible Server；真实模型评测保留为夜间/手动任务。
 
 审核负反馈可触发独立的离线实验任务。任务固定反馈与文档版本，分别改变 Chunk 大小、BM25/向量 RRF 权重及 Rerank 策略；每个实验使用隔离分类重建索引，避免污染线上配置与其他实验，完成后在 `experimentReport` 输出总体、分类指标和推荐配置。
@@ -60,8 +62,8 @@ Kustomize production overlay 使用外部 PostgreSQL、Redis、Kafka 和 Elastic
 
 - 应用起始 2 副本，滚动升级 `maxUnavailable=0`，HPA 2–10、CPU 70%。
 - 配置 ServiceAccount、Ingress、PDB、NetworkPolicy、只读文件系统和能力丢弃。
-- Flyway 由独立 migration overlay/Job 执行，应用 Pod 设置 `FLYWAY_ENABLED=false`。
-- 迁移只允许向前兼容；发布失败停止 rollout 并回滚应用镜像，不执行 down migration。
+- Flyway 由独立 migration overlay/Job 执行，应用 Pod 设置 `FLYWAY_ENABLED=false`。发布门禁先检查 V22 状态，首次跨越 V22 时停止后端再迁移。
+- 同一兼容范围内允许恢复发布前的镜像。对 V22 首次升级及未确认兼容性的旧部署，失败后使用兼容候选版本前滚。见[发布与回滚](../runbooks/release-rollback.md)。
 
 ## 6. 验证入口
 
@@ -69,7 +71,7 @@ Kustomize production overlay 使用外部 PostgreSQL、Redis、Kafka 和 Elastic
 mvn verify
 docker compose --env-file .env.example up -d --build --wait
 ./load-test/run-v5.ps1 -Scenario all
-./scripts/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
+./scripts/operations/invoke-failure-drills.ps1 -OperationsToken $env:OPERATIONS_TOKEN -IncludeLlm
 kubectl kustomize deploy/k8s/overlays/production
 kubectl kustomize deploy/k8s/overlays/production-migration
 ```

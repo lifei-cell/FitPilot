@@ -17,10 +17,16 @@ import {
 } from "../components/PageParts";
 import { PlanBuilder } from "../features/plan/PlanBuilder";
 import { PlanDetailPanel } from "../features/plan/PlanDetailPanel";
+import { PlanPresetPicker } from "../features/plan/PlanPresetPicker";
+import { activePlanQuery } from "../features/plan/activePlanQuery";
+import {
+  initialPlanDraft,
+  type PlanDraft,
+} from "../features/plan/planBuilderModel";
 
 export function PlansPage() {
   const client = useQueryClient();
-  const [builder, setBuilder] = useState(false);
+  const [draft, setDraft] = useState<PlanDraft | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const plans = useQuery({
@@ -35,7 +41,7 @@ export function PlansPage() {
         body: JSON.stringify(payload),
       }),
     onSuccess: () => {
-      setBuilder(false);
+      setDraft(null);
       setMessage("计划已创建并保存为草稿");
       void refresh();
     },
@@ -47,9 +53,16 @@ export function PlansPage() {
       client.setQueryData(["plan", plan.id], plan);
       setMessage("计划已激活");
       void refresh();
-      void client.invalidateQueries({ queryKey: ["active-plan"] });
+      void client.invalidateQueries({ queryKey: activePlanQuery.queryKey });
     },
   });
+
+  function openBuilder(initialDraft: PlanDraft | null) {
+    setDraft(initialDraft);
+    setSelectedPlanId(null);
+    setMessage("");
+    create.reset();
+  }
 
   return (
     <main className="page">
@@ -60,12 +73,8 @@ export function PlansPage() {
         action={
           <button
             className="primary-button compact"
-            onClick={() => {
-              setBuilder((open) => !open);
-              setSelectedPlanId(null);
-              setMessage("");
-              create.reset();
-            }}
+            disabled={create.isPending}
+            onClick={() => openBuilder(draft ? null : initialPlanDraft())}
           >
             <Plus size={17} />
             新建计划
@@ -78,18 +87,19 @@ export function PlansPage() {
           {message}
         </div>
       )}
-      {builder && (
+      {draft && (
         <Panel>
           <SectionTitle
             title="计划构建器"
             detail="最多 7 个训练日，每日可配置多个动作"
           />
           <PlanBuilder
+            initialDraft={draft}
             submitting={create.isPending}
             serverError={create.error?.message}
             onSubmit={(payload) => create.mutate(payload)}
             onCancel={() => {
-              setBuilder(false);
+              setDraft(null);
               create.reset();
             }}
           />
@@ -101,6 +111,9 @@ export function PlansPage() {
           onClose={() => setSelectedPlanId(null)}
           onChanged={setMessage}
         />
+      )}
+      {!draft && selectedPlanId === null && (
+        <PlanPresetPicker onSelect={openBuilder} />
       )}
       <Panel>
         <SectionTitle
@@ -122,8 +135,9 @@ export function PlansPage() {
                 <div className="plan-list-actions">
                   <button
                     className="secondary-button"
+                    disabled={create.isPending}
                     onClick={() => {
-                      setBuilder(false);
+                      setDraft(null);
                       setMessage("");
                       setSelectedPlanId(plan.id);
                     }}
@@ -131,7 +145,11 @@ export function PlansPage() {
                     <Eye size={16} />
                     查看
                   </button>
-                  {plan.status !== "ACTIVE" && (
+                  {plan.status === "ACTIVE" ? (
+                    <a className="secondary-button" href="/workouts">
+                      去训练
+                    </a>
+                  ) : (
                     <button
                       className="secondary-button"
                       disabled={activate.isPending}
@@ -147,7 +165,7 @@ export function PlansPage() {
         ) : (
           <Empty
             title="还没有训练计划"
-            text="从一个目标、一周安排和首个动作开始。"
+            text="套用预设，或新建自己的训练计划。"
           />
         )}
         {activate.error && (

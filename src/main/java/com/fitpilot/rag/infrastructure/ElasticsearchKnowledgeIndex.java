@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.rag.config.RagProperties;
 import com.fitpilot.rag.domain.KnowledgeModels;
+import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
+import com.fitpilot.rag.domain.RagCorpus;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,58 +60,95 @@ public class ElasticsearchKnowledgeIndex {
         throw httpFailure("create index", created);
     }
 
-    public void replaceDocument(UUID documentId, List<KnowledgeModels.IndexChunk> chunks) {
+    public void publish(IndexClaim claim) {
         ensureIndex();
-        Map<String, Object> deleteQuery = Map.of("query", Map.of("term", Map.of("documentId", documentId.toString())));
-        HttpResponse<String> deleted = request("POST", "/" + properties.getIndex()
-                + "/_delete_by_query?conflicts=proceed&refresh=true", write(deleteQuery));
-        if (deleted.statusCode() / 100 != 2) throw httpFailure("delete old chunks", deleted);
-        if (chunks.isEmpty()) return;
-
-        StringBuilder bulk = new StringBuilder();
-        for (KnowledgeModels.IndexChunk chunk : chunks) {
-            bulk.append(write(Map.of("index", Map.of("_index", properties.getIndex(), "_id", chunk.chunkId().toString()))))
-                    .append('\n');
-            Map<String, Object> source = new java.util.LinkedHashMap<>();
-            source.put("documentId", chunk.documentId().toString()); source.put("title", chunk.title());
-            source.put("category", chunk.category()); source.put("heading", nullable(chunk.heading()));
-            source.put("content", chunk.content()); source.put("lexicalText", chunk.lexicalText());
-            source.put("sourceUrl", chunk.sourceUrl()); source.put("sourceLicense", chunk.sourceLicense());
-            source.put("publisher", nullable(chunk.publisher())); source.put("trustLevel", chunk.trustLevel());
-            source.put("documentVersion", chunk.version()); source.put("lifecycleStatus", "ACTIVE");
-            if (chunk.expiresAt() != null) source.put("expiresAt", chunk.expiresAt().toString());
-            bulk.append(write(source)).append('\n');
+        DocumentVersion document = claim.document();
+        List<KnowledgeModels.IndexChunk> chunks = claim.chunks();
+        if (chunks.size() > claim.slotCount()) {
+            throw new IllegalStateException("knowledge chunk count exceeds the reserved Elasticsearch slots");
         }
+        StringBuilder bulk = new StringBuilder();
+        for (int slot = 0; slot < claim.slotCount(); slot++) {
+            Map<String, Object> source = slot < chunks.size()
+                    ? chunkSource(document, slot, chunks.get(slot)) : tombstone(document, slot);
+            appendSlot(bulk, document, slot, document.indexingVersion(), source);
+        }
+        writeSlots(bulk, claim.slotCount());
+        deleteLegacyChunks(document);
+    }
+
+    private Map<String, Object> chunkSource(DocumentVersion document, int slot, KnowledgeModels.IndexChunk chunk) {
+        if (!document.id().equals(chunk.documentId()) || document.version() != chunk.version()) {
+            throw new IllegalArgumentException("knowledge chunk belongs to a different document version");
+        }
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("documentId", document.id().toString());
+        source.put("documentVersion", document.version());
+        source.put("slot", slot);
+        source.put("chunkId", chunk.chunkId().toString());
+        source.put("corpusScope", chunk.corpusScope());
+        source.put("lifecycleStatus", "ACTIVE");
+        source.put("title", chunk.title());
+        source.put("category", chunk.category());
+        source.put("heading", nullable(chunk.heading()));
+        source.put("content", chunk.content());
+        source.put("lexicalText", chunk.lexicalText());
+        source.put("sourceUrl", chunk.sourceUrl());
+        source.put("sourceLicense", chunk.sourceLicense());
+        source.put("publisher", nullable(chunk.publisher()));
+        source.put("trustLevel", chunk.trustLevel());
+        if (chunk.expiresAt() != null) source.put("expiresAt", chunk.expiresAt().toString());
+        return source;
+    }
+
+    private void appendSlot(StringBuilder bulk, DocumentVersion document, int slot, long version,
+                            Map<String, Object> source) {
+        // The slot identity survives document revisions, while the search hit carries the current PostgreSQL chunk ID.
+        bulk.append(write(Map.of("index", Map.of("_index", properties.getIndex(), "_id", document.id() + ":" + slot,
+                "version", version, "version_type", "external_gte")))).append('\n');
+        bulk.append(write(source)).append('\n');
+    }
+
+    private Map<String, Object> tombstone(DocumentVersion document, int slot) {
+        return Map.of("documentId", document.id().toString(), "documentVersion", document.version(),
+                "slot", slot, "lifecycleStatus", "DELETED");
+    }
+
+    private void writeSlots(StringBuilder bulk, int slotCount) {
+        if (slotCount == 0) return;
         HttpResponse<String> response = request("POST", "/_bulk?refresh=wait_for", bulk.toString());
         if (response.statusCode() / 100 != 2) throw httpFailure("bulk index chunks", response);
-        try {
-            if (json.readTree(response.body()).path("errors").asBoolean()) {
-                throw new IllegalStateException("Elasticsearch bulk response contains item errors");
-            }
-        } catch (Exception exception) {
-            throw new IllegalStateException("invalid Elasticsearch bulk response", exception);
+        JsonNode result = read(response.body());
+        if (!result.path("errors").isBoolean() || result.path("items").size() != slotCount) {
+            throw new IllegalStateException("invalid Elasticsearch bulk response");
+        }
+        if (result.path("errors").asBoolean()) {
+            throw new IllegalStateException("Elasticsearch bulk response contains item errors");
         }
     }
 
-    public List<KnowledgeModels.SearchHit> search(String lexicalQuery, String category, int limit) {
+    public List<KnowledgeModels.SearchHit> search(String lexicalQuery, String category, int limit,
+                                                  RagCorpus corpus) {
         ensureIndex();
         Map<String, Object> textQuery = Map.of("multi_match", Map.of(
                 "query", lexicalQuery, "fields", List.of("lexicalText^3", "title^2", "heading^2"),
                 "type", "best_fields", "operator", "or"));
         List<Object> filters = new ArrayList<>();
+        filters.add(Map.of("term", Map.of("corpusScope", corpus.key())));
         filters.add(Map.of("term", Map.of("lifecycleStatus", "ACTIVE")));
         filters.add(Map.of("bool", Map.of("should", List.of(
                 Map.of("bool", Map.of("must_not", Map.of("exists", Map.of("field", "expiresAt")))),
                 Map.of("range", Map.of("expiresAt", Map.of("gt", "now")))), "minimum_should_match", 1)));
         if (category != null && !category.isBlank()) filters.add(Map.of("term", Map.of("category", category)));
         Object query = Map.of("bool", Map.of("must", textQuery, "filter", filters));
-        String body = write(Map.of("size", limit, "_source", false, "query", query));
+        String body = write(Map.of("size", limit, "_source", List.of("chunkId"), "query", query));
         HttpResponse<String> response = request("POST", "/" + properties.getIndex() + "/_search", body);
         if (response.statusCode() / 100 != 2) throw httpFailure("search index", response);
         try {
             List<KnowledgeModels.SearchHit> hits = new ArrayList<>();
             for (JsonNode hit : json.readTree(response.body()).path("hits").path("hits")) {
-                hits.add(new KnowledgeModels.SearchHit(UUID.fromString(hit.path("_id").asText()),
+                String chunkId = hit.path("_source").path("chunkId").asText(hit.path("_id").asText());
+                hits.add(new KnowledgeModels.SearchHit(UUID.fromString(chunkId),
                         hit.path("_score").asDouble()));
             }
             return hits;
@@ -116,12 +157,33 @@ public class ElasticsearchKnowledgeIndex {
         }
     }
 
-    public void deleteDocument(UUID documentId) {
+    public void deleteDocument(DocumentVersion document, int slotCount) {
         ensureIndex();
-        String body = write(Map.of("query", Map.of("term", Map.of("documentId", documentId.toString()))));
+        // Keep the external version even after Elasticsearch's physical deletion tombstone would expire.
+        StringBuilder bulk = new StringBuilder();
+        for (int slot = 0; slot < slotCount; slot++) {
+            appendSlot(bulk, document, slot, document.deletionVersion(), tombstone(document, slot));
+        }
+        writeSlots(bulk, slotCount);
+        deleteLegacyChunks(document);
+    }
+
+    private void deleteLegacyChunks(DocumentVersion document) {
+        String body = write(Map.of("query", Map.of("bool", Map.of(
+                "must_not", Map.of("exists", Map.of("field", "slot")),
+                "filter", Map.of("term", Map.of("documentId", document.id().toString())),
+                "should", List.of(
+                        Map.of("range", Map.of("documentVersion", Map.of("lte", document.version()))),
+                        Map.of("bool", Map.of("must_not", Map.of("exists", Map.of("field", "documentVersion"))))),
+                "minimum_should_match", 1))));
         HttpResponse<String> response = request("POST", "/" + properties.getIndex()
                 + "/_delete_by_query?conflicts=proceed&refresh=true", body);
-        if (response.statusCode() / 100 != 2) throw httpFailure("delete document", response);
+        if (response.statusCode() / 100 != 2) throw httpFailure("delete legacy chunks", response);
+        JsonNode result = read(response.body());
+        if (result.path("timed_out").asBoolean() || result.path("version_conflicts").asLong() != 0
+                || !result.path("failures").isArray() || !result.path("failures").isEmpty()) {
+            throw new IllegalStateException("Elasticsearch legacy chunk cleanup was incomplete");
+        }
     }
 
     private HttpResponse<String> request(String method, String path, String body) {
@@ -146,6 +208,11 @@ public class ElasticsearchKnowledgeIndex {
         catch (Exception exception) { throw new IllegalStateException("cannot serialize Elasticsearch request", exception); }
     }
 
+    private JsonNode read(String value) {
+        try { return json.readTree(value); }
+        catch (Exception exception) { throw new IllegalStateException("invalid Elasticsearch response", exception); }
+    }
+
     private Object nullable(String value) { return value == null ? "" : value; }
     private Map<String, Object> mappingProperties() {
         return Map.ofEntries(
@@ -157,6 +224,8 @@ public class ElasticsearchKnowledgeIndex {
                 Map.entry("publisher", Map.of("type", "keyword", "index", false)),
                 Map.entry("trustLevel", Map.of("type", "keyword")),
                 Map.entry("documentVersion", Map.of("type", "integer")),
+                Map.entry("slot", Map.of("type", "integer")), Map.entry("chunkId", Map.of("type", "keyword")),
+                Map.entry("corpusScope", Map.of("type", "keyword")),
                 Map.entry("lifecycleStatus", Map.of("type", "keyword")), Map.entry("expiresAt", Map.of("type", "date")));
     }
     private String trimSlash(String value) { return value.endsWith("/") ? value.substring(0, value.length() - 1) : value; }

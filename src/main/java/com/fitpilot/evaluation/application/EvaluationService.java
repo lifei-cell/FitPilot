@@ -65,13 +65,15 @@ public class EvaluationService {
                 .max().orElse(0);
         String dataset = EvaluationDatasetLoader.RAG_VERSION + "+dynamic-" + version;
         List<EvaluationCases.RagCase> cases = List.copyOf(frozen);
+        var input = new EvaluationCases.RagExperiment(List.of(), frozenDocuments(
+                ragFeedback.evaluationCorpus(dynamic, properties.getRagExperimentMaxDocuments())));
         repository.createRag(id, dataset, Map.of(
                 "staticVersion", EvaluationDatasetLoader.RAG_VERSION,
                 "dynamicVersion", version,
                 "staticCases", datasets.rag().size(),
-                "dynamicCases", dynamic.size()), cases, properties.getRunTimeoutSeconds());
+                "dynamicCases", dynamic.size()), cases, input, properties.getRunTimeoutSeconds());
         scheduler.dispatch(new EvaluationRepository.PendingRun(
-                id, EvaluationRepository.RunType.RAG, "", cases));
+                id, EvaluationRepository.RunType.RAG, "", cases, input));
         return id;
     }
 
@@ -93,10 +95,7 @@ public class EvaluationService {
                         item.expectedSources(), item.category()))
                 .toList();
         var profiles = experimentCatalog.profiles();
-        List<EvaluationCases.RagDocumentRef> documents = corpus.stream()
-                .map(item -> new EvaluationCases.RagDocumentRef(item.documentId(), item.version(),
-                        item.sourceUrl(), item.category()))
-                .toList();
+        List<EvaluationCases.RagDocumentRef> documents = frozenDocuments(corpus);
         var experiment = new EvaluationCases.RagExperiment(profiles, documents);
         long feedbackVersion = feedbackCases.stream()
                 .mapToLong(RagFeedbackService.DynamicEvaluationCase::version).max().orElseThrow();
@@ -118,6 +117,11 @@ public class EvaluationService {
 
     public void recover() {
         scheduler.recover();
+    }
+
+    private List<EvaluationCases.RagDocumentRef> frozenDocuments(List<RagFeedbackService.EvaluationDocumentRef> corpus) {
+        return corpus.stream().map(item -> new EvaluationCases.RagDocumentRef(item.documentId(), item.version(),
+                item.sourceUrl(), item.category())).toList();
     }
 
     private BusinessException validation(String message) {

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Supplier;
 
 @Service
 public class LlmGateway {
@@ -34,11 +35,11 @@ public class LlmGateway {
             return result(decision,completion);
         } catch (Exception failure) { return LlmModels.Result.rule(fallback,prompts.version()); }
     }
-    public LlmModels.Result<TrainingPlanDtos.CreateRequest> generatePlan(UUID executionId,String message,Object context,
+    public LlmModels.Result<TrainingPlanDtos.CreateRequest> generatePlan(UUID executionId,String message,Supplier<?> context,
                                                                           TrainingPlanDtos.CreateRequest fallback) {
         if (!properties.isEnabled()) return LlmModels.Result.rule(fallback,prompts.version());
         try {
-            String prompt="USER_REQUEST:\n"+message+"\nSERVER_TOOL_CONTEXT:\n"+boundedJson(context);
+            String prompt="USER_REQUEST:\n"+message+"\nSERVER_TOOL_CONTEXT:\n"+boundedJson(context.get());
             LlmModels.Completion completion=client.complete(executionId,LlmModels.Task.PLAN_GENERATION,prompt,true);
             TrainingPlanDtos.CreateRequest plan=json.readValue(cleanJson(completion.content()),TrainingPlanDtos.CreateRequest.class);
             return result(plan,completion);

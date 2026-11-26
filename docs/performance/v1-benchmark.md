@@ -23,9 +23,9 @@
 
 ## 证据与复现
 
-- `load-test/reports/v1-100-qps.json`
-- `load-test/reports/v1-500-qps.json`
-- `load-test/reports/v1-1000-qps.json`
+- `docs/performance/evidence/v1-hot-read-20260828/v1-100-qps.json`
+- `docs/performance/evidence/v1-hot-read-20260828/v1-500-qps.json`
+- `docs/performance/evidence/v1-hot-read-20260828/v1-1000-qps.json`
 - `load-test/v1-hot-read.js`
 - `load-test/run-v1.ps1`
 

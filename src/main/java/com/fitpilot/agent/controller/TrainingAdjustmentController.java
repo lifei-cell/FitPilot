@@ -2,6 +2,7 @@ package com.fitpilot.agent.controller;
 
 import com.fitpilot.agent.adjustment.TrainingAdjustmentDtos;
 import com.fitpilot.agent.adjustment.TrainingAdjustmentService;
+import com.fitpilot.agent.application.TrainingAdjustmentWorkflow;
 import com.fitpilot.common.response.ApiResponse;
 import com.fitpilot.common.response.PageResult;
 import com.fitpilot.common.security.CurrentUser;
@@ -18,9 +19,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/agent/plan-adjustments")
 public class TrainingAdjustmentController {
     private final TrainingAdjustmentService service;
+    private final TrainingAdjustmentWorkflow workflow;
 
-    public TrainingAdjustmentController(TrainingAdjustmentService service) {
+    public TrainingAdjustmentController(TrainingAdjustmentService service, TrainingAdjustmentWorkflow workflow) {
         this.service = service;
+        this.workflow = workflow;
     }
 
     @GetMapping
@@ -32,7 +35,7 @@ public class TrainingAdjustmentController {
 
     @PostMapping("/{id}/reject")
     ApiResponse<Void> reject(@PathVariable UUID id, Authentication auth) {
-        service.reject(CurrentUser.id(auth), id);
+        workflow.reject(CurrentUser.id(auth), id);
         return ApiResponse.success();
     }
 

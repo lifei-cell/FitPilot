@@ -26,15 +26,13 @@ public class RedisTokenBucketRateLimiter {
     public Result consume(String scope, long capacity, long refillPerSecond) {
         String key = "fitpilot:v1:rate-limit:" + scope;
         long now = System.currentTimeMillis();
-        try {
+        Result distributed = failures.tryOptionalCall(log, "rate-limit", () -> {
             List<?> result = redis.execute(SCRIPT, List.of(key), String.valueOf(capacity),
                     String.valueOf(refillPerSecond), String.valueOf(now), "1");
-            if (result != null && result.size() == 2) {
-                return new Result(number(result.get(0)) == 1, number(result.get(1)), false);
-            }
-        } catch (RuntimeException ex) {
-            failures.warn(log, "rate-limit", ex);
-        }
+            return result != null && result.size() == 2
+                    ? new Result(number(result.get(0)) == 1, number(result.get(1)), false) : null;
+        }, null);
+        if (distributed != null) return distributed;
         LocalBucket bucket = localFallback.get(scope, ignored -> new LocalBucket(capacity, now));
         return bucket.consume(capacity, refillPerSecond, now);
     }

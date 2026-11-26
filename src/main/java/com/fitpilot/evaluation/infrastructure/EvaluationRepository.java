@@ -45,9 +45,9 @@ public class EvaluationRepository {
     }
 
     public void createRag(UUID id, String dataset, Map<String, Object> snapshot,
-                          List<EvaluationCases.RagCase> cases, int timeoutSeconds) {
-        createRag(id, dataset, snapshot, cases, "REGRESSION", EvaluationCases.RagExperiment.none(),
-                timeoutSeconds);
+                          List<EvaluationCases.RagCase> cases, EvaluationCases.RagExperiment input,
+                          int timeoutSeconds) {
+        createRag(id, dataset, snapshot, cases, "REGRESSION", input, timeoutSeconds);
     }
 
     public void createRagExperiment(UUID id, String dataset, Map<String, Object> snapshot,

@@ -29,7 +29,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Explicitly run by scripts/run-real-retrieval.ps1 against a local learned embedding model. */
+/** Explicitly run by scripts/evaluation/run-real-retrieval.ps1 against a local learned embedding model. */
 @SpringBootTest
 @Testcontainers
 class RealEmbeddingRetrievalBenchmark {

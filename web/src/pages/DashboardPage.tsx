@@ -7,6 +7,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { api } from "../api/client";
+import type { Workout } from "../api/types";
+import { activePlanQuery } from "../features/plan/activePlanQuery";
 
 type Overview = {
   workoutsThisWeek: number;
@@ -14,30 +16,12 @@ type Overview = {
   trainingVolume: number;
   personalRecords: number;
 };
-type Plan = {
-  id: number;
-  name: string;
-  goal: string;
-  daysPerWeek: number;
-  days: { id: number; dayNumber: number; name: string; exercises: unknown[] }[];
-};
-type Workout = {
-  id: number;
-  name: string;
-  startedAt: string;
-  exercises: unknown[];
-};
-
 export function DashboardPage() {
   const overview = useQuery({
     queryKey: ["overview"],
     queryFn: () => api<Overview>("/analytics/overview"),
   });
-  const plan = useQuery({
-    queryKey: ["active-plan"],
-    queryFn: () => api<Plan>("/training-plans/active/current"),
-    retry: false,
-  });
+  const plan = useQuery(activePlanQuery);
   const workout = useQuery({
     queryKey: ["active-workout"],
     queryFn: () => api<Workout>("/workouts/active/current"),
@@ -95,14 +79,14 @@ export function DashboardPage() {
           <h2>
             {workout.data
               ? "训练正在进行"
-              : (plan.data?.name ?? "创建第一份训练计划")}
+              : (plan.data?.name ?? "训练计划")}
           </h2>
           <p>
             {workout.data
               ? `${workout.data.name} · 已加载 ${workout.data.exercises.length} 个动作`
               : plan.data
                 ? `每周 ${plan.data.daysPerWeek} 练 · ${plan.data.goal}`
-                : "先建立结构，再交给执行。"}
+                : "从训练预设开始，或自定义计划。"}
           </p>
           <a
             className="primary-button inline"
@@ -110,7 +94,8 @@ export function DashboardPage() {
               workout.data ? "/workouts" : plan.data ? "/workouts" : "/plans"
             }
           >
-            {workout.data ? "继续训练" : "安排训练"} <ArrowUpRight size={18} />
+            {workout.data ? "继续训练" : plan.data ? "选择训练日" : "查看计划"}{" "}
+            <ArrowUpRight size={18} />
           </a>
           <div className="hero-number">
             {plan.data?.daysPerWeek ?? "—"}
@@ -121,29 +106,34 @@ export function DashboardPage() {
           <div className="panel-title">
             <div>
               <p className="eyebrow">ACTIVE PLAN</p>
-              <h3>{plan.data?.name ?? "暂无激活计划"}</h3>
+              <h3>{plan.data?.name ?? "当前训练计划"}</h3>
             </div>
             <CalendarDays />
           </div>
-          <div className="week-strip">
-            {["一", "二", "三", "四", "五", "六", "日"].map((day, index) => (
-              <span
-                className={
-                  plan.data?.days.some((d) => d.dayNumber === index + 1)
-                    ? "training-day"
-                    : ""
-                }
-                key={day}
+          {plan.isPending && <p role="status">正在加载训练计划…</p>}
+          {plan.isError && (
+            <div role="alert">
+              <p className="form-error">暂时无法加载训练计划。</p>
+              <button
+                className="secondary-button"
+                disabled={plan.isFetching}
+                onClick={() => void plan.refetch()}
               >
-                <b>{day}</b>
-                <small>
-                  {plan.data?.days.some((d) => d.dayNumber === index + 1)
-                    ? "练"
-                    : "休"}
-                </small>
-              </span>
-            ))}
-          </div>
+                重试加载
+              </button>
+            </div>
+          )}
+          {plan.data === null && !plan.isError && <p>暂无激活计划</p>}
+          {plan.data && (
+            <ol className="dashboard-plan-days" aria-label="计划训练日">
+              {plan.data.days.map((day) => (
+                <li key={day.id}>
+                  <span>第 {day.dayNumber} 练</span>
+                  <strong>{day.name}</strong>
+                </li>
+              ))}
+            </ol>
+          )}
         </article>
       </section>
     </main>

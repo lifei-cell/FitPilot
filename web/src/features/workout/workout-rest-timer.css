@@ -1,0 +1,26 @@
+.workout-rest-timer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #192017;
+  font-size: 13px;
+}
+
+.workout-rest-time,
+.workout-rest-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.workout-rest-time strong {
+  color: var(--lime);
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}

@@ -92,15 +92,14 @@ function Wait-ForJobCompletion {
     while ($true) {
         $job = Invoke-Kubectl -Context $Context -Arguments @(
             "-n", $Namespace, "get", "job", $Name, "-o", "json"
-        ) -Capture | ConvertFrom-Json
-        $succeeded = if ($job.status.PSObject.Properties.Name -contains "succeeded") {
-            [int]$job.status.succeeded
-        } else { 0 }
-        $failed = if ($job.status.PSObject.Properties.Name -contains "failed") {
-            [int]$job.status.failed
-        } else { 0 }
-        if ($succeeded -ge 1) { return }
-        if ($failed -ge 1) { throw "job $Namespace/$Name failed" }
+        ) -Capture | ConvertFrom-Json -AsHashtable
+        if ($job['status']) {
+            foreach ($condition in $job.status['conditions']) {
+                if ($condition.status -ne "True") { continue }
+                if ($condition.type -eq "Complete") { return }
+                if ($condition.type -eq "Failed") { throw "job $Namespace/$Name failed" }
+            }
+        }
         if ([DateTimeOffset]::UtcNow -ge $deadline) {
             throw "job $Namespace/$Name did not complete within $TimeoutSeconds seconds"
         }
@@ -120,12 +119,8 @@ function Get-DeploymentImage {
         "-n", $Namespace, "get", "deployment", $Deployment,
         "-o", "jsonpath={.spec.template.spec.containers[?(@.name=='$Container')].image}"
     )
-    $output = & kubectl --context $Context @arguments 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        if ($AllowMissing) { return "" }
-        throw "deployment not found: $Namespace/$Deployment"
-    }
-    return ($output -join "").Trim()
+    if ($AllowMissing) { $arguments += "--ignore-not-found" }
+    return Invoke-Kubectl -Context $Context -Arguments $arguments -Capture
 }
 
 function Apply-Manifest {

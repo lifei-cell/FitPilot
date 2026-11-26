@@ -1,0 +1,116 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/training_plan_day",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "training_plan_day",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('training_plan_day_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "training_plan_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "day_number",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "name",
+      "native_type": "character varying(100)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 5,
+      "name": "notes",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "training_plan_day_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "uk_training_plan_day",
+      "columns": [
+        "training_plan_id",
+        "day_number"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "training_plan_day_training_plan_id_fkey",
+      "columns": [
+        "training_plan_id"
+      ],
+      "referenced_object": "database://fitpilot/public/training_plan",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "training_plan_day_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "uk_training_plan_day",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "training_plan_id"
+        },
+        {
+          "position": 2,
+          "column": "day_number"
+        }
+      ]
+    }
+  ]
+}

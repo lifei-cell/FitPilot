@@ -1,0 +1,206 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/personal_record",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "personal_record",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false,
+      "default_expression": "nextval('personal_record_id_seq'::regclass)",
+      "serial": true
+    },
+    {
+      "ordinal": 2,
+      "name": "user_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "exercise_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "record_type",
+      "native_type": "character varying(30)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "weight_kg",
+      "native_type": "numeric(7,2)",
+      "canonical_type": "numeric",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "reps",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": true
+    },
+    {
+      "ordinal": 7,
+      "name": "estimated_1rm",
+      "native_type": "numeric(7,2)",
+      "canonical_type": "numeric",
+      "nullable": true
+    },
+    {
+      "ordinal": 8,
+      "name": "workout_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": true
+    },
+    {
+      "ordinal": 9,
+      "name": "workout_set_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": true
+    },
+    {
+      "ordinal": 10,
+      "name": "achieved_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false
+    },
+    {
+      "ordinal": 11,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "personal_record_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "uk_pr_source_type",
+      "columns": [
+        "workout_set_id",
+        "record_type"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "personal_record_exercise_id_fkey",
+      "columns": [
+        "exercise_id"
+      ],
+      "referenced_object": "database://fitpilot/public/exercise",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "no action"
+    },
+    {
+      "name": "personal_record_user_id_fkey",
+      "columns": [
+        "user_id"
+      ],
+      "referenced_object": "database://fitpilot/public/users",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    },
+    {
+      "name": "personal_record_workout_id_fkey",
+      "columns": [
+        "workout_id"
+      ],
+      "referenced_object": "database://fitpilot/public/workout",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "set null"
+    },
+    {
+      "name": "personal_record_workout_set_id_fkey",
+      "columns": [
+        "workout_set_id"
+      ],
+      "referenced_object": "database://fitpilot/public/workout_set",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "set null"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_pr_user_exercise",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "user_id"
+        },
+        {
+          "position": 2,
+          "column": "exercise_id"
+        },
+        {
+          "position": 3,
+          "column": "achieved_at"
+        }
+      ]
+    },
+    {
+      "name": "personal_record_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "uk_pr_source_type",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "workout_set_id"
+        },
+        {
+          "position": 2,
+          "column": "record_type"
+        }
+      ]
+    }
+  ]
+}

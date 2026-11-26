@@ -1,0 +1,56 @@
+.workout-progress-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.workout-progress-total {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 6px;
+  min-width: 0;
+}
+
+.workout-progress-total p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.workout-progress-total strong {
+  margin-inline-start: 4px;
+}
+
+.workout-progress-total progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--lime);
+}
+
+.workout-progress-summary button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.workout-progress-complete {
+  color: var(--lime);
+  font-size: 13px;
+}
+
+.workout-exercise-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.workout-exercise-heading h3 {
+  scroll-margin-top: 68px;
+}
+
+.workout-exercise-heading span {
+  color: var(--muted);
+  font-size: 12px;
+}

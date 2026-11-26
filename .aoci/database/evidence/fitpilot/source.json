@@ -1,0 +1,20 @@
+{
+  "version": "database-source-manifest/v1",
+  "source_id": "fitpilot",
+  "engine": "postgresql",
+  "database": "fitpilot",
+  "namespaces": [
+    "public"
+  ],
+  "include_namespaces": [],
+  "exclude_namespaces": [],
+  "include_tables": [],
+  "exclude_tables": [
+    "flyway_schema_history"
+  ],
+  "case_semantics": {
+    "identifier_case": "preserve_quoted_fold_unquoted_lower"
+  },
+  "server_version": "17.11 (Debian 17.11-1.pgdg12+2)",
+  "business_data_read": false
+}

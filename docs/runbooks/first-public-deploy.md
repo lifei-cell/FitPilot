@@ -69,7 +69,7 @@ kubectl --context $kubeContext -n fitpilot rollout status deployment/fitpilot-we
 
 1. 为受管 PostgreSQL 开启自动备份与 PITR/WAL 归档，配置独立存储的加密逻辑备份和失败告警。迁移完成后先在隔离恢复库运行 `scripts/delivery/prepare-database-drill.ps1`、`run-backup-restore-drill.ps1`；核对 Flyway、关键业务表、备份 SHA-256 和恢复耗时。以后每月演练，形成真实 RPO/RTO 证据。仓库原定 RPO ≤ 5 分钟、RTO ≤ 60 分钟，当前不能当作实测结果。
 2. 部署 Prometheus/Alertmanager/Grafana，接入真实通知接收人；验证目标不可达、5xx、P95、数据库连接/磁盘、Kafka lag、Outbox 最老积压和备份失败。Grafana/Actuator 仅在受控网络暴露；通过一次可恢复的故障测试确认通知送达。
-3. 建立上一版后，后续发布再开启 `rollback_drill=true`；确认旧应用兼容已经执行的数据库迁移。单独演练密钥轮换和旧凭据撤销；生产发布、备份与回滚记录必须绑定每次 SHA、镜像 digest、环境与时间。
+3. Flyway 已应用 V22 且发布门禁已为当前后端镜像记录兼容性后，后续发布可开启 `rollback_drill=true`。确认恢复目标兼容本次数据库迁移。单独演练密钥轮换和旧凭据撤销。生产发布、备份与回滚记录绑定每次 SHA、镜像 digest、环境与时间。见[发布门禁](release-rollback.md)。
 4. 使用手机移动数据而非同一局域网访问，验证登录、训练离线记录与重连同步、锁屏/切后台、Agent 降级、账号切换。记录设备、系统、网络、结果和未解决问题；通过后再扩大真实用户。
 
 ## 官方参考

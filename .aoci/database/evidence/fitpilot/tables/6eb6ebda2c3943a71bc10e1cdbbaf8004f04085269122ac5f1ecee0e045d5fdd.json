@@ -1,0 +1,134 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/dead_letter_event",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "dead_letter_event",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "event_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": true
+    },
+    {
+      "ordinal": 3,
+      "name": "original_topic",
+      "native_type": "character varying(160)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "event_key",
+      "native_type": "character varying(160)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 5,
+      "name": "payload",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "partition_id",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "offset_id",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "failure_reason",
+      "native_type": "character varying(2000)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 9,
+      "name": "status",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'OPEN'::character varying"
+    },
+    {
+      "ordinal": 10,
+      "name": "failed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 11,
+      "name": "replayed_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    }
+  ],
+  "primary_key": {
+    "name": "dead_letter_event_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [],
+  "foreign_keys": [],
+  "checks": [
+    {
+      "name": "dead_letter_event_status_check",
+      "expression": "CHECK (status::text = ANY (ARRAY['OPEN'::character varying, 'REPLAYED'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "dead_letter_event_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    },
+    {
+      "name": "idx_dead_letter_status_time",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "status"
+        },
+        {
+          "position": 2,
+          "column": "failed_at"
+        }
+      ]
+    }
+  ]
+}

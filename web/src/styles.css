@@ -443,29 +443,25 @@ a {
 .panel-title > svg {
   color: var(--lime);
 }
-.week-strip {
+.dashboard-plan-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  margin-top: 50px;
+  gap: 8px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
 }
-.week-strip span {
-  display: grid;
-  place-items: center;
-  gap: 10px;
-  padding: 11px 3px;
-  border: 1px solid var(--line);
-  color: #737d78;
-}
-.week-strip small {
-  font-size: 10px;
-}
-.week-strip .training-day {
-  border-color: #526429;
-  color: var(--lime);
+.dashboard-plan-days li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 10px;
   background: #192017;
+  border-left: 2px solid #526429;
+  overflow-wrap: anywhere;
 }
-.week-strip b {
+.dashboard-plan-days span {
+  flex: none;
+  color: var(--lime);
   font-size: 12px;
 }
 @media (max-width: 1000px) {

@@ -98,10 +98,13 @@ try {
         LLM_ENABLED = "false"
         OTEL_TRACING_EXPORT_ENABLED = "false"
     }
-    & (Join-Path $PSScriptRoot "run-kubernetes-rollout.ps1") `
+    $baselineEvidence = Join-Path $EvidenceDirectory "baseline"
+    & (Join-Path $baselineSource "scripts/delivery/run-kubernetes-rollout.ps1") `
         -KubeContext $context -AppImage $baselineApp -WebImage $baselineWeb `
-        -EvidenceDirectory (Join-Path $EvidenceDirectory "baseline") `
+        -EvidenceDirectory $baselineEvidence `
         -ConfigOverrides $config -AllowMutableImages -DeleteNetworkPoliciesForHostBridge
+    $baselineRollout = Get-Content -Raw -LiteralPath (Join-Path $baselineEvidence "kubernetes-rollout.json") |
+        ConvertFrom-Json -AsHashtable
 
     Invoke-Required "docker" @(
         "compose", "-p", $infraProject, "-f", $infraCompose, "exec", "-T", "postgres",
@@ -122,7 +125,7 @@ try {
         RotatedOperationsToken = $rotatedOperationsToken
         EvidenceDirectory = (Join-Path $EvidenceDirectory "candidate")
         ConfigOverrides = $config
-        RollbackDrill = $true
+        RollbackDrill = $baselineRollout.Contains("v22AppliedBefore")
         BackupRestoreDrill = $true
         SecretRotationDrill = $true
         RevokePreviousJwt = $true

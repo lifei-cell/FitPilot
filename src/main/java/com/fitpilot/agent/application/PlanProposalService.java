@@ -6,6 +6,7 @@ import com.fitpilot.agent.dto.AgentDtos;
 import com.fitpilot.agent.infrastructure.AgentRepository;
 import com.fitpilot.common.exception.BusinessException;
 import com.fitpilot.common.exception.ErrorCode;
+import com.fitpilot.exercise.application.ExerciseService;
 import com.fitpilot.llm.application.LlmGateway;
 import com.fitpilot.llm.domain.LlmModels;
 import com.fitpilot.plan.application.TrainingPlanService;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,24 +24,32 @@ import java.util.UUID;
 /** Builds and validates write proposals without executing the confirmed business mutation. */
 @Service
 public class PlanProposalService {
+    private static final int EXERCISE_CATALOG_LIMIT = 50;
+
     private final LlmGateway llm;
     private final IntentRouter intentRouter;
     private final PendingActionService pendingActions;
     private final TrainingPlanGuardrail guardrail;
     private final TrainingPlanService plans;
+    private final ExerciseService exercises;
     private final TrainingAdjustmentService adjustments;
+    private final TrainingAdjustmentWorkflow adjustmentWorkflow;
     private final AgentRepository repository;
 
     public PlanProposalService(LlmGateway llm, IntentRouter intentRouter,
                                PendingActionService pendingActions, TrainingPlanGuardrail guardrail,
-                               TrainingPlanService plans, TrainingAdjustmentService adjustments,
+                               TrainingPlanService plans, ExerciseService exercises,
+                               TrainingAdjustmentService adjustments,
+                               TrainingAdjustmentWorkflow adjustmentWorkflow,
                                AgentRepository repository) {
         this.llm = llm;
         this.intentRouter = intentRouter;
         this.pendingActions = pendingActions;
         this.guardrail = guardrail;
         this.plans = plans;
+        this.exercises = exercises;
         this.adjustments = adjustments;
+        this.adjustmentWorkflow = adjustmentWorkflow;
         this.repository = repository;
     }
 
@@ -63,7 +73,7 @@ public class PlanProposalService {
         LlmModels.Result<TrainingPlanDtos.CreateRequest> planResult = request.proposedPlan() != null
                 ? new LlmModels.Result<>(request.proposedPlan(), model, degraded,
                 promptVersion, 0, 0, BigDecimal.ZERO)
-                : llm.generatePlan(executionId, request.message(), results, defaultProposal(userId));
+                : llm.generatePlan(executionId, request.message(), () -> creationContext(results), defaultProposal(userId));
         intentRouter.recordUsage(executionId, planResult);
         TrainingPlanDtos.CreateRequest proposal = planResult.value();
         List<String> issues = guardrail.validate(proposal);
@@ -80,6 +90,19 @@ public class PlanProposalService {
                 degraded || planResult.degraded(), planResult.promptVersion());
     }
 
+    private Map<String, Object> creationContext(Map<String, Object> results) {
+        var catalog = exercises.search(null, null, null, null, 1, EXERCISE_CATALOG_LIMIT).items().stream()
+                .map(exercise -> new ExerciseOption(exercise.id(), exercise.name(),
+                        exercise.equipment(), exercise.primaryMuscle()))
+                .toList();
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("availableExercises", catalog);
+        context.putAll(results);
+        return context;
+    }
+
+    private record ExerciseOption(long id, String name, String equipment, String primaryMuscle) {}
+
     private Outcome prepareAdjustment(long userId, AgentDtos.MessageRequest request, UUID executionId,
                                       Map<String, Object> results, String model,
                                       boolean degraded, String promptVersion, boolean hasCitations) {
@@ -90,13 +113,12 @@ public class PlanProposalService {
                     model, degraded, promptVersion);
         }
         if (adjustments.hasPending(userId, analysis.source().id())) {
-            return Outcome.completed("已有一份待确认的计划调整，请先确认或拒绝后再重新生成。",
-                    analysis.rule(), model, degraded, promptVersion);
+            return adjustmentAlreadyPending(analysis.rule(), model, degraded, promptVersion);
         }
 
         TrainingPlanDtos.CreateRequest fallbackPlan = adjustments.deterministicPlan(analysis);
         LlmModels.Result<TrainingPlanDtos.CreateRequest> planResult = llm.generatePlan(
-                executionId, request.message(), results, fallbackPlan);
+                executionId, request.message(), () -> results, fallbackPlan);
         intentRouter.recordUsage(executionId, planResult);
         TrainingPlanDtos.CreateRequest plan = planResult.value();
         List<String> issues = adjustmentIssues(analysis, plan, hasCitations);
@@ -109,12 +131,19 @@ public class PlanProposalService {
                     String.join("; ", issues), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         TrainingAdjustmentDtos.AdjustmentProposal proposal = adjustments.proposal(analysis, plan);
-        AgentDtos.PendingActionView pending = pendingActions.create(executionId, userId,
-                "adjust_training_plan", proposal, plan, analysis.reasons());
-        adjustments.record(userId, proposal, pending.id(), planResult.model(),
-                degraded || planResult.degraded(), planResult.promptVersion());
-        return Outcome.pending(pending, planResult.model(),
-                degraded || planResult.degraded(), planResult.promptVersion());
+        boolean usedFallback = degraded || planResult.degraded();
+        try {
+            AgentDtos.PendingActionView pending = adjustmentWorkflow.create(executionId, userId, proposal,
+                    planResult.model(), usedFallback, planResult.promptVersion());
+            return Outcome.pending(pending, planResult.model(), usedFallback, planResult.promptVersion());
+        } catch (TrainingAdjustmentWorkflow.AlreadyPending ignored) {
+            return adjustmentAlreadyPending(analysis.rule(), planResult.model(), usedFallback, planResult.promptVersion());
+        }
+    }
+
+    private Outcome adjustmentAlreadyPending(String rule, String model, boolean degraded, String promptVersion) {
+        return Outcome.completed("已有一份待确认的计划调整，请先确认或拒绝后再重新生成。",
+                rule, model, degraded, promptVersion);
     }
 
     private List<String> adjustmentIssues(TrainingAdjustmentService.Analysis analysis,

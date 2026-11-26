@@ -2,9 +2,12 @@ package com.fitpilot.rag.infrastructure;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.RagCorpus;
 import com.fitpilot.rag.dto.RagDtos;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,13 +134,14 @@ public class RagGovernanceRepository {
         return namedJdbc.query("""
                 SELECT id,version,source_url,category
                 FROM knowledge_document
-                WHERE lifecycle_status='ACTIVE'
+                WHERE corpus_scope=:scope AND lifecycle_status='ACTIVE'
                   AND (effective_from IS NULL OR effective_from<=CURRENT_TIMESTAMP)
                   AND (expires_at IS NULL OR expires_at>CURRENT_TIMESTAMP)
-                  AND (LOWER(category) IN (:categories) OR source_url IN (:sources))
+                  AND (LOWER(category) = ANY(:categories) OR source_url IN (:sources))
                 ORDER BY CASE WHEN source_url IN (:sources) THEN 0 ELSE 1 END,updated_at DESC,id
                 LIMIT :limit
-                """, Map.of("categories", categories, "sources", expectedSources, "limit", limit),
+                """, Map.of("scope", RagCorpus.LIVE.key(), "categories", new SqlArrayValue("text", categories.toArray()),
+                        "sources", expectedSources, "limit", limit),
                 (rs, row) -> new EvaluationDocumentRef(rs.getObject(1, UUID.class), rs.getInt(2),
                         rs.getString(3), rs.getString(4)));
     }
@@ -156,42 +160,59 @@ public class RagGovernanceRepository {
                 SELECT d.external_id,r.title,r.category,r.source_url,r.source_license,r.format,r.raw_content,
                   r.metadata::text,r.publisher,r.trust_level,r.effective_from,r.expires_at
                 FROM knowledge_document_revision r JOIN knowledge_document d ON d.id=r.document_id
-                WHERE r.document_id=? AND r.version=?
+                WHERE r.document_id=? AND r.version=? AND d.corpus_scope=?
                 """, rs -> rs.next() ? new RevisionData(rs.getString(1), rs.getString(2), rs.getString(3),
                 rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), readMap(rs.getString(8)),
                 rs.getString(9), rs.getString(10), timestamp(rs, 11), timestamp(rs, 12)) : null,
-                documentId, version);
+                documentId, version, RagCorpus.LIVE.key());
     }
 
     public List<DeletionTask> claimDeletionTasks(int limit) {
         return jdbc.query("""
-                UPDATE rag_deletion_task SET status='RUNNING',attempt_count=attempt_count+1,updated_at=CURRENT_TIMESTAMP
-                WHERE id IN (SELECT id FROM rag_deletion_task WHERE status IN ('PENDING','FAILED')
-                  AND next_attempt_at<=CURRENT_TIMESTAMP ORDER BY next_attempt_at FOR UPDATE SKIP LOCKED LIMIT ?)
-                RETURNING id,document_id,attempt_count
-                """, (rs, row) -> new DeletionTask(rs.getObject(1, UUID.class), rs.getObject(2, UUID.class), rs.getInt(3)), limit);
+                WITH candidates AS (
+                    SELECT t.id,d.index_slot_count
+                    FROM rag_deletion_task t JOIN knowledge_document d ON d.id=t.document_id AND d.version=t.document_version
+                    WHERE d.lifecycle_status='DELETE_PENDING'
+                      AND ((t.status IN ('PENDING','FAILED') AND t.next_attempt_at<=CURRENT_TIMESTAMP)
+                        OR (t.status='RUNNING' AND t.updated_at<CURRENT_TIMESTAMP-INTERVAL '5 minutes'))
+                    ORDER BY t.next_attempt_at LIMIT ? FOR UPDATE OF t SKIP LOCKED
+                )
+                UPDATE rag_deletion_task t SET status='RUNNING',attempt_count=attempt_count+1,updated_at=CURRENT_TIMESTAMP
+                FROM candidates c WHERE t.id=c.id
+                RETURNING t.id,t.document_id,t.document_version,c.index_slot_count,t.attempt_count
+                """, (rs, row) -> new DeletionTask(rs.getObject(1, UUID.class),
+                new DocumentVersion(rs.getObject(2, UUID.class), rs.getInt(3)), rs.getInt(4), rs.getInt(5)), limit);
     }
 
-    public void deletionSucceeded(UUID taskId, UUID documentId) {
-        int deleted = jdbc.update("""
+    @Transactional
+    public boolean deletionSucceeded(DeletionTask task) {
+        DocumentVersion document = task.document();
+        // Document replacement and deletion requests also acquire the document row before the task row.
+        boolean current = Boolean.TRUE.equals(jdbc.query("""
+                SELECT id FROM knowledge_document WHERE id=? AND version=? AND lifecycle_status='DELETE_PENDING'
+                FOR UPDATE
+                """, ResultSet::next, document.id(), document.version()));
+        if (!current || jdbc.update("""
+                UPDATE rag_deletion_task SET status='SUCCEEDED',last_error=NULL,updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND document_version=? AND attempt_count=? AND status='RUNNING'
+                """, task.id(), document.version(), task.attempts()) != 1) return false;
+        jdbc.update("""
                 UPDATE knowledge_document SET lifecycle_status='DELETED',raw_content='',metadata='{}'::jsonb,
                   index_status='INDEXED',index_error=NULL,indexed_at=CURRENT_TIMESTAMP,
                   deleted_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP
-                WHERE id=? AND lifecycle_status='DELETE_PENDING'
-                """, documentId);
-        if (deleted == 0) jdbc.update("""
-                UPDATE knowledge_document SET index_status='PENDING',updated_at=CURRENT_TIMESTAMP
-                WHERE id=? AND lifecycle_status='ACTIVE'
-                """, documentId);
-        jdbc.update("UPDATE rag_deletion_task SET status='SUCCEEDED',last_error=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=?", taskId);
+                WHERE id=? AND version=?
+                """, document.id(), document.version());
+        return true;
     }
 
-    public void deletionFailed(UUID taskId, Throwable failure, int attempts) {
+    public boolean deletionFailed(DeletionTask task, Throwable failure) {
         String message = failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage();
-        jdbc.update("""
+        return jdbc.update("""
                 UPDATE rag_deletion_task SET status='FAILED',last_error=?,next_attempt_at=CURRENT_TIMESTAMP+(?*INTERVAL '30 seconds'),
-                  updated_at=CURRENT_TIMESTAMP WHERE id=?
-                """, message.substring(0, Math.min(1000, message.length())), Math.min(attempts, 20), taskId);
+                  updated_at=CURRENT_TIMESTAMP
+                WHERE id=? AND document_version=? AND attempt_count=? AND status='RUNNING'
+                """, message.substring(0, Math.min(1000, message.length())), Math.min(task.attempts(), 20),
+                task.id(), task.document().version(), task.attempts()) == 1;
     }
 
     public RagDtos.DeleteStatus deleteStatus(UUID documentId) {
@@ -219,5 +240,5 @@ public class RagGovernanceRepository {
     public record RevisionData(String externalId, String title, String category, String sourceUrl, String sourceLicense,
                                String format, String content, Map<String, String> metadata, String publisher,
                                String trustLevel, LocalDateTime effectiveFrom, LocalDateTime expiresAt) {}
-    public record DeletionTask(UUID id, UUID documentId, int attempts) {}
+    public record DeletionTask(UUID id, DocumentVersion document, int slotCount, int attempts) {}
 }

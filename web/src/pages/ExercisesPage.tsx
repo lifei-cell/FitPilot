@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import type { Exercise, PageResult } from "../api/types";
 import { Empty, PageHeader, Panel } from "../components/PageParts";
+import { ExerciseMediaPanel } from "../features/exercise/ExerciseMediaPanel";
 
 export function ExercisesPage() {
   const [keyword, setKeyword] = useState("");
   const [selected, setSelected] = useState<Exercise | null>(null);
+  const detailTitle = useRef<HTMLHeadingElement>(null);
   const exercises = useQuery({
     queryKey: ["exercises", keyword],
     queryFn: () =>
@@ -15,6 +17,14 @@ export function ExercisesPage() {
         `/exercises?size=60&keyword=${encodeURIComponent(keyword)}`,
       ),
   });
+
+  useEffect(() => {
+    if (window.matchMedia?.("(max-width: 900px)").matches) {
+      detailTitle.current?.focus({ preventScroll: true });
+      detailTitle.current?.scrollIntoView({ block: "start" });
+    }
+  }, [selected]);
+
   return (
     <main className="page">
       <PageHeader
@@ -59,8 +69,9 @@ export function ExercisesPage() {
           {selected ? (
             <>
               <p className="eyebrow">EXERCISE DETAIL</p>
-              <h2>{selected.name}</h2>
+              <h2 ref={detailTitle} tabIndex={-1}>{selected.name}</h2>
               <p className="subtle">{selected.description ?? "暂无动作简介"}</p>
+              <ExerciseMediaPanel key={selected.id} exercise={selected} />
               <dl>
                 <div>
                   <dt>主要肌群</dt>

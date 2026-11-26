@@ -1,0 +1,184 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/knowledge_document_revision",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "knowledge_document_revision",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "document_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "version",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "title",
+      "native_type": "character varying(300)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "category",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "source_url",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "source_license",
+      "native_type": "character varying(120)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 8,
+      "name": "publisher",
+      "native_type": "character varying(200)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 9,
+      "name": "trust_level",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 10,
+      "name": "effective_from",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 11,
+      "name": "expires_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": true
+    },
+    {
+      "ordinal": 12,
+      "name": "format",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 13,
+      "name": "content_hash",
+      "native_type": "character(64)",
+      "canonical_type": "character",
+      "nullable": false
+    },
+    {
+      "ordinal": 14,
+      "name": "raw_content",
+      "native_type": "text",
+      "canonical_type": "text",
+      "nullable": false
+    },
+    {
+      "ordinal": 15,
+      "name": "metadata",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false
+    },
+    {
+      "ordinal": 16,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "knowledge_document_revision_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "knowledge_document_revision_document_id_version_key",
+      "columns": [
+        "document_id",
+        "version"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "knowledge_document_revision_document_id_fkey",
+      "columns": [
+        "document_id"
+      ],
+      "referenced_object": "database://fitpilot/public/knowledge_document",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "knowledge_document_revision_document_id_version_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "document_id"
+        },
+        {
+          "position": 2,
+          "column": "version"
+        }
+      ]
+    },
+    {
+      "name": "knowledge_document_revision_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

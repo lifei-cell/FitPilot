@@ -2,14 +2,29 @@ package com.fitpilot;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fitpilot.rag.application.HybridRetrievalService;
+import com.fitpilot.rag.application.KnowledgeIngestionService;
+import com.fitpilot.rag.domain.KnowledgeModels.DocumentVersion;
+import com.fitpilot.rag.domain.KnowledgeModels.IndexClaim;
+import com.fitpilot.rag.domain.KnowledgeModels.SearchHit;
+import com.fitpilot.rag.domain.KnowledgeModels.StoredChunk;
+import com.fitpilot.rag.domain.RagCorpus;
+import com.fitpilot.rag.dto.RagDtos;
+import com.fitpilot.rag.embedding.EmbeddingProvider;
+import com.fitpilot.rag.infrastructure.ElasticsearchKnowledgeIndex;
+import com.fitpilot.rag.infrastructure.KnowledgeRepository;
+import com.fitpilot.rag.infrastructure.RagGovernanceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
@@ -18,9 +33,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FitPilotRagFlowIT {
     private static final String OPERATIONS_TOKEN = "rag-integration-operations-token";
+    private static final String VERSION_TEST_CATEGORY = "version-fence";
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(
@@ -66,6 +90,14 @@ class FitPilotRagFlowIT {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
+    @Autowired KnowledgeRepository knowledge;
+    @Autowired RagGovernanceRepository governance;
+    @Autowired ElasticsearchKnowledgeIndex lexical;
+    @Autowired KnowledgeIngestionService ingestion;
+    @Autowired HybridRetrievalService retrieval;
+    @Autowired EmbeddingProvider embeddings;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired PlatformTransactionManager transactions;
 
     @Test
     void ingestsSearchesReindexesAndDeletesKnowledgeWithCitations() throws Exception {
@@ -131,6 +163,10 @@ class FitPilotRagFlowIT {
             assertThat(run.path("metrics").path("mrr").asDouble()).isGreaterThanOrEqualTo(0.75);
             assertThat(run.path("metrics").path("citationValidity").asDouble()).isEqualTo(1.0);
         });
+        assertThat(jdbc.queryForObject("""
+                SELECT recall_at_5 FROM rag_eval_result WHERE run_id=? AND case_id LIKE 'dynamic-%'
+                """, Double.class, UUID.fromString(evalRunId))).isEqualTo(1.0);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM rag_retrieval WHERE user_id IS NULL", Long.class)).isZero();
 
         JsonNode experimentStarted = call(post("/api/v1/operations/evaluations/rag/feedback-experiments")
                 .header("X-Operations-Token", OPERATIONS_TOKEN), 202);
@@ -152,6 +188,7 @@ class FitPilotRagFlowIT {
             assertThat(baseline.path("categories").path("training-theory")
                     .path("citationValidity").asDouble()).isEqualTo(1);
         });
+        awaitDeletionQueueDrained();
 
         mvc.perform(get("/api/v1/operations/rag/documents").header("X-Operations-Token", "wrong"))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value(1002));
@@ -182,6 +219,166 @@ class FitPilotRagFlowIT {
             assertThat(deletion.path("data").path("lifecycleStatus").asText()).isEqualTo("DELETED");
             assertThat(deletion.path("data").path("taskStatus").asText()).isEqualTo("SUCCEEDED");
         });
+    }
+
+    @Test
+    void liveAndSimultaneousEvaluationCorporaAreIsolatedInBothChannels() throws Exception {
+        String query = "scopeisolationfixture";
+        String category = "scope-isolation";
+        var request = new RagDtos.IngestDocumentRequest("scope:same-external-id", query, category,
+                "https://example.org/scope", "CC-BY-4.0", "TEXT", query, Map.of(), null, null, null, null);
+        RagCorpus runA = RagCorpus.evaluation();
+        RagCorpus runB = RagCorpus.evaluation();
+        var live = ingestion.ingest(request);
+        var evaluatedA = ingestion.ingest(request, null, runA);
+        var evaluatedB = ingestion.ingest(request, null, runB);
+        assertThat(List.of(live.id(), evaluatedA.id(), evaluatedB.id())).doesNotHaveDuplicates();
+        for (var scope : Map.of(RagCorpus.LIVE, live, runA, evaluatedA, runB, evaluatedB).entrySet()) {
+            RagCorpus corpus = scope.getKey();
+            assertThat(scope.getValue().indexStatus()).isEqualTo("INDEXED");
+            UUID child = jdbc.queryForObject("SELECT id FROM knowledge_chunk WHERE document_id=? AND chunk_type='CHILD'",
+                    UUID.class, scope.getValue().id());
+            assertThat(lexical.search(query, null, 10, corpus)).extracting(SearchHit::chunkId).containsExactly(child);
+            assertThat(knowledge.vectorSearch(embeddings.embed(query), category, 10, corpus))
+                    .extracting(SearchHit::chunkId).containsExactly(child);
+            assertThat(knowledge.contexts(List.of(child), corpus.equals(RagCorpus.LIVE) ? runA : RagCorpus.LIVE))
+                    .isEmpty();
+        }
+        assertThat(retrieval.searchOffline(query, 5, null, null, runB).contexts())
+                .extracting(RagDtos.RetrievedContext::documentId).containsExactly(evaluatedB.id());
+        assertThat(governance.evaluationCorpus(List.of(), List.of(live.sourceUrl()), 20))
+                .extracting(RagGovernanceRepository.EvaluationDocumentRef::documentId).containsExactly(live.id());
+        assertThat(ingestion.list(100)).extracting(RagDtos.DocumentView::id).contains(live.id())
+                .doesNotContain(evaluatedA.id(), evaluatedB.id());
+        assertThatThrownBy(() -> ingestion.delete(evaluatedA.id(), runB)).hasMessage("knowledge document not found");
+        ingestion.delete(evaluatedA.id(), runA);
+
+        // Run B is still present, as it would be if an evaluation worker exited before cleanup.
+        String token = registerAndLogin("rag_scope_user");
+        JsonNode online = call(get("/api/v1/rag/search").header("Authorization", bearer(token)).param("q", query), 200);
+        assertThat(online.path("data").path("contexts")).extracting(item -> item.path("documentId").asText())
+                .containsExactly(live.id().toString());
+    }
+
+    @Test
+    void lateVersionCannotOverwriteNewChunksOrRestoreRemovedSlots() throws Exception {
+        IndexClaim first = claimVersion("version-fence:replace", "retiredfixture", 3);
+        UUID legacyChunk = addLegacyChunk(first.document());
+        assertThat(legacyChunkStatus(legacyChunk)).isEqualTo(200);
+        assertThat(lexical.search("legacyfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
+        lexical.publish(first);
+        assertThat(knowledge.markIndexed(first)).isTrue();
+        assertThat(legacyChunkStatus(legacyChunk)).isEqualTo(404);
+
+        IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
+        IndexClaim current = claimVersion("version-fence:replace", "currentfixture", 1);
+        assertThat(current.slotCount()).isEqualTo(3);
+        assertThat(stale.chunks()).hasSize(3).allMatch(chunk -> chunk.version() == 1);
+        assertThat(knowledge.claimIndexing(first.document(), true)).isEmpty();
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(knowledge.markFailed(stale, new IllegalStateException("late failure"))).isFalse();
+        assertThat(knowledge.findDocument(current.document().id(), RagCorpus.LIVE).orElseThrow().indexStatus())
+                .isEqualTo("INDEXING");
+
+        lexical.publish(current);
+        assertThat(knowledge.markIndexed(current)).isTrue();
+        assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(lexical.search("retiredfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
+        assertThat(lexical.search("currentfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE))
+                .extracting(SearchHit::chunkId).containsExactly(current.chunks().getFirst().chunkId());
+    }
+
+    @Test
+    void abandonedClaimCannotFinishEvenWhenTheDocumentVersionIsUnchanged() {
+        IndexClaim abandoned = claimVersion("version-fence:reclaim", "reclaimfixture", 1);
+        IndexClaim recovered = new TransactionTemplate(transactions).execute(status -> {
+            jdbc.update("UPDATE knowledge_document SET updated_at=now()-interval '6 minutes' WHERE id=?",
+                    abandoned.document().id());
+            return knowledge.claimIndexing(abandoned.document(), false).orElseThrow();
+        });
+
+        assertThat(recovered.token()).isNotEqualTo(abandoned.token());
+        assertThat(knowledge.markIndexed(abandoned)).isFalse();
+        assertThat(knowledge.markFailed(abandoned, new IllegalStateException("lost claim"))).isFalse();
+        lexical.publish(recovered);
+        assertThat(knowledge.markIndexed(recovered)).isTrue();
+    }
+
+    @Test
+    void delayedIndexAndDeletionAreFencedAcrossDeletionAndRestore() {
+        awaitDeletionQueueDrained();
+        IndexClaim first = claimVersion("version-fence:restore", "deletedfixture", 2);
+        lexical.publish(first);
+        assertThat(knowledge.markIndexed(first)).isTrue();
+        IndexClaim stale = knowledge.claimIndexing(first.document(), true).orElseThrow();
+        RagGovernanceRepository.DeletionTask deletion = new TransactionTemplate(transactions).execute(status -> {
+            assertThat(knowledge.requestDelete(first.document().id(), RagCorpus.LIVE)).isTrue();
+            return governance.claimDeletionTasks(1).getFirst();
+        });
+
+        assertThat(deletion.document()).isEqualTo(first.document());
+        lexical.deleteDocument(deletion.document(), deletion.slotCount());
+        assertThatThrownBy(() -> lexical.publish(stale)).hasMessageContaining("item errors");
+        assertThat(knowledge.markIndexed(stale)).isFalse();
+        assertThat(lexical.search("deletedfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE)).isEmpty();
+
+        IndexClaim restored = claimVersion("version-fence:restore", "restoredfixture", 1);
+        lexical.publish(restored);
+        assertThat(knowledge.markIndexed(restored)).isTrue();
+        assertThatThrownBy(() -> lexical.deleteDocument(deletion.document(), deletion.slotCount()))
+                .hasMessageContaining("item errors");
+        assertThat(governance.deletionSucceeded(deletion)).isFalse();
+        assertThat(governance.deletionFailed(deletion, new IllegalStateException("late deletion"))).isFalse();
+        assertThat(knowledge.findDocument(restored.document().id(), RagCorpus.LIVE).orElseThrow().indexStatus())
+                .isEqualTo("INDEXED");
+        assertThat(lexical.search("restoredfixture", VERSION_TEST_CATEGORY, 10, RagCorpus.LIVE))
+                .extracting(SearchHit::chunkId).containsExactly(restored.chunks().getFirst().chunkId());
+    }
+
+    private void awaitDeletionQueueDrained() {
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(45)).untilAsserted(() ->
+                assertThat(jdbc.queryForList("""
+                        SELECT status FROM rag_deletion_task WHERE status IN ('PENDING', 'RUNNING', 'FAILED')
+                        """, String.class)).as("unfinished RAG deletion tasks").isEmpty());
+    }
+
+    private IndexClaim claimVersion(String externalId, String text, int childCount) {
+        var write = new KnowledgeRepository.DocumentWrite(UUID.randomUUID(), externalId, text, VERSION_TEST_CATEGORY,
+                "https://example.org/synthetic", "CC-BY-4.0", "TEXT", "0".repeat(64), text, Map.of(), null,
+                "COMMUNITY", null, null);
+        UUID parent = UUID.randomUUID();
+        var chunks = new ArrayList<StoredChunk>();
+        chunks.add(new StoredChunk(parent, null, "PARENT", 0, null, text, text, null));
+        for (int ordinal = 0; ordinal < childCount; ordinal++) {
+            chunks.add(new StoredChunk(UUID.randomUUID(), parent, "CHILD", ordinal, null, text, text, null));
+        }
+        return new TransactionTemplate(transactions).execute(status ->
+                knowledge.claimIndexing(knowledge.replace(write, chunks, RagCorpus.LIVE), false).orElseThrow());
+    }
+
+    private UUID addLegacyChunk(DocumentVersion document) throws Exception {
+        lexical.ensureIndex();
+        UUID id = UUID.randomUUID();
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://" + ELASTICSEARCH.getHttpHostAddress()
+                        + "/fitpilot-rag-it/_doc/" + id + "?refresh=wait_for"))
+                .timeout(Duration.ofSeconds(10)).header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(Map.of(
+                        "documentId", document.id().toString(), "documentVersion", document.version(),
+                        "category", VERSION_TEST_CATEGORY, "lexicalText", "legacyfixture", "lifecycleStatus", "ACTIVE"))))
+                .build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            assertThat(client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(201);
+        }
+        return id;
+    }
+
+    private int legacyChunkStatus(UUID id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://" + ELASTICSEARCH.getHttpHostAddress()
+                + "/fitpilot-rag-it/_doc/" + id)).timeout(Duration.ofSeconds(10)).GET().build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            return client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
+        }
     }
 
     private String registerAndLogin(String username) throws Exception {

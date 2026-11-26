@@ -1,0 +1,139 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/rag_dynamic_eval_case",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "rag_dynamic_eval_case",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "feedback_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "query_text",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 4,
+      "name": "expected_source_urls",
+      "native_type": "jsonb",
+      "canonical_type": "jsonb",
+      "nullable": false
+    },
+    {
+      "ordinal": 5,
+      "name": "category",
+      "native_type": "character varying(80)",
+      "canonical_type": "character varying",
+      "nullable": false
+    },
+    {
+      "ordinal": 6,
+      "name": "dataset_version",
+      "native_type": "bigint",
+      "canonical_type": "bigint",
+      "nullable": false
+    },
+    {
+      "ordinal": 7,
+      "name": "active",
+      "native_type": "boolean",
+      "canonical_type": "boolean",
+      "nullable": false,
+      "default_expression": "true"
+    },
+    {
+      "ordinal": 8,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    }
+  ],
+  "primary_key": {
+    "name": "rag_dynamic_eval_case_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "rag_dynamic_eval_case_feedback_id_key",
+      "columns": [
+        "feedback_id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "rag_dynamic_eval_case_feedback_id_fkey",
+      "columns": [
+        "feedback_id"
+      ],
+      "referenced_object": "database://fitpilot/public/rag_feedback",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [],
+  "indexes": [
+    {
+      "name": "idx_rag_dynamic_eval_version",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "active"
+        },
+        {
+          "position": 2,
+          "column": "dataset_version"
+        }
+      ]
+    },
+    {
+      "name": "rag_dynamic_eval_case_feedback_id_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "feedback_id"
+        }
+      ]
+    },
+    {
+      "name": "rag_dynamic_eval_case_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

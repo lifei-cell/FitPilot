@@ -3,7 +3,10 @@ import { runMixedIteration, setupEnvironment } from './v5-common.js';
 const startRate = Number(__ENV.START_RATE || 20);
 const peakRate = Number(__ENV.PEAK_RATE || 200);
 
+const maxVUs = Number(__ENV.MAX_VUS || 400);
+
 export const options = {
+  setupTimeout: '10m',
   scenarios: {
     five_minute_burst: {
       executor: 'ramping-arrival-rate',
@@ -12,7 +15,7 @@ export const options = {
       // Pre-allocate above the measured peak (57 VUs at 200 RPS) so the
       // injector does not drop iterations while dynamically adding VUs.
       preAllocatedVUs: Number(__ENV.PRE_ALLOCATED_VUS || 100),
-      maxVUs: Number(__ENV.MAX_VUS || 400),
+      maxVUs,
       stages: [
         { target: peakRate, duration: '1m' },
         { target: peakRate, duration: '3m' },
@@ -30,7 +33,7 @@ export const options = {
 };
 
 export function setup() {
-  return setupEnvironment();
+  return setupEnvironment(maxVUs);
 }
 
 export default function (data) {

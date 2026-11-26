@@ -3,12 +3,11 @@ package com.fitpilot.agent.adjustment;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitpilot.common.response.PageResult;
+import com.fitpilot.infrastructure.events.WorkoutCompletedEventHandler;
 import com.fitpilot.plan.dto.TrainingPlanDtos;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,60 +22,85 @@ public class TrainingAdjustmentRepository {
     }
 
     public Metrics metrics(long userId) {
-        long completed = count("SELECT count(*) FROM workout WHERE user_id=? AND status='COMPLETED' AND completed_at>=CURRENT_TIMESTAMP-INTERVAL '28 days'", userId);
-        long completedSets = count("""
-                SELECT count(*) FROM workout_set ws JOIN workout_exercise we ON we.id=ws.workout_exercise_id
-                JOIN workout w ON w.id=we.workout_id WHERE w.user_id=? AND w.status='COMPLETED'
-                  AND w.completed_at>=CURRENT_TIMESTAMP-INTERVAL '28 days' AND ws.completed_at IS NOT NULL AND ws.is_warmup=FALSE
-                """, userId);
-        long targets = count("""
-                SELECT coalesce(sum(we.target_sets),0) FROM workout_exercise we JOIN workout w ON w.id=we.workout_id
-                WHERE w.user_id=? AND w.status='COMPLETED' AND w.completed_at>=CURRENT_TIMESTAMP-INTERVAL '28 days'
-                """, userId);
-        double rpe = decimal("""
-                SELECT coalesce(avg(ws.rpe),0) FROM workout_set ws JOIN workout_exercise we ON we.id=ws.workout_exercise_id
-                JOIN workout w ON w.id=we.workout_id WHERE w.user_id=? AND w.status='COMPLETED'
-                  AND w.completed_at>=CURRENT_TIMESTAMP-INTERVAL '28 days' AND ws.completed_at IS NOT NULL
-                  AND ws.is_warmup=FALSE AND ws.rpe IS NOT NULL
-                """, userId);
-        long feedbacks = count("SELECT count(*) FROM workout_feedback WHERE user_id=? AND updated_at>=CURRENT_TIMESTAMP-INTERVAL '28 days'", userId);
-        double fatigue = decimal("SELECT coalesce(avg(fatigue_score),0) FROM workout_feedback WHERE user_id=? AND updated_at>=CURRENT_TIMESTAMP-INTERVAL '28 days'", userId);
-        int pain = (int) count("SELECT coalesce(max(pain_score),0) FROM workout_feedback WHERE user_id=? AND updated_at>=CURRENT_TIMESTAMP-INTERVAL '7 days'", userId);
-        double currentVolume = decimal("SELECT coalesce(sum(training_volume),0) FROM workout_analytics_projection WHERE user_id=? AND completed_at>=CURRENT_TIMESTAMP-INTERVAL '14 days'", userId);
-        double previousVolume = decimal("SELECT coalesce(sum(training_volume),0) FROM workout_analytics_projection WHERE user_id=? AND completed_at>=CURRENT_TIMESTAMP-INTERVAL '28 days' AND completed_at<CURRENT_TIMESTAMP-INTERVAL '14 days'", userId);
-        long prs = count("SELECT count(*) FROM personal_record WHERE user_id=? AND achieved_at>=CURRENT_TIMESTAMP-INTERVAL '28 days'", userId);
-        return new Metrics(completed, completedSets, targets, rpe, feedbacks, fatigue, pain, currentVolume, previousVolume, prs);
+        // Use one statement snapshot so a receipt is only visible with the PRs it committed.
+        return jdbc.queryForObject("""
+                WITH recent_workouts AS (
+                    SELECT id, completed_at >= CURRENT_TIMESTAMP - INTERVAL '14 days' AS current_period
+                    FROM workout
+                    WHERE user_id=? AND status='COMPLETED' AND completed_at >= CURRENT_TIMESTAMP - INTERVAL '28 days'
+                ), recent_exercises AS (
+                    SELECT we.id, we.target_sets, w.current_period
+                    FROM workout_exercise we JOIN recent_workouts w ON w.id=we.workout_id
+                ), working_sets AS (
+                    SELECT count(*) AS completed_sets, coalesce(avg(ws.rpe),0) AS average_rpe,
+                           coalesce(sum(coalesce(ws.weight_kg,0) * ws.reps) FILTER (WHERE e.current_period),0) AS current_volume,
+                           coalesce(sum(coalesce(ws.weight_kg,0) * ws.reps) FILTER (WHERE NOT e.current_period),0) AS previous_volume
+                    FROM workout_set ws JOIN recent_exercises e ON e.id=ws.workout_exercise_id
+                    WHERE ws.completed_at IS NOT NULL AND NOT ws.is_warmup
+                ), feedback AS (
+                    SELECT count(*) AS feedback_count, coalesce(avg(fatigue_score),0) AS average_fatigue,
+                           coalesce(max(pain_score) FILTER (WHERE updated_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'),0) AS recent_pain
+                    FROM workout_feedback
+                    WHERE user_id=? AND updated_at >= CURRENT_TIMESTAMP - INTERVAL '28 days'
+                )
+                SELECT (SELECT count(*) FROM recent_workouts) AS completed_workouts,
+                       (SELECT coalesce(sum(target_sets),0) FROM recent_exercises) AS target_sets,
+                       working_sets.*, feedback.*,
+                       (SELECT count(*) FROM personal_record
+                        WHERE user_id=? AND achieved_at >= CURRENT_TIMESTAMP - INTERVAL '28 days') AS personal_records,
+                       NOT EXISTS (
+                           SELECT 1 FROM recent_workouts w
+                           WHERE NOT EXISTS (
+                               SELECT 1 FROM outbox_event e JOIN processed_event p ON p.event_id=e.event_id
+                               WHERE e.aggregate_type='Workout' AND e.event_type='WorkoutCompletedEvent'
+                                 AND e.aggregate_id=w.id::text AND p.consumer=?
+                           )
+                       ) AS pr_projection_complete
+                FROM working_sets CROSS JOIN feedback
+                """, (rs, row) -> new Metrics(rs.getLong("completed_workouts"), rs.getLong("completed_sets"),
+                rs.getLong("target_sets"), rs.getDouble("average_rpe"), rs.getLong("feedback_count"),
+                rs.getDouble("average_fatigue"), rs.getInt("recent_pain"), rs.getDouble("current_volume"),
+                rs.getDouble("previous_volume"), rs.getLong("personal_records"), rs.getBoolean("pr_projection_complete")),
+                userId, userId, userId, WorkoutCompletedEventHandler.PR_CONSUMER);
     }
 
-    public void create(TrainingAdjustmentDtos.AdjustmentProposal proposal, long userId, UUID pendingActionId,
-                       String model, boolean degraded, String promptVersion) {
-        jdbc.update("""
-                UPDATE plan_adjustment a SET status='STALE',decided_at=CURRENT_TIMESTAMP
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND EXISTS (SELECT 1 FROM agent_pending_action p WHERE p.id=a.pending_action_id AND p.expires_at<CURRENT_TIMESTAMP)
-                """, userId, proposal.sourcePlanId());
-        jdbc.update("""
+    public boolean create(TrainingAdjustmentDtos.AdjustmentProposal proposal, long userId, UUID pendingActionId,
+                          String model, boolean degraded, String promptVersion) {
+        return jdbc.update("""
                 INSERT INTO plan_adjustment(id,user_id,source_plan_id,source_plan_version,evidence,reasons,proposal,
                   rule,status,pending_action_id,model,prompt_version,degraded)
                 VALUES (?,?,?,?,?::jsonb,?::jsonb,?::jsonb,?,'AWAITING_CONFIRMATION',?,?,?,?)
+                ON CONFLICT (user_id,source_plan_id) WHERE status='AWAITING_CONFIRMATION' DO NOTHING
                 """, proposal.adjustmentId(), userId, proposal.sourcePlanId(), proposal.sourcePlanVersion(),
                 write(proposal.evidence()), write(proposal.reasons()), write(proposal.plan()), proposal.rule(),
-                pendingActionId, model, promptVersion, degraded);
+                pendingActionId, model, promptVersion, degraded) == 1;
     }
 
     public boolean hasPending(long userId, long sourcePlanId) {
-        jdbc.update("""
-                UPDATE plan_adjustment a SET status='STALE',decided_at=CURRENT_TIMESTAMP
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND EXISTS (SELECT 1 FROM agent_pending_action p WHERE p.id=a.pending_action_id AND p.expires_at<CURRENT_TIMESTAMP)
-                """, userId, sourcePlanId);
-        Long value = jdbc.queryForObject("""
-                SELECT count(*) FROM plan_adjustment a JOIN agent_pending_action p ON p.id=a.pending_action_id
-                WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
-                  AND p.status='AWAITING_CONFIRMATION' AND p.expires_at>=CURRENT_TIMESTAMP
-                """,
-                Long.class, userId, sourcePlanId);
-        return value != null && value > 0;
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS (
+                    SELECT 1 FROM plan_adjustment a JOIN agent_pending_action p
+                      ON p.id=a.pending_action_id AND p.user_id=a.user_id
+                    WHERE a.user_id=? AND a.source_plan_id=? AND a.status='AWAITING_CONFIRMATION'
+                      AND p.tool_name='adjust_training_plan' AND p.status='AWAITING_CONFIRMATION'
+                      AND p.expires_at>=CURRENT_TIMESTAMP
+                )
+                """, Boolean.class, userId, sourcePlanId));
+    }
+
+    public PendingProposal findPendingForSource(long userId, long sourcePlanId) {
+        return jdbc.query("""
+                SELECT id,pending_action_id FROM plan_adjustment
+                WHERE user_id=? AND source_plan_id=? AND status='AWAITING_CONFIRMATION'
+                """, rs -> rs.next() ? new PendingProposal(rs.getObject(1, UUID.class),
+                rs.getObject(2, UUID.class)) : null, userId, sourcePlanId);
+    }
+
+    public UUID findPendingAction(long userId, UUID adjustmentId) {
+        return jdbc.query("""
+                SELECT pending_action_id FROM plan_adjustment
+                WHERE user_id=? AND id=? AND status='AWAITING_CONFIRMATION'
+                """, rs -> rs.next() ? rs.getObject(1, UUID.class) : null, userId, adjustmentId);
     }
 
     public void createDecision(UUID id, long userId, long sourcePlanId, int sourceVersion, String rule,
@@ -105,21 +129,11 @@ public class TrainingAdjustmentRepository {
                 """, rs -> rs.next() ? view(rs) : null, id, userId);
     }
 
-    public boolean reject(UUID id, long userId) {
-        int changed = jdbc.update("UPDATE plan_adjustment SET status='REJECTED',decided_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'", id, userId);
-        if (changed == 1) jdbc.update("""
-                UPDATE agent_pending_action SET status='REJECTED',executed_at=CURRENT_TIMESTAMP
-                WHERE id=(SELECT pending_action_id FROM plan_adjustment WHERE id=?) AND user_id=?
-                """, id, userId);
-        return changed == 1;
-    }
-
-    public void accept(UUID adjustmentId, long draftPlanId) {
-        jdbc.update("UPDATE plan_adjustment SET status='ACCEPTED',draft_plan_id=?,decided_at=CURRENT_TIMESTAMP WHERE id=?", draftPlanId, adjustmentId);
-    }
-
-    public void stale(UUID adjustmentId) {
-        jdbc.update("UPDATE plan_adjustment SET status='STALE',decided_at=CURRENT_TIMESTAMP WHERE id=?", adjustmentId);
+    public boolean decide(long userId, UUID adjustmentId, Decision decision, Long draftPlanId) {
+        return jdbc.update("""
+                UPDATE plan_adjustment SET status=?,draft_plan_id=?,decided_at=CURRENT_TIMESTAMP
+                WHERE id=? AND user_id=? AND status='AWAITING_CONFIRMATION'
+                """, decision.name(), draftPlanId, adjustmentId, userId) == 1;
     }
 
     private TrainingAdjustmentDtos.AdjustmentView view(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -139,11 +153,6 @@ public class TrainingAdjustmentRepository {
         return value == null ? 0 : value.longValue();
     }
 
-    private double decimal(String sql, long userId) {
-        BigDecimal value = jdbc.queryForObject(sql, BigDecimal.class, userId);
-        return value == null ? 0 : value.doubleValue();
-    }
-
     private String write(Object value) {
         try { return json.writeValueAsString(value); } catch (Exception e) { throw new IllegalArgumentException(e); }
     }
@@ -154,7 +163,11 @@ public class TrainingAdjustmentRepository {
         try { return json.readValue(value, type); } catch (Exception e) { throw new IllegalStateException(e); }
     }
 
+    public enum Decision { ACCEPTED, REJECTED, STALE }
+
+    public record PendingProposal(UUID id, UUID actionId) {}
+
     public record Metrics(long completedWorkouts, long completedSets, long targetSets, double averageRpe,
                           long feedbackCount, double averageFatigue, int latestPain, double currentVolume,
-                          double previousVolume, long personalRecords) {}
+                          double previousVolume, long personalRecords, boolean prProjectionComplete) {}
 }

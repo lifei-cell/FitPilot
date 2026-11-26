@@ -29,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/** Not named *Test/*IT: run explicitly with scripts/run-architecture-comparison.ps1. */
+/** Not named *Test/*IT: run explicitly with scripts/performance/run-architecture-comparison.ps1. */
 @SpringBootTest
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

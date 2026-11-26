@@ -1,0 +1,154 @@
+{
+  "version": "database-evidence/v1",
+  "object_ref": "database://fitpilot/public/rag_deletion_task",
+  "engine": "postgresql",
+  "source_id": "fitpilot",
+  "database": "fitpilot",
+  "namespace": "public",
+  "name": "rag_deletion_task",
+  "kind": "base_table",
+  "columns": [
+    {
+      "ordinal": 1,
+      "name": "id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 2,
+      "name": "document_id",
+      "native_type": "uuid",
+      "canonical_type": "uuid",
+      "nullable": false
+    },
+    {
+      "ordinal": 3,
+      "name": "status",
+      "native_type": "character varying(20)",
+      "canonical_type": "character varying",
+      "nullable": false,
+      "default_expression": "'PENDING'::character varying"
+    },
+    {
+      "ordinal": 4,
+      "name": "attempt_count",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false,
+      "default_expression": "0"
+    },
+    {
+      "ordinal": 5,
+      "name": "last_error",
+      "native_type": "character varying(1000)",
+      "canonical_type": "character varying",
+      "nullable": true
+    },
+    {
+      "ordinal": 6,
+      "name": "next_attempt_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 7,
+      "name": "created_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 8,
+      "name": "updated_at",
+      "native_type": "timestamp without time zone",
+      "canonical_type": "timestamp without time zone",
+      "nullable": false,
+      "default_expression": "CURRENT_TIMESTAMP"
+    },
+    {
+      "ordinal": 9,
+      "name": "document_version",
+      "native_type": "integer",
+      "canonical_type": "integer",
+      "nullable": false
+    }
+  ],
+  "primary_key": {
+    "name": "rag_deletion_task_pkey",
+    "columns": [
+      "id"
+    ]
+  },
+  "unique_constraints": [
+    {
+      "name": "rag_deletion_task_document_id_key",
+      "columns": [
+        "document_id"
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "name": "rag_deletion_task_document_id_fkey",
+      "columns": [
+        "document_id"
+      ],
+      "referenced_object": "database://fitpilot/public/knowledge_document",
+      "referenced_columns": [
+        "id"
+      ],
+      "update_action": "no action",
+      "delete_action": "cascade"
+    }
+  ],
+  "checks": [
+    {
+      "name": "rag_deletion_task_status_check",
+      "expression": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'RUNNING'::character varying, 'SUCCEEDED'::character varying, 'FAILED'::character varying]::text[]))"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "idx_rag_deletion_retry",
+      "unique": false,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "status"
+        },
+        {
+          "position": 2,
+          "column": "next_attempt_at"
+        }
+      ]
+    },
+    {
+      "name": "rag_deletion_task_document_id_key",
+      "unique": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "document_id"
+        }
+      ]
+    },
+    {
+      "name": "rag_deletion_task_pkey",
+      "unique": true,
+      "primary": true,
+      "method": "btree",
+      "elements": [
+        {
+          "position": 1,
+          "column": "id"
+        }
+      ]
+    }
+  ]
+}

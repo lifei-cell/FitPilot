@@ -2,13 +2,14 @@ import { devices, expect, test } from "@playwright/test";
 
 const mobile = { ...devices["Pixel 5"], viewport: { width: 393, height: 851 } };
 
-function workout(state: { closed: boolean; sets: Record<string, unknown>[] }) {
+function workout(state: { closed: boolean; sets: Record<string, unknown>[]; restSeconds?: number; targetSets?: number }) {
   return {
     id: 7,
     name: "移动端冲突训练",
     status: state.closed ? "COMPLETED" : "IN_PROGRESS",
     startedAt: "2026-09-12T08:00:00Z",
-    exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1, sets: state.sets }],
+    exercises: [{ id: 71, exerciseId: 1, exerciseName: "卧推", sequence: 1,
+      restSeconds: state.restSeconds, targetSets: state.targetSets, sets: state.sets }],
   };
 }
 
@@ -25,7 +26,9 @@ test.describe("移动端弱网与跨设备恢复", () => {
   test("弱网延迟和响应丢失后保持本机队列并用原操作号重试", async ({ context, page }) => {
     test.setTimeout(60_000);
     await installToken(context);
-    const state = { closed: false, sets: [] as Record<string, unknown>[] };
+    const start = new Date("2026-09-12T08:00:00Z");
+    await page.clock.setFixedTime(start);
+    const state = { closed: false, sets: [] as Record<string, unknown>[], restSeconds: 90, targetSets: 2 };
     const receipts = new Map<string, Record<string, unknown>>();
     let loseNextAcknowledgement = true;
     const delay = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -44,7 +47,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
         const id = request.headers()["client-operation-id"];
         if (!receipts.has(id)) {
           const set = { ...request.postDataJSON(), id: 701 + state.sets.length,
-            setNumber: state.sets.length + 1, clientOperationId: id };
+            setNumber: state.sets.length + 1, completedAt: start.toISOString(), clientOperationId: id };
           receipts.set(id, set);
           state.sets.push(set);
         }
@@ -61,17 +64,27 @@ test.describe("移动端弱网与跨设备恢复", () => {
 
     await page.goto("/workouts");
     await expect(page.getByRole("heading", { name: "移动端冲突训练" })).toBeVisible();
+    const bar = page.getByRole("progressbar", { name: "计划组数进度" });
+    await expect(bar).toHaveAttribute("value", "0");
     await page.getByLabel("重量 kg", { exact: true }).fill("62.5");
     await page.getByLabel("次数", { exact: true }).fill("8");
     await page.getByRole("button", { name: "记录一组", exact: true }).click();
-    await expect(page.getByRole("status")).toContainText("1 组待同步");
+    await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
+    await expect(bar).toHaveAttribute("value", "1");
+    const timer = page.getByRole("timer", { name: "组间休息剩余时间" });
+    await expect(timer).toHaveText("01:30");
     await expect(page.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "重试同步" })).toBeEnabled();
 
+    await page.clock.setFixedTime(new Date(start.getTime() + 40_000));
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(timer).toHaveText("00:50");
     await page.getByRole("button", { name: "重试同步" }).click();
     await expect.poll(() => state.sets.length, { timeout: 20_000 }).toBe(1);
-    await expect(page.getByRole("status")).toContainText("训练记录已同步");
+    await expect(page.getByRole("status", { name: "训练同步状态" })).toContainText("训练记录已同步");
     expect([...receipts.keys()]).toHaveLength(1);
+    await expect(bar).toHaveAttribute("value", "1");
+    await expect(timer).toHaveText("00:50");
     await page.close();
   });
 
@@ -129,7 +142,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
       await pageA.getByLabel("重量 kg", { exact: true }).fill("62.5");
       await pageA.getByLabel("次数", { exact: true }).fill("8");
       await pageA.getByRole("button", { name: /^(记录一组|完成一组)$/ }).click();
-      await expect(pageA.getByRole("status")).toContainText("1 组待同步");
+      await expect(pageA.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
       await expect(pageA.getByRole("alert")).toContainText("同步暂停");
       await expect(pageA.getByRole("button", { name: "完成训练", exact: true })).toBeDisabled();
 
@@ -137,7 +150,7 @@ test.describe("移动端弱网与跨设备恢复", () => {
       await pageA.reload();
       await expect(pageA.getByText("这次训练已在服务器结束，本机待同步记录仍保留，请核对。"))
         .toBeVisible();
-      await expect(pageA.getByRole("status")).toContainText("1 组待同步");
+      await expect(pageA.getByRole("status", { name: "训练同步状态" })).toContainText("1 组待同步");
     } finally {
       await contextA.close();
       await contextB.close();

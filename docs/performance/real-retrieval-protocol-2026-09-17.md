@@ -18,4 +18,4 @@
 
 准备 Python 3、`numpy==2.4.3`、`onnxruntime==1.24.4`、`tokenizers==0.22.2`、`huggingface-hub==1.7.2`，运行 `python scripts/evaluation/prepare_model.py` 拉取公开模型。网络若使用 SOCKS 代理，需在本机 Python 环境安装 `socksio`。此步骤只下载公开模型，不上传项目语料。模型缓存在被 Git 忽略的 `target/models/`；运行脚本重新核对模型与留出集 SHA。
 
-运行脚本 `scripts/run-real-retrieval.ps1` 生成 `target/real-retrieval/<RunId>/`，保存 manifest、原始逐问结果、模型服务统计、Maven 日志与容器镜像信息。报告引用固定 RunId 与 SHA，失败运行不得混入结果。
+运行脚本 `scripts/evaluation/run-real-retrieval.ps1` 生成 `target/real-retrieval/<RunId>/`，保存 manifest、原始逐问结果、模型服务统计、Maven 日志与容器镜像信息。报告引用固定 RunId 与 SHA，失败运行不得混入结果。

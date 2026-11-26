@@ -1,0 +1,4047 @@
+{
+  "version": 1,
+  "created_at": "2026-11-19T00:38:46Z",
+  "updated_at": "2026-11-25T15:07:29Z",
+  "files": {
+    ".dockerignore": {
+      "role": "index",
+      "sha256": "c475052b7e99fee65c3245eca0c0f7f572d08fe67250ddb4c5bc8040103a3a8a",
+      "size": 255,
+      "normalized_sha256": "c475052b7e99fee65c3245eca0c0f7f572d08fe67250ddb4c5bc8040103a3a8a"
+    },
+    ".env.example": {
+      "role": "index",
+      "sha256": "6935a4d14f6bd8689cfe4ef0495b0dc6570305dabee9d0ade78cd666d639ae04",
+      "size": 1282,
+      "normalized_sha256": "6935a4d14f6bd8689cfe4ef0495b0dc6570305dabee9d0ade78cd666d639ae04"
+    },
+    ".gitattributes": {
+      "role": "index",
+      "sha256": "2da0249c5ff9fac8bf6636f7a450375f1fd3caba36c0011148ec4eae83fdc49e",
+      "size": 396,
+      "normalized_sha256": "2da0249c5ff9fac8bf6636f7a450375f1fd3caba36c0011148ec4eae83fdc49e"
+    },
+    ".github/workflows/ci.yml": {
+      "role": "index",
+      "sha256": "8127b258fd570302c7b9f3c576a2a28f5b4c05d1eb4410e7172b62dee897fe69",
+      "size": 5984,
+      "normalized_sha256": "8127b258fd570302c7b9f3c576a2a28f5b4c05d1eb4410e7172b62dee897fe69"
+    },
+    ".github/workflows/deploy.yml": {
+      "role": "index",
+      "sha256": "46c26f4d791a1665c531e3cce8e4fbc9d5fd71e4c257c33bef8462a8b7b308ad",
+      "size": 5470,
+      "normalized_sha256": "46c26f4d791a1665c531e3cce8e4fbc9d5fd71e4c257c33bef8462a8b7b308ad"
+    },
+    ".github/workflows/model-evaluation.yml": {
+      "role": "index",
+      "sha256": "be6eb3386e303cdadec9e3fb779d7eccf6619328452ae14af169d62fa2c9a651",
+      "size": 2281,
+      "normalized_sha256": "be6eb3386e303cdadec9e3fb779d7eccf6619328452ae14af169d62fa2c9a651"
+    },
+    ".github/workflows/release.yml": {
+      "role": "index",
+      "sha256": "e170ea13b0816d4240b284e2f6b080815f8cff7707c2552cb0c11d3704239b08",
+      "size": 6824,
+      "normalized_sha256": "e170ea13b0816d4240b284e2f6b080815f8cff7707c2552cb0c11d3704239b08"
+    },
+    ".gitignore": {
+      "role": "index",
+      "sha256": "546a2de11cd20802265e28d1607fc1f3ff0150850ce360d9fe5a8d4b2862e8e9",
+      "size": 301,
+      "normalized_sha256": "546a2de11cd20802265e28d1607fc1f3ff0150850ce360d9fe5a8d4b2862e8e9"
+    },
+    ".gitleaks.toml": {
+      "role": "index",
+      "sha256": "41cd118b7c66d8b747561832aaf20d680c91a46aaabac512ae5a5142e91fe531",
+      "size": 510,
+      "normalized_sha256": "41cd118b7c66d8b747561832aaf20d680c91a46aaabac512ae5a5142e91fe531"
+    },
+    ".gitleaksignore": {
+      "role": "index",
+      "sha256": "841f14249c53af5102bd6a2fe665ae5c9586d29b1e4fb5d1ba5cf58040099ef3",
+      "size": 1094,
+      "normalized_sha256": "841f14249c53af5102bd6a2fe665ae5c9586d29b1e4fb5d1ba5cf58040099ef3"
+    },
+    ".mvn/maven.config": {
+      "role": "index",
+      "sha256": "c4433ad1b3d1cc38d775450db4d50072df7f78a3aad0610eff1b758a9b334f51",
+      "size": 64,
+      "normalized_sha256": "c4433ad1b3d1cc38d775450db4d50072df7f78a3aad0610eff1b758a9b334f51"
+    },
+    ".mvn/settings.xml": {
+      "role": "index",
+      "sha256": "98282614c4a29a87abe9dd7c717c67df14b13f3b85de8baec297e23783d53cd8",
+      "size": 543,
+      "normalized_sha256": "98282614c4a29a87abe9dd7c717c67df14b13f3b85de8baec297e23783d53cd8"
+    },
+    "AGENTS.md": {
+      "role": "index",
+      "sha256": "8dfc9de92509cb22289cefa4ad652c5df2d079221b407b6a67572d5ef75007e8",
+      "size": 14078,
+      "normalized_sha256": "8dfc9de92509cb22289cefa4ad652c5df2d079221b407b6a67572d5ef75007e8"
+    },
+    "Dockerfile": {
+      "role": "index",
+      "sha256": "058f375b211bc69d46a0f25073f8566b9e66333b4807ab8b1f2bf42fd5677f09",
+      "size": 1341,
+      "normalized_sha256": "058f375b211bc69d46a0f25073f8566b9e66333b4807ab8b1f2bf42fd5677f09"
+    },
+    "README.md": {
+      "role": "index",
+      "sha256": "a552c8fa08321d82de55894b64beb7aebfd9310b1dd2cf57919c39bb267016ab",
+      "size": 18181,
+      "normalized_sha256": "ef4e6e910ae22968bffc1004a6af8713ebc33dbc086706d45b43068d74866552"
+    },
+    "aoci.code.txt": {
+      "role": "index",
+      "sha256": "b0e45774931f20998991af0c3c9607bc24623fec8d1469205ba56dc6afe6a6a5",
+      "size": 140636,
+      "normalized_sha256": "b0e45774931f20998991af0c3c9607bc24623fec8d1469205ba56dc6afe6a6a5"
+    },
+    "aoci.database.txt": {
+      "role": "index",
+      "sha256": "5209fc5e47c549ede5f6ea0500aa715f6c5b1a5ff956dde50b952dc49d920dab",
+      "size": 13951,
+      "normalized_sha256": "5209fc5e47c549ede5f6ea0500aa715f6c5b1a5ff956dde50b952dc49d920dab"
+    },
+    "aoci.meta.txt": {
+      "role": "index",
+      "sha256": "5ccd06dd2198435423141174e4f3eaed7e7645644070e0b5cc2e20dbc889172a",
+      "size": 2187,
+      "normalized_sha256": "5ccd06dd2198435423141174e4f3eaed7e7645644070e0b5cc2e20dbc889172a"
+    },
+    "aoci.txt": {
+      "role": "index",
+      "sha256": "04b9c5552b7a24a142e9cd1347294f6f85d3861cbc278cc4d5c8307cdb8f6563",
+      "size": 403,
+      "normalized_sha256": "04b9c5552b7a24a142e9cd1347294f6f85d3861cbc278cc4d5c8307cdb8f6563"
+    },
+    "deploy/k8s/base/configmap.yml": {
+      "role": "index",
+      "sha256": "d9d083c006d861f36489551015ab5442550b0467af6a2ef5d660044d27a72be2",
+      "size": 1309,
+      "normalized_sha256": "d9d083c006d861f36489551015ab5442550b0467af6a2ef5d660044d27a72be2"
+    },
+    "deploy/k8s/base/deployment.yml": {
+      "role": "index",
+      "sha256": "3d7c94e9975bbff8d6bf9f4474a5330facab0ef93e2a510496f6ef8ef8309322",
+      "size": 2078,
+      "normalized_sha256": "3d7c94e9975bbff8d6bf9f4474a5330facab0ef93e2a510496f6ef8ef8309322"
+    },
+    "deploy/k8s/base/hpa.yml": {
+      "role": "index",
+      "sha256": "6e2fdcb0aaf19a063f7dc2b4fa85277f47e4e2df3910172a61ac05d552c3a7bc",
+      "size": 390,
+      "normalized_sha256": "6e2fdcb0aaf19a063f7dc2b4fa85277f47e4e2df3910172a61ac05d552c3a7bc"
+    },
+    "deploy/k8s/base/ingress.yml": {
+      "role": "index",
+      "sha256": "7e2d7d86c7131f5f5f833aae7ca10483175ce4cc22d6538c8d7c47e720fd9cbb",
+      "size": 514,
+      "normalized_sha256": "7e2d7d86c7131f5f5f833aae7ca10483175ce4cc22d6538c8d7c47e720fd9cbb"
+    },
+    "deploy/k8s/base/kustomization.yml": {
+      "role": "index",
+      "sha256": "46f21f43d2591799c6a5cb4a3c376e73a929a208c8d986cc48945b8e8591383a",
+      "size": 371,
+      "normalized_sha256": "46f21f43d2591799c6a5cb4a3c376e73a929a208c8d986cc48945b8e8591383a"
+    },
+    "deploy/k8s/base/migration-job.yml": {
+      "role": "index",
+      "sha256": "a9acfa5ec92571b87c5620d9713996b70fd71827e9df565eec956a01e60f80a9",
+      "size": 1318,
+      "normalized_sha256": "a9acfa5ec92571b87c5620d9713996b70fd71827e9df565eec956a01e60f80a9"
+    },
+    "deploy/k8s/base/namespace.yml": {
+      "role": "index",
+      "sha256": "db8370beaa05f6c1fd667eef8b23abf3543ce0084e1224bca5bce931b86960a8",
+      "size": 59,
+      "normalized_sha256": "db8370beaa05f6c1fd667eef8b23abf3543ce0084e1224bca5bce931b86960a8"
+    },
+    "deploy/k8s/base/network-policy.yml": {
+      "role": "index",
+      "sha256": "b032dbc7d5cc883c843add0fd62a344b60dee627cd987c2ccde6c61bcc745fa6",
+      "size": 1259,
+      "normalized_sha256": "b032dbc7d5cc883c843add0fd62a344b60dee627cd987c2ccde6c61bcc745fa6"
+    },
+    "deploy/k8s/base/pdb.yml": {
+      "role": "index",
+      "sha256": "a78eee0c9962603f84f9f44fb000e15450acec8d3579a08752e99a221ff64a43",
+      "size": 164,
+      "normalized_sha256": "a78eee0c9962603f84f9f44fb000e15450acec8d3579a08752e99a221ff64a43"
+    },
+    "deploy/k8s/base/service-account.yml": {
+      "role": "index",
+      "sha256": "1e29436d9016c887dd81e97bd0efde96902e7a2c28f2127bcd203e1f0e5f7842",
+      "size": 100,
+      "normalized_sha256": "1e29436d9016c887dd81e97bd0efde96902e7a2c28f2127bcd203e1f0e5f7842"
+    },
+    "deploy/k8s/base/service.yml": {
+      "role": "index",
+      "sha256": "daf9d382e4c13b8d88dac57d64189eaee53284a3a10dcaa70e0c33fbe848d3b7",
+      "size": 226,
+      "normalized_sha256": "daf9d382e4c13b8d88dac57d64189eaee53284a3a10dcaa70e0c33fbe848d3b7"
+    },
+    "deploy/k8s/base/web-backend-alias.yml": {
+      "role": "index",
+      "sha256": "10186d84b524690c360f3b1e0e2f8fcff2023e0a895106d7666317c3bb7a4c27",
+      "size": 158,
+      "normalized_sha256": "10186d84b524690c360f3b1e0e2f8fcff2023e0a895106d7666317c3bb7a4c27"
+    },
+    "deploy/k8s/base/web-deployment.yml": {
+      "role": "index",
+      "sha256": "7205c8be53802f81d518ab6abbcfb5133e8da8fd8616b8bdbb342825f2c4ee38",
+      "size": 1385,
+      "normalized_sha256": "7205c8be53802f81d518ab6abbcfb5133e8da8fd8616b8bdbb342825f2c4ee38"
+    },
+    "deploy/k8s/base/web-network-policy.yml": {
+      "role": "index",
+      "sha256": "595937b26ef4e55e094be2fe82e7c52989fc4f4af844fe28965cc772eec23e8b",
+      "size": 632,
+      "normalized_sha256": "595937b26ef4e55e094be2fe82e7c52989fc4f4af844fe28965cc772eec23e8b"
+    },
+    "deploy/k8s/base/web-service.yml": {
+      "role": "index",
+      "sha256": "4d3c0c8072e02751c6d8c81a1f602f293ee527c447967568c00722e4f9226106",
+      "size": 169,
+      "normalized_sha256": "4d3c0c8072e02751c6d8c81a1f602f293ee527c447967568c00722e4f9226106"
+    },
+    "deploy/k8s/drills/backup-restore-job.yml": {
+      "role": "index",
+      "sha256": "83f5144298e484d522275cab53aa3c5f769a055cde4a36932e9851abb6f3e24d",
+      "size": 2777,
+      "normalized_sha256": "83f5144298e484d522275cab53aa3c5f769a055cde4a36932e9851abb6f3e24d"
+    },
+    "deploy/k8s/overlays/production-migration/kustomization.yml": {
+      "role": "index",
+      "sha256": "fe8300f83ff195cfc5d8a99aff549718341525114969c45ee821a6551e34deac",
+      "size": 1839,
+      "normalized_sha256": "fe8300f83ff195cfc5d8a99aff549718341525114969c45ee821a6551e34deac"
+    },
+    "deploy/k8s/overlays/production-schema-status/kustomization.yml": {
+      "role": "index",
+      "sha256": "1be959da288d9ba13bf0061a8f7ed1db931e3a02ca0d7feda1b429fa8ef91251",
+      "size": 511,
+      "normalized_sha256": "1be959da288d9ba13bf0061a8f7ed1db931e3a02ca0d7feda1b429fa8ef91251"
+    },
+    "deploy/k8s/overlays/production-v22-migration/kustomization.yml": {
+      "role": "index",
+      "sha256": "dd735606069c09963ee4038a569c33d62a98346b0c81b2ad8a923c4a2184577c",
+      "size": 308,
+      "normalized_sha256": "dd735606069c09963ee4038a569c33d62a98346b0c81b2ad8a923c4a2184577c"
+    },
+    "deploy/k8s/overlays/production/deployment-patch.yml": {
+      "role": "index",
+      "sha256": "468e4b107521c09f6a8ff58ca6dd63284756e75bb6f4578d8b7b63961014bac2",
+      "size": 226,
+      "normalized_sha256": "468e4b107521c09f6a8ff58ca6dd63284756e75bb6f4578d8b7b63961014bac2"
+    },
+    "deploy/k8s/overlays/production/hpa-patch.yml": {
+      "role": "index",
+      "sha256": "aba84d20095eff0532e9335e856eb15b16fa1c20414bb356cef4e8efa5565ac5",
+      "size": 126,
+      "normalized_sha256": "aba84d20095eff0532e9335e856eb15b16fa1c20414bb356cef4e8efa5565ac5"
+    },
+    "deploy/k8s/overlays/production/ingress-patch.yml": {
+      "role": "index",
+      "sha256": "e6fa0316a44d1922f001a0e1598e517e3ac020698851f53a8e487a1850cc00dd",
+      "size": 416,
+      "normalized_sha256": "e6fa0316a44d1922f001a0e1598e517e3ac020698851f53a8e487a1850cc00dd"
+    },
+    "deploy/k8s/overlays/production/kustomization.yml": {
+      "role": "index",
+      "sha256": "0c2c53e9d44eac8f21a9812a9ec4e86b91e9ad8cafcb8743d7e0f7d13d40e0e5",
+      "size": 505,
+      "normalized_sha256": "0c2c53e9d44eac8f21a9812a9ec4e86b91e9ad8cafcb8743d7e0f7d13d40e0e5"
+    },
+    "deploy/kind/PgTools.Dockerfile": {
+      "role": "index",
+      "sha256": "cd51f747f6430b451249575e41033fd828c7bcf9323acaa2b646dc5a74a75a9d",
+      "size": 28,
+      "normalized_sha256": "cd51f747f6430b451249575e41033fd828c7bcf9323acaa2b646dc5a74a75a9d"
+    },
+    "deploy/kind/docker-compose.yml": {
+      "role": "index",
+      "sha256": "0e504efbb6d1a7436ac914c85efa0b53289fd247f48f6bd3067934dbd9800c46",
+      "size": 667,
+      "normalized_sha256": "0e504efbb6d1a7436ac914c85efa0b53289fd247f48f6bd3067934dbd9800c46"
+    },
+    "deploy/kind/init-databases.sql": {
+      "role": "index",
+      "sha256": "e3949af4b5e49c251b8c166aa2332aea205fbf1bd14a3007907ffc5aa97bbd11",
+      "size": 90,
+      "normalized_sha256": "e3949af4b5e49c251b8c166aa2332aea205fbf1bd14a3007907ffc5aa97bbd11"
+    },
+    "deploy/mock-llm/mappings/chat-completions.json": {
+      "role": "index",
+      "sha256": "447de6f018dd6e50ede25082b6d071cc1eba2211f0b6bc5d5ea194c1af99c3c5",
+      "size": 519,
+      "normalized_sha256": "447de6f018dd6e50ede25082b6d071cc1eba2211f0b6bc5d5ea194c1af99c3c5"
+    },
+    "deploy/monitoring/alertmanager/alertmanager.yml": {
+      "role": "index",
+      "sha256": "380f824f9abc7f5efc31e4d95d3cbfd2ea8b18d62c4b25df017e248926aca585",
+      "size": 179,
+      "normalized_sha256": "380f824f9abc7f5efc31e4d95d3cbfd2ea8b18d62c4b25df017e248926aca585"
+    },
+    "deploy/monitoring/grafana/dashboards/agent.json": {
+      "role": "index",
+      "sha256": "049e03ee6cab6da0cf9c668406629dbde0e374a613f919a2d28a85e616bb3a6f",
+      "size": 1129,
+      "normalized_sha256": "049e03ee6cab6da0cf9c668406629dbde0e374a613f919a2d28a85e616bb3a6f"
+    },
+    "deploy/monitoring/grafana/dashboards/ai-product-value.json": {
+      "role": "index",
+      "sha256": "e575fd3f4caa75d127871f675558cc55221a2a54d3a5714600dc44a096ad7ae8",
+      "size": 2706,
+      "normalized_sha256": "e575fd3f4caa75d127871f675558cc55221a2a54d3a5714600dc44a096ad7ae8"
+    },
+    "deploy/monitoring/grafana/dashboards/api.json": {
+      "role": "index",
+      "sha256": "cdf5e9d5cc1522c9ad3861f1f5ff5ea0298c93d6010bebb1a53cef828f3e3e92",
+      "size": 1094,
+      "normalized_sha256": "cdf5e9d5cc1522c9ad3861f1f5ff5ea0298c93d6010bebb1a53cef828f3e3e92"
+    },
+    "deploy/monitoring/grafana/dashboards/kafka.json": {
+      "role": "index",
+      "sha256": "2c0b4e8cd72ee1560dd0d45ef8a41c1b9078b954da655e894a2dd5b4c6647bf3",
+      "size": 824,
+      "normalized_sha256": "2c0b4e8cd72ee1560dd0d45ef8a41c1b9078b954da655e894a2dd5b4c6647bf3"
+    },
+    "deploy/monitoring/grafana/dashboards/llm-cost.json": {
+      "role": "index",
+      "sha256": "2cb8b3a27fc2888d4c4635ec20f869f940e4ee5cf0a8e29f363ab2cf83f8e90b",
+      "size": 1267,
+      "normalized_sha256": "2cb8b3a27fc2888d4c4635ec20f869f940e4ee5cf0a8e29f363ab2cf83f8e90b"
+    },
+    "deploy/monitoring/grafana/dashboards/rag.json": {
+      "role": "index",
+      "sha256": "8b63531ee4f94851251b2de944e83753bf5509efd2f7e381416a2bf2e40dabfd",
+      "size": 700,
+      "normalized_sha256": "8b63531ee4f94851251b2de944e83753bf5509efd2f7e381416a2bf2e40dabfd"
+    },
+    "deploy/monitoring/grafana/dashboards/system.json": {
+      "role": "index",
+      "sha256": "64ddf231438ea07c7a5564a6029051461e5b539bee93f27c37583a707e29ebe0",
+      "size": 858,
+      "normalized_sha256": "64ddf231438ea07c7a5564a6029051461e5b539bee93f27c37583a707e29ebe0"
+    },
+    "deploy/monitoring/grafana/provisioning/dashboards/dashboards.yml": {
+      "role": "index",
+      "sha256": "84fdc218f7726b3414f21571b6818e855540b269448a8a4dcfa8f616147a45a2",
+      "size": 164,
+      "normalized_sha256": "84fdc218f7726b3414f21571b6818e855540b269448a8a4dcfa8f616147a45a2"
+    },
+    "deploy/monitoring/grafana/provisioning/datasources/datasources.yml": {
+      "role": "index",
+      "sha256": "36b74ec5cdfe4d73a66729e17571f8c0d9ba40dced221959d8b98922288ec63a",
+      "size": 571,
+      "normalized_sha256": "36b74ec5cdfe4d73a66729e17571f8c0d9ba40dced221959d8b98922288ec63a"
+    },
+    "deploy/monitoring/loki/loki.yml": {
+      "role": "index",
+      "sha256": "55d1c69b89f30f8b3da4bb795223bab4bc0c956a229dc3ac3edde925f6cb4f4a",
+      "size": 421,
+      "normalized_sha256": "55d1c69b89f30f8b3da4bb795223bab4bc0c956a229dc3ac3edde925f6cb4f4a"
+    },
+    "deploy/monitoring/otel/collector.yml": {
+      "role": "index",
+      "sha256": "d63323448c41c2fdd9229c193d140d3ff4792bf3dfd96898d960537ab716141a",
+      "size": 428,
+      "normalized_sha256": "d63323448c41c2fdd9229c193d140d3ff4792bf3dfd96898d960537ab716141a"
+    },
+    "deploy/monitoring/prometheus/alerts.yml": {
+      "role": "index",
+      "sha256": "4502e023e48b7d869d41bf99a14616fecd81116912cd6b15dd0342e3ad291d54",
+      "size": 3772,
+      "normalized_sha256": "4502e023e48b7d869d41bf99a14616fecd81116912cd6b15dd0342e3ad291d54"
+    },
+    "deploy/monitoring/prometheus/prometheus.yml": {
+      "role": "index",
+      "sha256": "c6781560571c08272a385583b0748a004a6b8a8961b9ae1838ac45e87de2931d",
+      "size": 403,
+      "normalized_sha256": "c6781560571c08272a385583b0748a004a6b8a8961b9ae1838ac45e87de2931d"
+    },
+    "deploy/monitoring/promtail/promtail.yml": {
+      "role": "index",
+      "sha256": "4473bc9c05cc12619c3a81c1f1e467050ea13785556a900b4a2653f070b9d139",
+      "size": 525,
+      "normalized_sha256": "4473bc9c05cc12619c3a81c1f1e467050ea13785556a900b4a2653f070b9d139"
+    },
+    "deploy/monitoring/tempo/tempo.yml": {
+      "role": "index",
+      "sha256": "aef305f5bcc29326d82af751bce8b4c2b381de43fb3511a81a80b411a71b8f85",
+      "size": 345,
+      "normalized_sha256": "aef305f5bcc29326d82af751bce8b4c2b381de43fb3511a81a80b411a71b8f85"
+    },
+    "docker-compose.dual-instance.yml": {
+      "role": "index",
+      "sha256": "4be97412b373dcdac0e66b758d566fbbe947009d44d436d3faae08a83a7bd471",
+      "size": 1516,
+      "normalized_sha256": "4be97412b373dcdac0e66b758d566fbbe947009d44d436d3faae08a83a7bd471"
+    },
+    "docker-compose.pi.yml": {
+      "role": "index",
+      "sha256": "309fd903f524d4e3aee79de84fd93babe415247897326ff0627e48ab03b7fd14",
+      "size": 762,
+      "normalized_sha256": "309fd903f524d4e3aee79de84fd93babe415247897326ff0627e48ab03b7fd14"
+    },
+    "docker-compose.yml": {
+      "role": "index",
+      "sha256": "28361280c23fe143d83eed87e8e10e572a063414b97524123ef4c2d74e7fdc27",
+      "size": 10121,
+      "normalized_sha256": "28361280c23fe143d83eed87e8e10e572a063414b97524123ef4c2d74e7fdc27"
+    },
+    "docs/README.md": {
+      "role": "index",
+      "sha256": "ff1458bdc4310e86f37eacb7e9fbcd28a76577c99924fc2b723b6b5fbf080e3e",
+      "size": 1730,
+      "normalized_sha256": "ff1458bdc4310e86f37eacb7e9fbcd28a76577c99924fc2b723b6b5fbf080e3e"
+    },
+    "docs/architecture/v1-performance.md": {
+      "role": "index",
+      "sha256": "11f78e5c31dcbadb6b1586d2012dc52c4b45e3c830875152e551e9ad1b28bb9f",
+      "size": 3374,
+      "normalized_sha256": "11f78e5c31dcbadb6b1586d2012dc52c4b45e3c830875152e551e9ad1b28bb9f"
+    },
+    "docs/architecture/v2-events.md": {
+      "role": "index",
+      "sha256": "0ce49fd4a7aa81ba77bc6bba2d07b6c2747b926fbcde6a8668f129e2fdbf7de4",
+      "size": 3820,
+      "normalized_sha256": "0ce49fd4a7aa81ba77bc6bba2d07b6c2747b926fbcde6a8668f129e2fdbf7de4"
+    },
+    "docs/architecture/v3-rag.md": {
+      "role": "index",
+      "sha256": "ca18b7565c1af6a1684f596726ee28a445f4951d99c1f324f30b1645eeb532d1",
+      "size": 5432,
+      "normalized_sha256": "ca18b7565c1af6a1684f596726ee28a445f4951d99c1f324f30b1645eeb532d1"
+    },
+    "docs/architecture/v4-agent.md": {
+      "role": "index",
+      "sha256": "7d71b1d5795e684d30150e71a7a47244146b11a4c2e3934eda9c2e14b1b4d837",
+      "size": 3353,
+      "normalized_sha256": "7d71b1d5795e684d30150e71a7a47244146b11a4c2e3934eda9c2e14b1b4d837"
+    },
+    "docs/architecture/v5-production.md": {
+      "role": "index",
+      "sha256": "2eda61a85b08966712ede3b56a49b7c303be1d7cb010437f2bb666ab12d9c39f",
+      "size": 6122,
+      "normalized_sha256": "2eda61a85b08966712ede3b56a49b7c303be1d7cb010437f2bb666ab12d9c39f"
+    },
+    "docs/architecture/v6-ai-product.md": {
+      "role": "index",
+      "sha256": "f526ae54bce4dbc0e9c02974103db83e7b7cb0f905b63f9fe90abe728701077b",
+      "size": 5863,
+      "normalized_sha256": "f526ae54bce4dbc0e9c02974103db83e7b7cb0f905b63f9fe90abe728701077b"
+    },
+    "docs/interview/01-Java-Spring-领域与数据库.md": {
+      "role": "index",
+      "sha256": "32d049e869ff80530d54206c1352053f73b99162db9cd05f670bafa1ed0bcef8",
+      "size": 21215,
+      "normalized_sha256": "32d049e869ff80530d54206c1352053f73b99162db9cd05f670bafa1ed0bcef8"
+    },
+    "docs/interview/02-Redis-Caffeine-性能治理.md": {
+      "role": "index",
+      "sha256": "7955fda7ad3e5153371c8cf8031011a2b4f52830050e8d8e61ef930648f9953b",
+      "size": 9693,
+      "normalized_sha256": "7955fda7ad3e5153371c8cf8031011a2b4f52830050e8d8e61ef930648f9953b"
+    },
+    "docs/interview/03-Kafka-事件一致性.md": {
+      "role": "index",
+      "sha256": "e1ded56101d2c759754ef9ac0c70bde3de7486603271a14458b970f68ad49fb8",
+      "size": 8302,
+      "normalized_sha256": "e1ded56101d2c759754ef9ac0c70bde3de7486603271a14458b970f68ad49fb8"
+    },
+    "docs/interview/04-Elasticsearch-pgvector与RAG.md": {
+      "role": "index",
+      "sha256": "67a02e6c7ccce58358920d7a2695fe99651884e90a109cdffa8eefa60cd2be43",
+      "size": 10375,
+      "normalized_sha256": "67a02e6c7ccce58358920d7a2695fe99651884e90a109cdffa8eefa60cd2be43"
+    },
+    "docs/interview/05-Agent-LLM-MCP与产品指标.md": {
+      "role": "index",
+      "sha256": "71167bc5953735095667a02e3ce12572e131328f5deea3e00d4304ffd67c35aa",
+      "size": 12200,
+      "normalized_sha256": "71167bc5953735095667a02e3ce12572e131328f5deea3e00d4304ffd67c35aa"
+    },
+    "docs/interview/06-可观测测试与交付.md": {
+      "role": "index",
+      "sha256": "c16373e3de0d262c76e576adb7e311b8cb608a0df88137d9b1a8dcb2269b0aac",
+      "size": 13012,
+      "normalized_sha256": "c16373e3de0d262c76e576adb7e311b8cb608a0df88137d9b1a8dcb2269b0aac"
+    },
+    "docs/interview/07-高频追问速查.md": {
+      "role": "index",
+      "sha256": "fc610ca12b588fbd6e3f372f1ea827f06b9622f249f5b30eefd1dd4f1753291d",
+      "size": 13571,
+      "normalized_sha256": "fc610ca12b588fbd6e3f372f1ea827f06b9622f249f5b30eefd1dd4f1753291d"
+    },
+    "docs/interview/08-Java-JVM并发与网络.md": {
+      "role": "index",
+      "sha256": "dc7f7a616839308fa5973c741a3482b697c578309475ee953fd4e1f55c82f9f0",
+      "size": 10412,
+      "normalized_sha256": "dc7f7a616839308fa5973c741a3482b697c578309475ee953fd4e1f55c82f9f0"
+    },
+    "docs/interview/09-项目同质化与设计取舍.md": {
+      "role": "index",
+      "sha256": "f1f3a14b0b9e2bfc52276105512e3be6dc7c8ebe0ad676108d86faf1b7493a95",
+      "size": 7958,
+      "normalized_sha256": "f1f3a14b0b9e2bfc52276105512e3be6dc7c8ebe0ad676108d86faf1b7493a95"
+    },
+    "docs/interview/10-设计取舍验证矩阵.md": {
+      "role": "index",
+      "sha256": "9a152b30397f71385983e258833b7a15644a82b6b5fad76967f0e7d5242cf2de",
+      "size": 7716,
+      "normalized_sha256": "9a152b30397f71385983e258833b7a15644a82b6b5fad76967f0e7d5242cf2de"
+    },
+    "docs/interview/11-项目设计取舍与替代方案.md": {
+      "role": "index",
+      "sha256": "59ab3b32aac347cd76cfed5b04d71212611a82de56e7c7ccd9475bcf76a31d74",
+      "size": 22602,
+      "normalized_sha256": "59ab3b32aac347cd76cfed5b04d71212611a82de56e7c7ccd9475bcf76a31d74"
+    },
+    "docs/interview/12-为什么需要Kafka两级缓存和混合检索.md": {
+      "role": "index",
+      "sha256": "482d001349c4fdd19e1568b5b2b0e1c272329a7a82c199a334f4dfd73d7ed5f5",
+      "size": 7467,
+      "normalized_sha256": "482d001349c4fdd19e1568b5b2b0e1c272329a7a82c199a334f4dfd73d7ed5f5"
+    },
+    "docs/interview/13-中间件选型与设计取舍总结.md": {
+      "role": "index",
+      "sha256": "05f3d172c61284e507a2588a672da0e24edc6d929fb2d37b508c84179fe5aa8f",
+      "size": 18708,
+      "normalized_sha256": "05f3d172c61284e507a2588a672da0e24edc6d929fb2d37b508c84179fe5aa8f"
+    },
+    "docs/interview/14-训练一致性与离线恢复.md": {
+      "role": "index",
+      "sha256": "bdb5d24f567e7f8f0a151e1a3ac2a0fdb8947bb02d1db0b96078638c4859e721",
+      "size": 8878,
+      "normalized_sha256": "bdb5d24f567e7f8f0a151e1a3ac2a0fdb8947bb02d1db0b96078638c4859e721"
+    },
+    "docs/interview/15-可靠事件与缓存取舍.md": {
+      "role": "index",
+      "sha256": "9f973885fc9e54d88c20f150e70c5de5f592ac09d68f7500962f5ad9f567da0d",
+      "size": 9332,
+      "normalized_sha256": "9f973885fc9e54d88c20f150e70c5de5f592ac09d68f7500962f5ad9f567da0d"
+    },
+    "docs/interview/16-RAG与受控Agent.md": {
+      "role": "index",
+      "sha256": "e9f690f656dc8e1d838ba6ce54b2c4e5dbd322eff3d7edfc485dac2fd39fffcf",
+      "size": 10049,
+      "normalized_sha256": "e9f690f656dc8e1d838ba6ce54b2c4e5dbd322eff3d7edfc485dac2fd39fffcf"
+    },
+    "docs/interview/17-质量证据与故障案例.md": {
+      "role": "index",
+      "sha256": "b4db282c31f1ea45a65352c3ab0504d0fde39a177dda77ffc4ea6563c96c565d",
+      "size": 9244,
+      "normalized_sha256": "b4db282c31f1ea45a65352c3ab0504d0fde39a177dda77ffc4ea6563c96c565d"
+    },
+    "docs/interview/FitPilot-中间件与原理面试手册.md": {
+      "role": "index",
+      "sha256": "882c9f257196954f96f239feb15e8a27adf9523264422af4fc8a183de84c1f88",
+      "size": 5055,
+      "normalized_sha256": "882c9f257196954f96f239feb15e8a27adf9523264422af4fc8a183de84c1f88"
+    },
+    "docs/interview/README.md": {
+      "role": "index",
+      "sha256": "ff595346d94766dced350ea3df73aa4310f20960b45b432fd9b83dbc0edb2ff0",
+      "size": 8116,
+      "normalized_sha256": "ff595346d94766dced350ea3df73aa4310f20960b45b432fd9b83dbc0edb2ff0"
+    },
+    "docs/performance/architecture-comparison-2026-09-17.md": {
+      "role": "index",
+      "sha256": "5d6581d33d7bb5c4d233023d8755e86c2d5693d02dd97639be725274f625bede",
+      "size": 9539,
+      "normalized_sha256": "5d6581d33d7bb5c4d233023d8755e86c2d5693d02dd97639be725274f625bede"
+    },
+    "docs/performance/architecture-comparison-protocol.md": {
+      "role": "index",
+      "sha256": "84b4120853b3bbb202f466135595af45d116b086a23b0b466515effa18f35137",
+      "size": 4699,
+      "normalized_sha256": "84b4120853b3bbb202f466135595af45d116b086a23b0b466515effa18f35137"
+    },
+    "docs/performance/evidence/architecture-20260917-final/cache.json": {
+      "role": "index",
+      "sha256": "51b2bd7eb17b10ee1c64ac94dc92ee0ccd8b87a8859366a3ea86e535d5afafa4",
+      "size": 90149,
+      "normalized_sha256": "43c9e803b219ffc984c87a7ca8503ddeb4f429418770374deacb08be6b6d8027"
+    },
+    "docs/performance/evidence/architecture-20260917-final/containers.json": {
+      "role": "index",
+      "sha256": "08307905608af32c6e49911ab6a4ed9baf414975c80a5cdf8cfbe20bc5306264",
+      "size": 1137,
+      "normalized_sha256": "dfe85636be72826cb453aa23e25dda7c428a8ef440f1603703829a01f320361d"
+    },
+    "docs/performance/evidence/architecture-20260917-final/events.json": {
+      "role": "index",
+      "sha256": "61b592f936ea8c6a1de1676f6e7b459b26f6d8acd1ca43e692b1204bce7aad38",
+      "size": 4865,
+      "normalized_sha256": "23fc1d882a8411c7610e6df0fc651821ccf9b5e6d17a6bfcc97220c7d582ff72"
+    },
+    "docs/performance/evidence/architecture-20260917-final/manifest.json": {
+      "role": "index",
+      "sha256": "e2a97c3a0c46f7fc746241978dfb0971cdbab29e987b426d1bf75c6fdcbf7924",
+      "size": 40629,
+      "normalized_sha256": "c3d85928ae354711ee53b2823142457b756dc0270d4873c1217820ad81c051fb"
+    },
+    "docs/performance/evidence/architecture-20260917-final/retrieval.json": {
+      "role": "index",
+      "sha256": "72aa73cbe32f4e314b17763719f4fad50a3dea5c158561bd2f250309da748b4a",
+      "size": 89200,
+      "normalized_sha256": "71c9f421ba05c0b0e581000f3ecdad8672155301f930ae22fc5bf937c606e7d2"
+    },
+    "docs/performance/evidence/architecture-20260917-final/validation.json": {
+      "role": "index",
+      "sha256": "e3ace5adf191d7733b1168ab5dcb96f050df7b7800970033ac41b19863702c2d",
+      "size": 1443,
+      "normalized_sha256": "c6f435780425c1ccb8b387f0bddd5950d0aa641a7c20926ca28c9a99ff657de5"
+    },
+    "docs/performance/evidence/architecture-20260919-followup/cache-summary.json": {
+      "role": "index",
+      "sha256": "4436d35686d2c627bcdfcbdebb955725402710da70783b9d34fd5effd03de17b",
+      "size": 1184,
+      "normalized_sha256": "4436d35686d2c627bcdfcbdebb955725402710da70783b9d34fd5effd03de17b"
+    },
+    "docs/performance/evidence/dual-instance-events-20260919-r3/manifest.json": {
+      "role": "index",
+      "sha256": "c2f139f7e4c0a615542ef2fe3b9abf1c48ac8a75738a08c96584fe83d59730e8",
+      "size": 1192,
+      "normalized_sha256": "c2f139f7e4c0a615542ef2fe3b9abf1c48ac8a75738a08c96584fe83d59730e8"
+    },
+    "docs/performance/evidence/outbox-backlog-20260917/manifest.json": {
+      "role": "index",
+      "sha256": "9af5f6a52cc288fe81c101cc6e79b163cfb96cde8f81f83f958cdd54597fa0fc",
+      "size": 1412,
+      "normalized_sha256": "7c199a34ee57980612b509486cba5614df8b0a929f95e66c1640f964c1326ffd"
+    },
+    "docs/performance/evidence/outbox-backlog-20260917/results.json": {
+      "role": "index",
+      "sha256": "12ef62f8ac8d390b0d3e69ecaa11bac1501f923052ee3bffbb2f45d33ffc3e61",
+      "size": 809,
+      "normalized_sha256": "4a092d0dc78ec9f2e46859130799610f12fc5c2d5a52ada7aeee212e517db224"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-first/manifest.json": {
+      "role": "index",
+      "sha256": "5f33fcd2c9caea3896327021a5c0f9f6488bd6118714cfc061465e73f22feecc",
+      "size": 3827,
+      "normalized_sha256": "7d15bce6992294961a7d244b754e00227f4e47b8570eefdd16e19bf5596b00d2"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-first/model-stats.json": {
+      "role": "index",
+      "sha256": "da885032fc140fb30d6a1722b790569b02a79df12663621b537b09ccd4e305f4",
+      "size": 143,
+      "normalized_sha256": "1d3269d07def86722c7f7df7468d7bbe3f350023c6282321e0093ee0b4af99d0"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-first/raw.json": {
+      "role": "index",
+      "sha256": "089c75553cd1297e8672481e793722551487805b4ff8a096ec0ef79c6639993b",
+      "size": 368420,
+      "normalized_sha256": "1e6016f68587021f284671cf3d11443125700f0976e135dcc3e86c5b6b01bff5"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-first/summary.json": {
+      "role": "index",
+      "sha256": "df133806064878ea22f989631f1eee25d6f0b8e7057d23722fb2ae409398af67",
+      "size": 7437,
+      "normalized_sha256": "08498a06ea4e0cab2513fc420ec3af6ad0f95cb67b9b2b6b3ee228da6b62fd49"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/evidence-model-stats.json": {
+      "role": "index",
+      "sha256": "6faa6332747fbc1261413b68917ffa8ede9695a3fee4ce69ddd26c0a56b59486",
+      "size": 198,
+      "normalized_sha256": "b86f7a09b6a4b4b48db0e4d68f50108916fce5c2da2bb06556ea58c7cfe13971"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/experiment-tracked.patch": {
+      "role": "index",
+      "sha256": "bf6845e76c03320ff97baeefae6fcc2633ef7d96f3c9cfaa33ff7ecc9eb0f6bf",
+      "size": 43144,
+      "normalized_sha256": "1135832ab6bd8a89b07ec37d37b9687f6676fd7d8ad8e61676266c752d5750d9"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/manifest.json": {
+      "role": "index",
+      "sha256": "d4a8932a9641dee3a9a9e4b8a633232be6b3edb7a7e1b9dc2ded8c85691c4221",
+      "size": 5107,
+      "normalized_sha256": "74c12135b93c0ec9aee64687f459b8a89722c084ec0b1621c3a2d090ef670185"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/model-stats.json": {
+      "role": "index",
+      "sha256": "bae96a4d80dd4ad383cc2ce2eae432395d6bffb2cd101805d444d1d6b90aec29",
+      "size": 139,
+      "normalized_sha256": "ac08899049dce2fb34ba6a119cd0f558b256690e082fd99e4ab2d4c04696337d"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/EvidenceVerifier.java": {
+      "role": "index",
+      "sha256": "bc40e6bb6daf6cfe72f5bd28561af36919458c6042e5fcfae260b3ee1282dbf0",
+      "size": 235,
+      "normalized_sha256": "bc40e6bb6daf6cfe72f5bd28561af36919458c6042e5fcfae260b3ee1282dbf0"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/LlmEvidenceVerifier.java": {
+      "role": "index",
+      "sha256": "80aadb3eb371a3f2a6db80a6db3b8b69b7a21e3d4cba2b1b744f06e76795b7aa",
+      "size": 1357,
+      "normalized_sha256": "80aadb3eb371a3f2a6db80a6db3b8b69b7a21e3d4cba2b1b744f06e76795b7aa"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/local_evidence_server.py": {
+      "role": "index",
+      "sha256": "7992361177cc60e2058974acc37d8a16bef5a808a4f9039f8374d8d9c726bec5",
+      "size": 4436,
+      "normalized_sha256": "7992361177cc60e2058974acc37d8a16bef5a808a4f9039f8374d8d9c726bec5"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/prototype/prepare_evidence_model.py": {
+      "role": "index",
+      "sha256": "1fb45a3375a8a349b35a0c0ce6ef1eea04aadda30d1c744424e0590d93d02b57",
+      "size": 946,
+      "normalized_sha256": "1fb45a3375a8a349b35a0c0ce6ef1eea04aadda30d1c744424e0590d93d02b57"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/quality-gate.txt": {
+      "role": "index",
+      "sha256": "028fdf1be93d287bab945c4c139109d3ac23893033bbe0bd9afb72919cbbc46a",
+      "size": 282653,
+      "normalized_sha256": "b33ad46c116fa4439ec6a6b87e404792cb764437c8ca122458fdf8a8d8b8fe2d"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/raw.json": {
+      "role": "index",
+      "sha256": "f322b3c7bf9545ce0fd9715cc769f0fa673aad0447649ef52031d04861759c1d",
+      "size": 80032,
+      "normalized_sha256": "ccd2016b40e3ce3dfc7e0393b4d2bf034e221de7ee3c45cdf7e26c3385bfa9d7"
+    },
+    "docs/performance/evidence/rag-abstention-20260918-model-v2/summary.json": {
+      "role": "index",
+      "sha256": "bee0d3c66b0c94f2c86af38407ea117f02d73542fecfb8b7dc0011508d24fa27",
+      "size": 8024,
+      "normalized_sha256": "73bf9b11a25dcd8bc057d03a258e5c83d3d61cf343b84197f25e194cdffba97b"
+    },
+    "docs/performance/evidence/real-model-preflight-20260919/manifest.json": {
+      "role": "index",
+      "sha256": "26a1c0222af8e11506d27879dec9ec0790b0f81e4741591fcab8ce9264047cee",
+      "size": 578,
+      "normalized_sha256": "26a1c0222af8e11506d27879dec9ec0790b0f81e4741591fcab8ce9264047cee"
+    },
+    "docs/performance/evidence/real-retrieval-20260917-final/manifest.json": {
+      "role": "index",
+      "sha256": "7bc99e93450db9de989897165f1d91f5ea5824d3d96b46ad4368c55d06ae6c90",
+      "size": 2584,
+      "normalized_sha256": "3eff0ade5a413d068ebb036a0ce50576a72bdc82651417b67f1991659316facd"
+    },
+    "docs/performance/evidence/real-retrieval-20260917-final/model-stats.json": {
+      "role": "index",
+      "sha256": "edd639c3b317c39d8b194409cad8d3d4fd72739c5326123d04e1079a6a25be22",
+      "size": 142,
+      "normalized_sha256": "26f0e62cda97a15e39a4ba78ef01e6b63099d4eaa26c89e7cc492fcb6774140a"
+    },
+    "docs/performance/evidence/real-retrieval-20260917-final/quality-gate.txt": {
+      "role": "index",
+      "sha256": "ed5c00f17b13aa266eb1710df96cf207d0f82e566b57039cd3a007c99e08f68b",
+      "size": 1013,
+      "normalized_sha256": "c52d78cdd5039d4409407636e592d49cf9a36ee037e76a32048425991716dc73"
+    },
+    "docs/performance/evidence/real-retrieval-20260917-final/raw.json": {
+      "role": "index",
+      "sha256": "b97fa2d31e36b0894bc390068544a73f0ed178a7e75c16da5e24149621998dc9",
+      "size": 238568,
+      "normalized_sha256": "cc7ba9be74e6aba3ba8424d0d4c3384cc8100921fa5307169012fdacdf280b5f"
+    },
+    "docs/performance/evidence/real-retrieval-20260917-final/summary.json": {
+      "role": "index",
+      "sha256": "01e3bbc3a237b66c4f742182d7510a292453dbf402f394a05f7a781247fb9530",
+      "size": 6325,
+      "normalized_sha256": "dc6fd0534006cac5c42aa6d71a983b736e1f4c327eccd55d37e90a6e22a2dc04"
+    },
+    "docs/performance/evidence/v1-hot-read-20260828/v1-100-qps.json": {
+      "role": "index",
+      "sha256": "d2e0554283595243a08bd94fd889212fec9fc45740f3fabd9d7397b47c9a2549",
+      "size": 4266,
+      "normalized_sha256": "d2e0554283595243a08bd94fd889212fec9fc45740f3fabd9d7397b47c9a2549"
+    },
+    "docs/performance/evidence/v1-hot-read-20260828/v1-1000-qps.json": {
+      "role": "index",
+      "sha256": "a1288ee720b4ed47acd235647e506821a1ad23b0d9534fe25ec645960037c140",
+      "size": 4273,
+      "normalized_sha256": "a1288ee720b4ed47acd235647e506821a1ad23b0d9534fe25ec645960037c140"
+    },
+    "docs/performance/evidence/v1-hot-read-20260828/v1-500-qps.json": {
+      "role": "index",
+      "sha256": "51f8f23c38d6f28ef7d23b6342088f05d895d3262d81e7c1f5d6bce24935cab8",
+      "size": 4152,
+      "normalized_sha256": "51f8f23c38d6f28ef7d23b6342088f05d895d3262d81e7c1f5d6bce24935cab8"
+    },
+    "docs/performance/evidence/workout-write-load-20260917/baseline/manifest.json": {
+      "role": "index",
+      "sha256": "4d438d092a2c40b0a43ba02d92b39e13ea86483702151511bff590f07e45d45b",
+      "size": 40813,
+      "normalized_sha256": "f1db440ba0bd6945208210af2dafc050d947c2578c34c39f781a6addbbf5073b"
+    },
+    "docs/performance/evidence/workout-write-load-20260917/baseline/results.json": {
+      "role": "index",
+      "sha256": "c6e55fef3d548ff4a93a45b8f83665f1ef933abc45cf5601b49c491fa835e044",
+      "size": 2213,
+      "normalized_sha256": "a088570ddf975f247726c14acb56305f3cb764020758252003da2c22ed1000bf"
+    },
+    "docs/performance/evidence/workout-write-load-20260917/optimized/manifest.json": {
+      "role": "index",
+      "sha256": "41df7e4bb792066fa4f9908a153afcff8c2bdc3b05a6c47f62f07c3e0ecc4b08",
+      "size": 41060,
+      "normalized_sha256": "7e20f0d2698a896436de742c6611e4ca41ac347912b044b7e311b89bea4974f1"
+    },
+    "docs/performance/evidence/workout-write-load-20260917/optimized/results.json": {
+      "role": "index",
+      "sha256": "37c79f80bca97ca822fb0ad160b65bda7f158263777dc0306370f7b9e0f9e167",
+      "size": 2209,
+      "normalized_sha256": "e9e8e36bc7cb2576f084253a5f881bce3beaf5d5b1d929c9a8d55251307e25a3"
+    },
+    "docs/performance/outbox-backlog-recovery-2026-09-17.md": {
+      "role": "index",
+      "sha256": "6b1c52c7b9139dfa53f9f9df3fe564f4e24f2c12385cd4011179beae91d2dce7",
+      "size": 4804,
+      "normalized_sha256": "6b1c52c7b9139dfa53f9f9df3fe564f4e24f2c12385cd4011179beae91d2dce7"
+    },
+    "docs/performance/rag-abstention-2026-09-18.md": {
+      "role": "index",
+      "sha256": "45c4364b77cf8d7ca8a75b8ba6cd40536f06e9fdc2d9ecdda0a7464eabae0905",
+      "size": 4580,
+      "normalized_sha256": "45c4364b77cf8d7ca8a75b8ba6cd40536f06e9fdc2d9ecdda0a7464eabae0905"
+    },
+    "docs/performance/rag-abstention-2026-09-19.md": {
+      "role": "index",
+      "sha256": "59a8cd45ad9af4034e4f238b4ef72007f38e643556e605dcb66d385e8603642a",
+      "size": 3980,
+      "normalized_sha256": "59a8cd45ad9af4034e4f238b4ef72007f38e643556e605dcb66d385e8603642a"
+    },
+    "docs/performance/rag-abstention-protocol-2026-09-18.md": {
+      "role": "index",
+      "sha256": "3a21d71edfcc4407d1752fb319d6dabeb4f093bdd3a9effb540dc3ad81c0d832",
+      "size": 3010,
+      "normalized_sha256": "3a21d71edfcc4407d1752fb319d6dabeb4f093bdd3a9effb540dc3ad81c0d832"
+    },
+    "docs/performance/real-embedding-retrieval-2026-09-17.md": {
+      "role": "index",
+      "sha256": "2c40aeef4bf7c57c191807f9d215c479fc7a24736a0efeaaffad871cf0342622",
+      "size": 5648,
+      "normalized_sha256": "2c40aeef4bf7c57c191807f9d215c479fc7a24736a0efeaaffad871cf0342622"
+    },
+    "docs/performance/real-model-event-cache-validation-2026-09-19.md": {
+      "role": "index",
+      "sha256": "e7422bcfbcb2d5602aaf748094bed4115e46ef08cc1bd91e80d586576bfd7a0c",
+      "size": 4432,
+      "normalized_sha256": "e7422bcfbcb2d5602aaf748094bed4115e46ef08cc1bd91e80d586576bfd7a0c"
+    },
+    "docs/performance/real-retrieval-protocol-2026-09-17.md": {
+      "role": "index",
+      "sha256": "a46fae750a8634d1fa4670cf5c42283b956bb395dd8aee4c867e8d50218cba5c",
+      "size": 3190,
+      "normalized_sha256": "a46fae750a8634d1fa4670cf5c42283b956bb395dd8aee4c867e8d50218cba5c"
+    },
+    "docs/performance/v1-benchmark.md": {
+      "role": "index",
+      "sha256": "7f5505e61f93eae49eb49a667f74e94e20f2a73f939e7bc06a78f7c6aa8757a2",
+      "size": 1589,
+      "normalized_sha256": "7f5505e61f93eae49eb49a667f74e94e20f2a73f939e7bc06a78f7c6aa8757a2"
+    },
+    "docs/performance/v5-production-validation.md": {
+      "role": "index",
+      "sha256": "fe4cd4fc143628e69af8a9ec2e134a4cbc4e51b06ec169b22aaa07bd72aa1331",
+      "size": 1815,
+      "normalized_sha256": "fe4cd4fc143628e69af8a9ec2e134a4cbc4e51b06ec169b22aaa07bd72aa1331"
+    },
+    "docs/performance/workout-write-load-2026-09-17.md": {
+      "role": "index",
+      "sha256": "a8bf3dba8dba34ebe2fa12a147e679f4ee90afe151eaac219449308ec67132b2",
+      "size": 4568,
+      "normalized_sha256": "a8bf3dba8dba34ebe2fa12a147e679f4ee90afe151eaac219449308ec67132b2"
+    },
+    "docs/project-structure.md": {
+      "role": "index",
+      "sha256": "1df44aa2d50b96e9670bd50db57fba9910d9a7d405ae8ac6a7783b2438120bf8",
+      "size": 5512,
+      "normalized_sha256": "1df44aa2d50b96e9670bd50db57fba9910d9a7d405ae8ac6a7783b2438120bf8"
+    },
+    "docs/release/ai-product-value-metrics-validation.md": {
+      "role": "index",
+      "sha256": "6feb6cf08e970730e76ec850417aa127f084b6e142e13135f9e465d177f2ec76",
+      "size": 2078,
+      "normalized_sha256": "6feb6cf08e970730e76ec850417aa127f084b6e142e13135f9e465d177f2ec76"
+    },
+    "docs/release/closeout-2026-11-18.md": {
+      "role": "index",
+      "sha256": "611c8b8121d61dc834fdb99f18190546501f63556128c45f4b146c5b0c07e7ac",
+      "size": 3125,
+      "normalized_sha256": "611c8b8121d61dc834fdb99f18190546501f63556128c45f4b146c5b0c07e7ac"
+    },
+    "docs/release/outbox-claim-ownership.md": {
+      "role": "index",
+      "sha256": "1cb1c805ef5773c918a2285c9865ba15ababfef327c4fb6ed377a693efd1675b",
+      "size": 4659,
+      "normalized_sha256": "1cb1c805ef5773c918a2285c9865ba15ababfef327c4fb6ed377a693efd1675b"
+    },
+    "docs/release/p0-production-validation.md": {
+      "role": "index",
+      "sha256": "29cc4fd66e6b4169fb6ac42e3a6e87417f03ea657b85aa0e971cb105cffb410f",
+      "size": 2923,
+      "normalized_sha256": "eae8c75e666d7b256428aec625d2bfd036dcffd07f9d2cb5bd339d50d862cef5"
+    },
+    "docs/release/p1-ai-product-validation.md": {
+      "role": "index",
+      "sha256": "01a15d0a1b1cd77a5c6a2f9630de51a51314ce0a342a614174fbd4730d59145b",
+      "size": 2789,
+      "normalized_sha256": "01a15d0a1b1cd77a5c6a2f9630de51a51314ce0a342a614174fbd4730d59145b"
+    },
+    "docs/release/p1-delivery-validation.md": {
+      "role": "index",
+      "sha256": "bdd3af69005ef0463172b1c65d23bac5502a32c37c768258760b033e34c3d1a8",
+      "size": 7787,
+      "normalized_sha256": "bdd3af69005ef0463172b1c65d23bac5502a32c37c768258760b033e34c3d1a8"
+    },
+    "docs/release/quick-set-recording.md": {
+      "role": "index",
+      "sha256": "118fba97956d2d29ae256fe9d64267f5a21ff57de3d0f440ad60c6c94ae36b3b",
+      "size": 3050,
+      "normalized_sha256": "6504f1646fc718d84b948a5282aec3ec6ba2ef92aa5020ce93666c90c7524f2e"
+    },
+    "docs/release/short-ttl-cache-consistency.md": {
+      "role": "index",
+      "sha256": "6005896d1dd6405ebfe4ae02f93784d9640b432817c15a05c9cd2f1ea4c42610",
+      "size": 3566,
+      "normalized_sha256": "6005896d1dd6405ebfe4ae02f93784d9640b432817c15a05c9cd2f1ea4c42610"
+    },
+    "docs/release/v17-functional-validation.md": {
+      "role": "index",
+      "sha256": "5a5d4579c678e5eeac6415c31d7944baa4b3ac8ed5f72ddaeb70ea0b58fcebbd",
+      "size": 3597,
+      "normalized_sha256": "5a5d4579c678e5eeac6415c31d7944baa4b3ac8ed5f72ddaeb70ea0b58fcebbd"
+    },
+    "docs/release/v18-functional-validation.md": {
+      "role": "index",
+      "sha256": "925449b5614d6f52bd7686af03572b0fd7ab2d1edc8ce63869e38de5c2510790",
+      "size": 3394,
+      "normalized_sha256": "925449b5614d6f52bd7686af03572b0fd7ab2d1edc8ce63869e38de5c2510790"
+    },
+    "docs/release/v20-functional-validation.md": {
+      "role": "index",
+      "sha256": "3e852bb66120f9a79edbb168e9a4515c7a854d148dd1b782de1f4ef8243e8a72",
+      "size": 4481,
+      "normalized_sha256": "3e852bb66120f9a79edbb168e9a4515c7a854d148dd1b782de1f4ef8243e8a72"
+    },
+    "docs/release/v5-validation.md": {
+      "role": "index",
+      "sha256": "112c2da1c1cd1803b2bec881cce4bcde014d330c3d961b79cbfc636a121a1a0d",
+      "size": 1373,
+      "normalized_sha256": "112c2da1c1cd1803b2bec881cce4bcde014d330c3d961b79cbfc636a121a1a0d"
+    },
+    "docs/release/workout-auto-recovery.md": {
+      "role": "index",
+      "sha256": "4e5b13d7f43ad5d5fbec052d86df861013c33c973bda701b81710f31ed1ec4d8",
+      "size": 6649,
+      "normalized_sha256": "bba6019e07266e76cb31f1c97f50886421c730371ad008e7fc1c7499ea8312ae"
+    },
+    "docs/release/workout-recovery-device-validation-2026-09-19.md": {
+      "role": "index",
+      "sha256": "f9e1119237d6e9dcbca8aaface995cd239ad6d2b9ab9b1824f8c18d80f36cb2c",
+      "size": 3659,
+      "normalized_sha256": "f9e1119237d6e9dcbca8aaface995cd239ad6d2b9ab9b1824f8c18d80f36cb2c"
+    },
+    "docs/release/workout-write-concurrency.md": {
+      "role": "index",
+      "sha256": "61b9b64915cb80b9dbfb8f03b2601bd93bc606795761ead4d69dc12e8a97659c",
+      "size": 6250,
+      "normalized_sha256": "61b9b64915cb80b9dbfb8f03b2601bd93bc606795761ead4d69dc12e8a97659c"
+    },
+    "docs/resume/FitPilot-互联网大厂-Java后端AI简历.md": {
+      "role": "index",
+      "sha256": "e485ce3af50dd031df29a1f91ea6a00f69907064d94abe6d35b579d5b88473de",
+      "size": 9031,
+      "normalized_sha256": "92fb96c5a165676c44b99c411ad5991d0486aa28a132866524c10d636cfa979a"
+    },
+    "docs/resume/FitPilot-简历亮点与详细阐述.md": {
+      "role": "index",
+      "sha256": "5a4cc48e372a29309b58562fcf23e6e84b43874efe7d8082f9d1d0140503536d",
+      "size": 15142,
+      "normalized_sha256": "5a4cc48e372a29309b58562fcf23e6e84b43874efe7d8082f9d1d0140503536d"
+    },
+    "docs/roadmap/FitPilot-项目亮点与后续开发计划.md": {
+      "role": "index",
+      "sha256": "d2632a53eb90dc3c46d42de81ab99dfd8215d2d9b4ea744f21d65bfafee9913c",
+      "size": 9736,
+      "normalized_sha256": "d2632a53eb90dc3c46d42de81ab99dfd8215d2d9b4ea744f21d65bfafee9913c"
+    },
+    "docs/roadmap/fitpilot-business-first-design-constraints-2026-09-17.md": {
+      "role": "index",
+      "sha256": "61a618ba71ed236a9ef701d060b434c5488381acdb3437622617a9da2f3aa6da",
+      "size": 6543,
+      "normalized_sha256": "61a618ba71ed236a9ef701d060b434c5488381acdb3437622617a9da2f3aa6da"
+    },
+    "docs/roadmap/interview-improvement-review-2026-09-17.md": {
+      "role": "index",
+      "sha256": "cbe1c0593d4f945ff9309f9463e05e1dbea7b14c4ce694938738eb38bed8fbcf",
+      "size": 4786,
+      "normalized_sha256": "cbe1c0593d4f945ff9309f9463e05e1dbea7b14c4ce694938738eb38bed8fbcf"
+    },
+    "docs/roadmap/interview-optimization-2026-09-13.md": {
+      "role": "index",
+      "sha256": "e0c1f5cca5849244a7346e4a0c1536a7722647e83ddae08681ae32a1747c5960",
+      "size": 5277,
+      "normalized_sha256": "e0c1f5cca5849244a7346e4a0c1536a7722647e83ddae08681ae32a1747c5960"
+    },
+    "docs/roadmap/mobile-app-store-launch-2026-09-16.md": {
+      "role": "index",
+      "sha256": "41e9b134bc0328e651a0210dd90134981684e90287a18239c7b20400002255d3",
+      "size": 5533,
+      "normalized_sha256": "41e9b134bc0328e651a0210dd90134981684e90287a18239c7b20400002255d3"
+    },
+    "docs/roadmap/public-service-deployment-2026-09-16.md": {
+      "role": "index",
+      "sha256": "46b3bf7533fcbd6ebf684d0aa8113a45256c1c06338e83c89a62b1eae1aa8653",
+      "size": 6662,
+      "normalized_sha256": "46b3bf7533fcbd6ebf684d0aa8113a45256c1c06338e83c89a62b1eae1aa8653"
+    },
+    "docs/runbooks/backup-restore.md": {
+      "role": "index",
+      "sha256": "542488b5e1c7f6d4f9347c374264d7e85c10184e840fea4ead26a362085c5a02",
+      "size": 2154,
+      "normalized_sha256": "542488b5e1c7f6d4f9347c374264d7e85c10184e840fea4ead26a362085c5a02"
+    },
+    "docs/runbooks/ecs-2g-preflight.md": {
+      "role": "index",
+      "sha256": "7179375bd66e465151c41529474cca3406b8e41f2bb7cf5b70975ce49d0edb90",
+      "size": 3337,
+      "normalized_sha256": "7179375bd66e465151c41529474cca3406b8e41f2bb7cf5b70975ce49d0edb90"
+    },
+    "docs/runbooks/failure-drills.md": {
+      "role": "index",
+      "sha256": "c8f8f13c13f36132182143c6a3c9bc732cb2a3058b80221a38e8e7046e3bb6c8",
+      "size": 1616,
+      "normalized_sha256": "c8f8f13c13f36132182143c6a3c9bc732cb2a3058b80221a38e8e7046e3bb6c8"
+    },
+    "docs/runbooks/first-public-deploy.md": {
+      "role": "index",
+      "sha256": "6bec9910e4c06f0e088e14eda42521bfcb95724067cde519922e408995450fb1",
+      "size": 9040,
+      "normalized_sha256": "6bec9910e4c06f0e088e14eda42521bfcb95724067cde519922e408995450fb1"
+    },
+    "docs/runbooks/kafka-outbox-backlog.md": {
+      "role": "index",
+      "sha256": "2c0eb716e82ba48b222fa915eb4e4ce89eb5b05ef834f463c2d3b26add123a11",
+      "size": 2138,
+      "normalized_sha256": "2c0eb716e82ba48b222fa915eb4e4ce89eb5b05ef834f463c2d3b26add123a11"
+    },
+    "docs/runbooks/llm-circuit-breaker.md": {
+      "role": "index",
+      "sha256": "ae57bd6bcffe99c19c7f02c2feaaec8256207dc81045bc26aaaab3dcf4b294f4",
+      "size": 959,
+      "normalized_sha256": "ae57bd6bcffe99c19c7f02c2feaaec8256207dc81045bc26aaaab3dcf4b294f4"
+    },
+    "docs/runbooks/release-rollback.md": {
+      "role": "index",
+      "sha256": "925cf6c56ab5884403ead0cd243986eab7ac39837efe7bb0d1c27da20329680d",
+      "size": 2402,
+      "normalized_sha256": "925cf6c56ab5884403ead0cd243986eab7ac39837efe7bb0d1c27da20329680d"
+    },
+    "docs/runbooks/secret-rotation.md": {
+      "role": "index",
+      "sha256": "c559cb8c237904c14653a15d121bfa88b939f3228ae057e19aa1b5c2c03a1138",
+      "size": 1345,
+      "normalized_sha256": "c559cb8c237904c14653a15d121bfa88b939f3228ae057e19aa1b5c2c03a1138"
+    },
+    "docs/test-plans/设计取舍验证测试计划-2026-09-17.md": {
+      "role": "index",
+      "sha256": "1ac825fc3e3486329c7e7ccd6a9df0d1181327ef36b5b3a4dcec6eeda8546bab",
+      "size": 16158,
+      "normalized_sha256": "1ac825fc3e3486329c7e7ccd6a9df0d1181327ef36b5b3a4dcec6eeda8546bab"
+    },
+    "integrations/pi-coach/.gitignore": {
+      "role": "index",
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+      "size": 14,
+      "normalized_sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    "integrations/pi-coach/README.md": {
+      "role": "index",
+      "sha256": "e5f8fce60a6a007bcb5a87e9afba9046ffeaf9bfff50cc239fc565077909d502",
+      "size": 2242,
+      "normalized_sha256": "e5f8fce60a6a007bcb5a87e9afba9046ffeaf9bfff50cc239fc565077909d502"
+    },
+    "integrations/pi-coach/package-lock.json": {
+      "role": "observe",
+      "sha256": "66e7242998c3f86168b6d96478cb09d6e0dce551af5b3ffe606c20a393435c33",
+      "size": 45133,
+      "normalized_sha256": "66e7242998c3f86168b6d96478cb09d6e0dce551af5b3ffe606c20a393435c33"
+    },
+    "integrations/pi-coach/package.json": {
+      "role": "index",
+      "sha256": "4d6efd477f3dcb1d44b994dfb4f4ac340552d15387fbfbca7d5610bc83523b97",
+      "size": 439,
+      "normalized_sha256": "4d6efd477f3dcb1d44b994dfb4f4ac340552d15387fbfbca7d5610bc83523b97"
+    },
+    "integrations/pi-coach/src/cli.mjs": {
+      "role": "index",
+      "sha256": "c5be34814406bf6786e3bd67dcc996a9d9d06688c0cb45b978bd1d977b2705b7",
+      "size": 3111,
+      "normalized_sha256": "c5be34814406bf6786e3bd67dcc996a9d9d06688c0cb45b978bd1d977b2705b7"
+    },
+    "integrations/pi-coach/src/credentials.mjs": {
+      "role": "index",
+      "sha256": "cd1bf4c60c9ee7327c1461cc5a416a3adc89312affcec700183dc978b499255d",
+      "size": 2678,
+      "normalized_sha256": "cd1bf4c60c9ee7327c1461cc5a416a3adc89312affcec700183dc978b499255d"
+    },
+    "integrations/pi-coach/src/provider.mjs": {
+      "role": "index",
+      "sha256": "fc36231912b7f3958c67127499dac44ec031ea35ba563f11585c8388c8e48e07",
+      "size": 3819,
+      "normalized_sha256": "fc36231912b7f3958c67127499dac44ec031ea35ba563f11585c8388c8e48e07"
+    },
+    "integrations/pi-coach/src/server.mjs": {
+      "role": "index",
+      "sha256": "882e00ecc5d9b9a7842c32758246d52a90a9dd739eadca607fcc3e0a2bc79617",
+      "size": 3350,
+      "normalized_sha256": "882e00ecc5d9b9a7842c32758246d52a90a9dd739eadca607fcc3e0a2bc79617"
+    },
+    "integrations/pi-coach/test/adapter.test.mjs": {
+      "role": "index",
+      "sha256": "a4fcebfe19f9b0f268ec2fb30f4623dca8e147358a394b1fa729b47b7e67725c",
+      "size": 6596,
+      "normalized_sha256": "a4fcebfe19f9b0f268ec2fb30f4623dca8e147358a394b1fa729b47b7e67725c"
+    },
+    "load-test/README.md": {
+      "role": "index",
+      "sha256": "225413d5115c839ee80f138f3ec8f2e39de53bf66c1d1f09b209c1d5c1fc60e7",
+      "size": 3052,
+      "normalized_sha256": "225413d5115c839ee80f138f3ec8f2e39de53bf66c1d1f09b209c1d5c1fc60e7"
+    },
+    "load-test/run-v1.ps1": {
+      "role": "index",
+      "sha256": "b134e406bc532a996f406630cde173cc1f23fbba1176d6b3bc9c0e4b5edc3ee0",
+      "size": 642,
+      "normalized_sha256": "b134e406bc532a996f406630cde173cc1f23fbba1176d6b3bc9c0e4b5edc3ee0"
+    },
+    "load-test/run-v5.ps1": {
+      "role": "index",
+      "sha256": "4442a963c9629435f62acb428f62eb1ee83b564fc1fbe75350ce84a7c736b013",
+      "size": 2190,
+      "normalized_sha256": "856547dfc0aec18666747860b1860e5533860f922817c2d42a305f5c273ca6ea"
+    },
+    "load-test/v1-hot-read.js": {
+      "role": "index",
+      "sha256": "ea0042c9ea3d85dbc14ed82ea1e58060ae2cc06027c60a576471bb396e6ea672",
+      "size": 1048,
+      "normalized_sha256": "ea0042c9ea3d85dbc14ed82ea1e58060ae2cc06027c60a576471bb396e6ea672"
+    },
+    "load-test/v5-burst.js": {
+      "role": "index",
+      "sha256": "f00053bdaf5c06622a117bee7067b5643dfad607f5997861185ac705e243b0d6",
+      "size": 1164,
+      "normalized_sha256": "6e828700853afa1645d9523ab1e082bef4814989576b76c5ffeb974e68074496"
+    },
+    "load-test/v5-common.js": {
+      "role": "index",
+      "sha256": "2e0665b888a9a08be6659c33656ffa0954fb60e86bca61502037494281757da3",
+      "size": 4800,
+      "normalized_sha256": "cf1dd96dabfbdfbae451a97dcbb7740a3f4b270f91b062135107b13a497c227c"
+    },
+    "load-test/v5-mixed.js": {
+      "role": "index",
+      "sha256": "c7709e1f6f926c2d7e7eb84e4c99de6a4c42001071faa7b64e4e25007db52ac6",
+      "size": 792,
+      "normalized_sha256": "aa521dff7bffe606a88f704996eb887c0873747aa8d37cd32e449a047fe3bdc1"
+    },
+    "load-test/v5-plan.js": {
+      "role": "index",
+      "sha256": "25841ddcfcbfd55e4986ae845dcd585b507f7e3489b2e1d5ba2d8e95381072c3",
+      "size": 452,
+      "normalized_sha256": "4c9f71f35fbcf25c3e22a45fcccfe46fbab28cd3ab19592d01575ab2cc8036ce"
+    },
+    "load-test/v5-users.js": {
+      "role": "index",
+      "sha256": "2fa8854a102b8297957ce946ff43a260f599fe982f40c9e4ac91de06be2ce018",
+      "size": 2578,
+      "normalized_sha256": "2fa8854a102b8297957ce946ff43a260f599fe982f40c9e4ac91de06be2ce018"
+    },
+    "load-test/v5-users.test.mjs": {
+      "role": "index",
+      "sha256": "bea0bffc6c5457693560c0d0da6f05cba643f50e12dbe69e3a50d98277f32d3f",
+      "size": 5467,
+      "normalized_sha256": "bea0bffc6c5457693560c0d0da6f05cba643f50e12dbe69e3a50d98277f32d3f"
+    },
+    "pom.xml": {
+      "role": "index",
+      "sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4",
+      "size": 12621,
+      "normalized_sha256": "de34a6a85fea3b893878c6395b5ddd29d19c463825d020ba08a484407fc86ce4"
+    },
+    "scripts/README.md": {
+      "role": "index",
+      "sha256": "f72c7e7f949090f51a8e758f3d8a51970e2942021b972ccfec05dc75173bc12f",
+      "size": 2204,
+      "normalized_sha256": "f72c7e7f949090f51a8e758f3d8a51970e2942021b972ccfec05dc75173bc12f"
+    },
+    "scripts/delivery/DeliveryGate.Common.psm1": {
+      "role": "index",
+      "sha256": "4b66b084573cff86d6e21171f113d7720c745639d911fdec6ad7323e29592fc0",
+      "size": 5420,
+      "normalized_sha256": "4b66b084573cff86d6e21171f113d7720c745639d911fdec6ad7323e29592fc0"
+    },
+    "scripts/delivery/DeliveryGate.Schema.psm1": {
+      "role": "index",
+      "sha256": "846913ae9903ccca92affbec9a4ad75bcb16134ebe4e7d6483eec266306c2cfd",
+      "size": 3143,
+      "normalized_sha256": "846913ae9903ccca92affbec9a4ad75bcb16134ebe4e7d6483eec266306c2cfd"
+    },
+    "scripts/delivery/prepare-database-drill.ps1": {
+      "role": "index",
+      "sha256": "e33a63c5e43ad05b24a8855705956edb521d6f860dc56897b3ed08f0df57a94f",
+      "size": 1234,
+      "normalized_sha256": "e33a63c5e43ad05b24a8855705956edb521d6f860dc56897b3ed08f0df57a94f"
+    },
+    "scripts/delivery/run-backup-restore-drill.ps1": {
+      "role": "index",
+      "sha256": "8456ee38b0632ace307b867aba492599ffb4e29ce79f286ef47ca128388bcb22",
+      "size": 2242,
+      "normalized_sha256": "8456ee38b0632ace307b867aba492599ffb4e29ce79f286ef47ca128388bcb22"
+    },
+    "scripts/delivery/run-delivery-gate.ps1": {
+      "role": "index",
+      "sha256": "4cfea393a92ea6eef2867b8f71fa507df1c34f08b863b8ad06a29ffd97529dbd",
+      "size": 2013,
+      "normalized_sha256": "4cfea393a92ea6eef2867b8f71fa507df1c34f08b863b8ad06a29ffd97529dbd"
+    },
+    "scripts/delivery/run-kind-delivery-drill.ps1": {
+      "role": "index",
+      "sha256": "1679d419a0b02ae8e4a4aab3b58871f36fb0d8f396a843229cd88a0118287496",
+      "size": 7167,
+      "normalized_sha256": "1679d419a0b02ae8e4a4aab3b58871f36fb0d8f396a843229cd88a0118287496"
+    },
+    "scripts/delivery/run-kubernetes-rollout.ps1": {
+      "role": "index",
+      "sha256": "4d44d2604132a66d3015dbd7520540a4159b7c50e47b7b3ee7db794c13973432",
+      "size": 7788,
+      "normalized_sha256": "4d44d2604132a66d3015dbd7520540a4159b7c50e47b7b3ee7db794c13973432"
+    },
+    "scripts/delivery/run-secret-rotation-drill.ps1": {
+      "role": "index",
+      "sha256": "203615897b00bb913330bd371777932001b386f46fff71a638387ab0104f1248",
+      "size": 5102,
+      "normalized_sha256": "203615897b00bb913330bd371777932001b386f46fff71a638387ab0104f1248"
+    },
+    "scripts/delivery/test-v22-rollout.ps1": {
+      "role": "index",
+      "sha256": "68ada98f54e1342d612d787c3c77b90d67f3695f19d328e3c1dcfb924b1850d2",
+      "size": 8159,
+      "normalized_sha256": "68ada98f54e1342d612d787c3c77b90d67f3695f19d328e3c1dcfb924b1850d2"
+    },
+    "scripts/development/seed-demo-data.ps1": {
+      "role": "index",
+      "sha256": "67620a288edc4dcce018703786ef9af1991a2f315a5f4f4720012e3bc97031a6",
+      "size": 1114,
+      "normalized_sha256": "67620a288edc4dcce018703786ef9af1991a2f315a5f4f4720012e3bc97031a6"
+    },
+    "scripts/development/seed-demo-data.sql": {
+      "role": "index",
+      "sha256": "2931bb841a0506a7f22e5c33ea69a36e5bbc44eb1ab52790fca0ca77e61311bd",
+      "size": 14273,
+      "normalized_sha256": "2931bb841a0506a7f22e5c33ea69a36e5bbc44eb1ab52790fca0ca77e61311bd"
+    },
+    "scripts/evaluation/local_embedding_server.py": {
+      "role": "index",
+      "sha256": "3c89ff43c92e71f5f988ffdc12014e1cca50b893e9b221a0e3d54e879819d786",
+      "size": 3895,
+      "normalized_sha256": "3c89ff43c92e71f5f988ffdc12014e1cca50b893e9b221a0e3d54e879819d786"
+    },
+    "scripts/evaluation/prepare_model.py": {
+      "role": "index",
+      "sha256": "6ff3c24d865a828c9865ea7bf283daa5eeeacef55b8ee4775b99e90d9701481e",
+      "size": 996,
+      "normalized_sha256": "6ff3c24d865a828c9865ea7bf283daa5eeeacef55b8ee4775b99e90d9701481e"
+    },
+    "scripts/evaluation/run-evaluations.ps1": {
+      "role": "index",
+      "sha256": "178c9cbae56a9d76abc9637d4979cf15bf79a3bfe60eb29733e62e1fcf1e6b2a",
+      "size": 2487,
+      "normalized_sha256": "178c9cbae56a9d76abc9637d4979cf15bf79a3bfe60eb29733e62e1fcf1e6b2a"
+    },
+    "scripts/evaluation/run-real-model-quality.ps1": {
+      "role": "index",
+      "sha256": "0dabe77fb0bbd4c825dd7055151054f22696cdb14847d0eb93a5627fd826a159",
+      "size": 3535,
+      "normalized_sha256": "0dabe77fb0bbd4c825dd7055151054f22696cdb14847d0eb93a5627fd826a159"
+    },
+    "scripts/evaluation/run-real-retrieval.ps1": {
+      "role": "index",
+      "sha256": "8c3e4a930ff292940e88bc1fb947a05720d8f4664be855da2184357345b47368",
+      "size": 5979,
+      "normalized_sha256": "ffed9639f74ea4fb1b0fff0814655a7faae42d868c2201f7a86a5575dfce6a95"
+    },
+    "scripts/evaluation/summarize_retrieval.py": {
+      "role": "index",
+      "sha256": "5623fc52d849feed841765256ffec395000604a5b010d2dbde67c9ad2c79eb4d",
+      "size": 3613,
+      "normalized_sha256": "e37e7d9fc7b30b1e571bc18bc44ed357c15ad226971e0ab322040ecabfebaa86"
+    },
+    "scripts/operations/invoke-failure-drills.ps1": {
+      "role": "index",
+      "sha256": "31fe96a8608ce206b6b10d9da83f53df86be11fc27638e010d0c531424f877ae",
+      "size": 7594,
+      "normalized_sha256": "31fe96a8608ce206b6b10d9da83f53df86be11fc27638e010d0c531424f877ae"
+    },
+    "scripts/operations/run-dual-instance-event-recovery.ps1": {
+      "role": "index",
+      "sha256": "80945c4e2c87459449e6fe452794a5c768475d53a7a7181d907f0a55f2dbb2bb",
+      "size": 8991,
+      "normalized_sha256": "80945c4e2c87459449e6fe452794a5c768475d53a7a7181d907f0a55f2dbb2bb"
+    },
+    "scripts/performance/run-architecture-comparison.ps1": {
+      "role": "index",
+      "sha256": "7915fe512877bdeed654a36696b08fcc5935ea9ece6a37e47f22d7813b5675b8",
+      "size": 2810,
+      "normalized_sha256": "7915fe512877bdeed654a36696b08fcc5935ea9ece6a37e47f22d7813b5675b8"
+    },
+    "scripts/performance/run-outbox-backlog.ps1": {
+      "role": "index",
+      "sha256": "142b9bb63d8ed6c557dd9f952db425286c06c4d40047d44597cbd7267886cfc1",
+      "size": 2964,
+      "normalized_sha256": "142b9bb63d8ed6c557dd9f952db425286c06c4d40047d44597cbd7267886cfc1"
+    },
+    "scripts/performance/run-workout-write-load.ps1": {
+      "role": "index",
+      "sha256": "fb7e5c56e62e4b0a86d35ee3108f2cfdf547fe20b1cee50622950576f1b1f34d",
+      "size": 3784,
+      "normalized_sha256": "fb7e5c56e62e4b0a86d35ee3108f2cfdf547fe20b1cee50622950576f1b1f34d"
+    },
+    "scripts/production-validation/collect-runtime-evidence.ps1": {
+      "role": "index",
+      "sha256": "ac24e7e1b5df66a4133031975cf72931f1d4acfd119a5b856070ed381cf141d9",
+      "size": 3825,
+      "normalized_sha256": "ac24e7e1b5df66a4133031975cf72931f1d4acfd119a5b856070ed381cf141d9"
+    },
+    "scripts/production-validation/new-validation-report.ps1": {
+      "role": "index",
+      "sha256": "5744a992bb45144580b1269731e219f02d738b07fe3e8713be2e5db57eb29f3c",
+      "size": 7538,
+      "normalized_sha256": "5744a992bb45144580b1269731e219f02d738b07fe3e8713be2e5db57eb29f3c"
+    },
+    "scripts/production-validation/run-production-validation.ps1": {
+      "role": "index",
+      "sha256": "b99e0d143d276082a0b849614aad7cd634d8db7d37dc9e8e15151ca8e715fd8d",
+      "size": 4493,
+      "normalized_sha256": "b99e0d143d276082a0b849614aad7cd634d8db7d37dc9e8e15151ca8e715fd8d"
+    },
+    "scripts/production-validation/test-observability.ps1": {
+      "role": "index",
+      "sha256": "ed00e0f910534ff949c230579beb0da7e3e64f46167c8cbb4598a45b65c534bb",
+      "size": 3865,
+      "normalized_sha256": "ed00e0f910534ff949c230579beb0da7e3e64f46167c8cbb4598a45b65c534bb"
+    },
+    "scripts/run-quality-gate.ps1": {
+      "role": "index",
+      "sha256": "894e30c6e29aaa7fb7ec6d8d5369e373b993fc6ab8ffd744f43e035cb23467d0",
+      "size": 1382,
+      "normalized_sha256": "894e30c6e29aaa7fb7ec6d8d5369e373b993fc6ab8ffd744f43e035cb23467d0"
+    },
+    "src/main/java/com/fitpilot/FitPilotApplication.java": {
+      "role": "index",
+      "sha256": "90273b0be99e3fcc7c3262eac7db464bcb72ec309efbb894bc3f6b41aba67a8f",
+      "size": 854,
+      "normalized_sha256": "90273b0be99e3fcc7c3262eac7db464bcb72ec309efbb894bc3f6b41aba67a8f"
+    },
+    "src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentDtos.java": {
+      "role": "index",
+      "sha256": "595428c58f8e668ebc207e41712c18e32051e23730926d98c1283acbcc25c9d9",
+      "size": 1573,
+      "normalized_sha256": "595428c58f8e668ebc207e41712c18e32051e23730926d98c1283acbcc25c9d9"
+    },
+    "src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentRepository.java": {
+      "role": "index",
+      "sha256": "fccb9f6a84968d44dc000e73729d86374740f7b91c426c4d86c4ab549bb5d0b7",
+      "size": 10498,
+      "normalized_sha256": "fccb9f6a84968d44dc000e73729d86374740f7b91c426c4d86c4ab549bb5d0b7"
+    },
+    "src/main/java/com/fitpilot/agent/adjustment/TrainingAdjustmentService.java": {
+      "role": "index",
+      "sha256": "5098f335744566393cdab4a36fad727b4cd2290701c1a5d680de1fdd6fd27998",
+      "size": 11153,
+      "normalized_sha256": "5098f335744566393cdab4a36fad727b4cd2290701c1a5d680de1fdd6fd27998"
+    },
+    "src/main/java/com/fitpilot/agent/application/AgentOrchestrator.java": {
+      "role": "index",
+      "sha256": "edcc5fa66054fe9986f05c09109fa499d1b632d03ab17606dabdb3a5c720d586",
+      "size": 10292,
+      "normalized_sha256": "edcc5fa66054fe9986f05c09109fa499d1b632d03ab17606dabdb3a5c720d586"
+    },
+    "src/main/java/com/fitpilot/agent/application/AgentPlanner.java": {
+      "role": "index",
+      "sha256": "27e2ae1cbdfac39b28fb39c3eb11d85580a6dd5355ca7a7ead128d04b3f4a937",
+      "size": 1946,
+      "normalized_sha256": "27e2ae1cbdfac39b28fb39c3eb11d85580a6dd5355ca7a7ead128d04b3f4a937"
+    },
+    "src/main/java/com/fitpilot/agent/application/AgentToolExecutor.java": {
+      "role": "index",
+      "sha256": "73448a3b9943a935393d82959c3c983b4ab8f499740ece60db60af00429e1f05",
+      "size": 2886,
+      "normalized_sha256": "73448a3b9943a935393d82959c3c983b4ab8f499740ece60db60af00429e1f05"
+    },
+    "src/main/java/com/fitpilot/agent/application/AgentWorkflowService.java": {
+      "role": "index",
+      "sha256": "2760e4d0df30754013d484ec0785110828309f9bb854c728849fa342a48647fd",
+      "size": 4673,
+      "normalized_sha256": "2760e4d0df30754013d484ec0785110828309f9bb854c728849fa342a48647fd"
+    },
+    "src/main/java/com/fitpilot/agent/application/ConfirmationService.java": {
+      "role": "index",
+      "sha256": "42539e1fee5fa6a8e28ae450f37400c6b93b0516ae1af0ff65cf394822b0a65e",
+      "size": 3318,
+      "normalized_sha256": "42539e1fee5fa6a8e28ae450f37400c6b93b0516ae1af0ff65cf394822b0a65e"
+    },
+    "src/main/java/com/fitpilot/agent/application/IntentRouter.java": {
+      "role": "index",
+      "sha256": "df513df29b044d4a5e88f6a487c13f8999bd3662d28403970a8a8e59fd4ecdd8",
+      "size": 1826,
+      "normalized_sha256": "df513df29b044d4a5e88f6a487c13f8999bd3662d28403970a8a8e59fd4ecdd8"
+    },
+    "src/main/java/com/fitpilot/agent/application/PendingActionService.java": {
+      "role": "index",
+      "sha256": "6be46cf465fe2e7d2e1791c48bcc16c7b8e849add6a1452f5eecb4f2c7155f47",
+      "size": 4446,
+      "normalized_sha256": "6be46cf465fe2e7d2e1791c48bcc16c7b8e849add6a1452f5eecb4f2c7155f47"
+    },
+    "src/main/java/com/fitpilot/agent/application/PlanProposalService.java": {
+      "role": "index",
+      "sha256": "d813bc1a34773df5d0eb2e231be1b4915ecdb84c6d4abb7c3bdc947492830ae0",
+      "size": 11871,
+      "normalized_sha256": "d813bc1a34773df5d0eb2e231be1b4915ecdb84c6d4abb7c3bdc947492830ae0"
+    },
+    "src/main/java/com/fitpilot/agent/application/ToolExecutionService.java": {
+      "role": "index",
+      "sha256": "30130ed875a7703e436ba3c7e70f6aa5dba08662e489231f8b4d44f6f377d00a",
+      "size": 3438,
+      "normalized_sha256": "30130ed875a7703e436ba3c7e70f6aa5dba08662e489231f8b4d44f6f377d00a"
+    },
+    "src/main/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflow.java": {
+      "role": "index",
+      "sha256": "e46815c1db405187cacc7602e0996ee6effb8c240241cc7d99d13d6d4a2d26b8",
+      "size": 5435,
+      "normalized_sha256": "e46815c1db405187cacc7602e0996ee6effb8c240241cc7d99d13d6d4a2d26b8"
+    },
+    "src/main/java/com/fitpilot/agent/application/TrainingPlanGuardrail.java": {
+      "role": "index",
+      "sha256": "142fa2772657d4cbe63e94428acc0fbdffd08bce9608d30668b0464f815d51cc",
+      "size": 2526,
+      "normalized_sha256": "142fa2772657d4cbe63e94428acc0fbdffd08bce9608d30668b0464f815d51cc"
+    },
+    "src/main/java/com/fitpilot/agent/config/AgentProperties.java": {
+      "role": "index",
+      "sha256": "7c0692b8723468774439b818a2339e81dc6a47c3089347a4fad793b9bc6d03e0",
+      "size": 1344,
+      "normalized_sha256": "7c0692b8723468774439b818a2339e81dc6a47c3089347a4fad793b9bc6d03e0"
+    },
+    "src/main/java/com/fitpilot/agent/controller/AgentController.java": {
+      "role": "index",
+      "sha256": "25bc4332a72178c50d82d13dee9ffc19d3750a23aa48537239862e2cfebdb976",
+      "size": 4112,
+      "normalized_sha256": "25bc4332a72178c50d82d13dee9ffc19d3750a23aa48537239862e2cfebdb976"
+    },
+    "src/main/java/com/fitpilot/agent/controller/AgentOperationsController.java": {
+      "role": "index",
+      "sha256": "a23a857887bc20c3a77d3cffcb375c0a49a2b837413204ce0de1c56b825c353e",
+      "size": 1657,
+      "normalized_sha256": "a23a857887bc20c3a77d3cffcb375c0a49a2b837413204ce0de1c56b825c353e"
+    },
+    "src/main/java/com/fitpilot/agent/controller/McpController.java": {
+      "role": "index",
+      "sha256": "d70e563e22497401290e397544a735205722f5c827a045e48ed068c6fedba0f3",
+      "size": 5649,
+      "normalized_sha256": "d70e563e22497401290e397544a735205722f5c827a045e48ed068c6fedba0f3"
+    },
+    "src/main/java/com/fitpilot/agent/controller/TrainingAdjustmentController.java": {
+      "role": "index",
+      "sha256": "5e8e346986e7a6a91ebaddb10706ee5e0fc06f2aa5160aaf65027a5ace4f8376",
+      "size": 1833,
+      "normalized_sha256": "5e8e346986e7a6a91ebaddb10706ee5e0fc06f2aa5160aaf65027a5ace4f8376"
+    },
+    "src/main/java/com/fitpilot/agent/dto/AgentDtos.java": {
+      "role": "index",
+      "sha256": "bdb04f19c083c09a001c9b77eeadcb01e5a908b82e06f7414db666b0d877ace7",
+      "size": 2905,
+      "normalized_sha256": "bdb04f19c083c09a001c9b77eeadcb01e5a908b82e06f7414db666b0d877ace7"
+    },
+    "src/main/java/com/fitpilot/agent/infrastructure/AgentRepository.java": {
+      "role": "index",
+      "sha256": "5cdb561bb695d4c400866dd89793a270278f0110e2145b95d24b6222afce2eb6",
+      "size": 15609,
+      "normalized_sha256": "5cdb561bb695d4c400866dd89793a270278f0110e2145b95d24b6222afce2eb6"
+    },
+    "src/main/java/com/fitpilot/agent/memory/AgentConversationRetentionJob.java": {
+      "role": "index",
+      "sha256": "151ad639afaf3ada9c5832e6dacf05e1aa5011edd2e7a4949ab6a223d82ab813",
+      "size": 1076,
+      "normalized_sha256": "151ad639afaf3ada9c5832e6dacf05e1aa5011edd2e7a4949ab6a223d82ab813"
+    },
+    "src/main/java/com/fitpilot/agent/memory/AgentSessionStore.java": {
+      "role": "index",
+      "sha256": "69a635d5910495e72f121af6596f595c6c1cce9b75e84606efe7004ffd2e9f29",
+      "size": 6068,
+      "normalized_sha256": "69a635d5910495e72f121af6596f595c6c1cce9b75e84606efe7004ffd2e9f29"
+    },
+    "src/main/java/com/fitpilot/agent/product/AgentProductMetricsDtos.java": {
+      "role": "index",
+      "sha256": "9ff2093576122533767c669ece66ebbb92d03bea2e8369923ba15ddbcdb77f54",
+      "size": 2663,
+      "normalized_sha256": "9ff2093576122533767c669ece66ebbb92d03bea2e8369923ba15ddbcdb77f54"
+    },
+    "src/main/java/com/fitpilot/agent/product/AgentProductMetricsProperties.java": {
+      "role": "index",
+      "sha256": "3e7992776f384c7d3737460e8b3b237770fdfeba1a56cc7d0de5020cadfa9f8f",
+      "size": 934,
+      "normalized_sha256": "3e7992776f384c7d3737460e8b3b237770fdfeba1a56cc7d0de5020cadfa9f8f"
+    },
+    "src/main/java/com/fitpilot/agent/product/AgentProductMetricsPublisher.java": {
+      "role": "index",
+      "sha256": "bed0f8f4f67e571c2f837395a2e914377d536335a501397ea587e7777c26586d",
+      "size": 4053,
+      "normalized_sha256": "bed0f8f4f67e571c2f837395a2e914377d536335a501397ea587e7777c26586d"
+    },
+    "src/main/java/com/fitpilot/agent/product/AgentProductMetricsRepository.java": {
+      "role": "index",
+      "sha256": "3c154ac159484ae77bd2ad4363aec77fa7d5dba9731164758ac3f1145e214a6e",
+      "size": 9333,
+      "normalized_sha256": "3c154ac159484ae77bd2ad4363aec77fa7d5dba9731164758ac3f1145e214a6e"
+    },
+    "src/main/java/com/fitpilot/agent/product/AgentProductMetricsService.java": {
+      "role": "index",
+      "sha256": "f9fa8e430b252d6fd3e5715927b17099e344f5b6620d19eead9733c85ca3f80a",
+      "size": 5323,
+      "normalized_sha256": "f9fa8e430b252d6fd3e5715927b17099e344f5b6620d19eead9733c85ca3f80a"
+    },
+    "src/main/java/com/fitpilot/analytics/application/AnalyticsService.java": {
+      "role": "index",
+      "sha256": "0298aad86ab3eb8f2af6f51b912fd2037397328f5f52dedcc6fe066084130419",
+      "size": 2848,
+      "normalized_sha256": "0298aad86ab3eb8f2af6f51b912fd2037397328f5f52dedcc6fe066084130419"
+    },
+    "src/main/java/com/fitpilot/analytics/controller/AnalyticsController.java": {
+      "role": "index",
+      "sha256": "f36921d750a747d4fd26288083143c4cb7c34f8af49009e7bebbbf0a30df8851",
+      "size": 1611,
+      "normalized_sha256": "f36921d750a747d4fd26288083143c4cb7c34f8af49009e7bebbbf0a30df8851"
+    },
+    "src/main/java/com/fitpilot/analytics/dto/AnalyticsDtos.java": {
+      "role": "index",
+      "sha256": "495c5e9f7e76ce6d7aa4dd8e1d8ff3e309907f0e9bcb1e21e36abbb3cb6d6a40",
+      "size": 629,
+      "normalized_sha256": "495c5e9f7e76ce6d7aa4dd8e1d8ff3e309907f0e9bcb1e21e36abbb3cb6d6a40"
+    },
+    "src/main/java/com/fitpilot/analytics/infrastructure/AnalyticsMapper.java": {
+      "role": "index",
+      "sha256": "8761aed7f8ec3554f98285dd74970e878a6a7d0e4d8c3c25934e1af367234c63",
+      "size": 1821,
+      "normalized_sha256": "8761aed7f8ec3554f98285dd74970e878a6a7d0e4d8c3c25934e1af367234c63"
+    },
+    "src/main/java/com/fitpilot/analytics/infrastructure/WorkoutAnalyticsProjectionRepository.java": {
+      "role": "index",
+      "sha256": "b390d04bc214184e72f00d49fe635c58db35f8b1e7368475065b4a46b3b6f243",
+      "size": 1783,
+      "normalized_sha256": "b390d04bc214184e72f00d49fe635c58db35f8b1e7368475065b4a46b3b6f243"
+    },
+    "src/main/java/com/fitpilot/auth/application/AuthService.java": {
+      "role": "index",
+      "sha256": "0efd279ca62b5dbca13c52f9e0863bafd984866c4100970dd252231cf54714e3",
+      "size": 3726,
+      "normalized_sha256": "0efd279ca62b5dbca13c52f9e0863bafd984866c4100970dd252231cf54714e3"
+    },
+    "src/main/java/com/fitpilot/auth/application/RefreshTokenService.java": {
+      "role": "index",
+      "sha256": "2c75ff1a2ec58308e4ebd0c00a9d859900e079d323d21191fa9264af85f87234",
+      "size": 2999,
+      "normalized_sha256": "2c75ff1a2ec58308e4ebd0c00a9d859900e079d323d21191fa9264af85f87234"
+    },
+    "src/main/java/com/fitpilot/auth/controller/AuthController.java": {
+      "role": "index",
+      "sha256": "a47e91669c085675e0f1654463747b6f65d23f7ad54b0b4b091869a9e450038b",
+      "size": 2696,
+      "normalized_sha256": "a47e91669c085675e0f1654463747b6f65d23f7ad54b0b4b091869a9e450038b"
+    },
+    "src/main/java/com/fitpilot/auth/dto/AuthDtos.java": {
+      "role": "index",
+      "sha256": "da758a80839296c5e52425716b5350e374718e51fad5233c9899fdd08e07fd65",
+      "size": 755,
+      "normalized_sha256": "da758a80839296c5e52425716b5350e374718e51fad5233c9899fdd08e07fd65"
+    },
+    "src/main/java/com/fitpilot/common/config/MybatisConfig.java": {
+      "role": "index",
+      "sha256": "a9dad263e160cf2adcd59813d151e639de6af0f32aa885d5697af61009a112cc",
+      "size": 672,
+      "normalized_sha256": "a9dad263e160cf2adcd59813d151e639de6af0f32aa885d5697af61009a112cc"
+    },
+    "src/main/java/com/fitpilot/common/config/OpenApiConfig.java": {
+      "role": "index",
+      "sha256": "9fd7d09ded5126bf23de3b4eee2d22634515255091a4bd627307e4e8b43ede64",
+      "size": 775,
+      "normalized_sha256": "9fd7d09ded5126bf23de3b4eee2d22634515255091a4bd627307e4e8b43ede64"
+    },
+    "src/main/java/com/fitpilot/common/config/RequestLoggingFilter.java": {
+      "role": "index",
+      "sha256": "21718cbe3eefda5e4eeb609a8ed928e8caa2152dc8686d153d8db32675decc39",
+      "size": 1213,
+      "normalized_sha256": "21718cbe3eefda5e4eeb609a8ed928e8caa2152dc8686d153d8db32675decc39"
+    },
+    "src/main/java/com/fitpilot/common/exception/BusinessException.java": {
+      "role": "index",
+      "sha256": "c9badab05b4789281f0b24a35eb089d99d2d4a3fa5a237f0df7385fda5c7a19d",
+      "size": 644,
+      "normalized_sha256": "c9badab05b4789281f0b24a35eb089d99d2d4a3fa5a237f0df7385fda5c7a19d"
+    },
+    "src/main/java/com/fitpilot/common/exception/ErrorCode.java": {
+      "role": "index",
+      "sha256": "46edd8a4d243ed1cb1ad0a469996586451d07a3f0959b8f3cc66fe885a4f8e3a",
+      "size": 1275,
+      "normalized_sha256": "46edd8a4d243ed1cb1ad0a469996586451d07a3f0959b8f3cc66fe885a4f8e3a"
+    },
+    "src/main/java/com/fitpilot/common/exception/GlobalExceptionHandler.java": {
+      "role": "index",
+      "sha256": "2c52c80c4bb2fc32a7ba857dbe32ea5b8bbb2b79f93d42ceae8f2e46a82ec992",
+      "size": 2337,
+      "normalized_sha256": "2c52c80c4bb2fc32a7ba857dbe32ea5b8bbb2b79f93d42ceae8f2e46a82ec992"
+    },
+    "src/main/java/com/fitpilot/common/idempotency/IdempotencyRequest.java": {
+      "role": "index",
+      "sha256": "6f7f257cf7476c4eaafc8db5b817f2cec0ab96f5bf89a1e22312a4da112d4034",
+      "size": 626,
+      "normalized_sha256": "6f7f257cf7476c4eaafc8db5b817f2cec0ab96f5bf89a1e22312a4da112d4034"
+    },
+    "src/main/java/com/fitpilot/common/operations/OperationsAuthenticationFilter.java": {
+      "role": "index",
+      "sha256": "56e8381a4e77357b428a0576badf3dad6fdd884e2d25f8208bcef7bf943b74b4",
+      "size": 2865,
+      "normalized_sha256": "56e8381a4e77357b428a0576badf3dad6fdd884e2d25f8208bcef7bf943b74b4"
+    },
+    "src/main/java/com/fitpilot/common/operations/OperationsProperties.java": {
+      "role": "index",
+      "sha256": "6accda6b4549ff5950ea12c4c913629a4907d2cf7b0286b7468bcd06fc3b00c2",
+      "size": 401,
+      "normalized_sha256": "6accda6b4549ff5950ea12c4c913629a4907d2cf7b0286b7468bcd06fc3b00c2"
+    },
+    "src/main/java/com/fitpilot/common/operations/OperationsSecurityConfig.java": {
+      "role": "index",
+      "sha256": "a5c5a36b7904d03927bac5572173d19a1f3eced18281790b475fdc551091a84f",
+      "size": 637,
+      "normalized_sha256": "a5c5a36b7904d03927bac5572173d19a1f3eced18281790b475fdc551091a84f"
+    },
+    "src/main/java/com/fitpilot/common/response/ApiResponse.java": {
+      "role": "index",
+      "sha256": "0157694c1755448e5e816a19cd23a562a2404da26dc92a8c3d8999bfd54f4293",
+      "size": 438,
+      "normalized_sha256": "0157694c1755448e5e816a19cd23a562a2404da26dc92a8c3d8999bfd54f4293"
+    },
+    "src/main/java/com/fitpilot/common/response/PageResult.java": {
+      "role": "index",
+      "sha256": "c9d10f0e517a8b9b27517374c2223f215ffe69f5c10f65cb7f33bc784d480502",
+      "size": 354,
+      "normalized_sha256": "c9d10f0e517a8b9b27517374c2223f215ffe69f5c10f65cb7f33bc784d480502"
+    },
+    "src/main/java/com/fitpilot/common/security/CurrentUser.java": {
+      "role": "index",
+      "sha256": "4944503fe8f47e2ef719dbb8e25e3ae1998393f607d6adba8763f05a02eee869",
+      "size": 280,
+      "normalized_sha256": "4944503fe8f47e2ef719dbb8e25e3ae1998393f607d6adba8763f05a02eee869"
+    },
+    "src/main/java/com/fitpilot/common/security/JwtAuthenticationFilter.java": {
+      "role": "index",
+      "sha256": "35f02ec381406cd16680022f3fd02886b57acfea0314e11d8bd1c4246d00a1e3",
+      "size": 1657,
+      "normalized_sha256": "35f02ec381406cd16680022f3fd02886b57acfea0314e11d8bd1c4246d00a1e3"
+    },
+    "src/main/java/com/fitpilot/common/security/JwtService.java": {
+      "role": "index",
+      "sha256": "b2ed595cada69a6151962ec23f6198f15b51425f065cc7e1585a5d8aac004ffa",
+      "size": 2472,
+      "normalized_sha256": "b2ed595cada69a6151962ec23f6198f15b51425f065cc7e1585a5d8aac004ffa"
+    },
+    "src/main/java/com/fitpilot/common/security/SecureTokenMatcher.java": {
+      "role": "index",
+      "sha256": "5aba737e1af688da8a4200d390277b868167f2aacbbf97e4a4ba4ab4e250e4c9",
+      "size": 480,
+      "normalized_sha256": "5aba737e1af688da8a4200d390277b868167f2aacbbf97e4a4ba4ab4e250e4c9"
+    },
+    "src/main/java/com/fitpilot/common/security/SecurityConfig.java": {
+      "role": "index",
+      "sha256": "c9dcd000367e7e1dc1ed82b698d6b2642d75055159ad925ee536caac70334752",
+      "size": 2734,
+      "normalized_sha256": "c9dcd000367e7e1dc1ed82b698d6b2642d75055159ad925ee536caac70334752"
+    },
+    "src/main/java/com/fitpilot/deployment/FlywayMigrationMain.java": {
+      "role": "index",
+      "sha256": "224e8fcdd416f66acf8e5b03ee033c4db3d763d53d2c244cf39e4f80eb59f923",
+      "size": 1858,
+      "normalized_sha256": "224e8fcdd416f66acf8e5b03ee033c4db3d763d53d2c244cf39e4f80eb59f923"
+    },
+    "src/main/java/com/fitpilot/deployment/FlywaySchemaStatusMain.java": {
+      "role": "index",
+      "sha256": "8d3f6cfba25d8c5ca1219975f4385503e0bfb8161d196880b5beb3c9501b7adc",
+      "size": 431,
+      "normalized_sha256": "8d3f6cfba25d8c5ca1219975f4385503e0bfb8161d196880b5beb3c9501b7adc"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/AgentEvaluationRunner.java": {
+      "role": "index",
+      "sha256": "76ce56502c545348156cf9f613d1c5a211caee265043f6716e5a535d4c426362",
+      "size": 2957,
+      "normalized_sha256": "76ce56502c545348156cf9f613d1c5a211caee265043f6716e5a535d4c426362"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/EvaluationDatasetLoader.java": {
+      "role": "index",
+      "sha256": "c64edfbf00a01f912a6a71812494cfc7d6d4037a270785a5c7ffe2425a17cd77",
+      "size": 1537,
+      "normalized_sha256": "c64edfbf00a01f912a6a71812494cfc7d6d4037a270785a5c7ffe2425a17cd77"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/EvaluationMetricCalculator.java": {
+      "role": "index",
+      "sha256": "1782b4472e2edd13ac320c076ce423df0358089c53dad8e26bbb04108913eef0",
+      "size": 7929,
+      "normalized_sha256": "1782b4472e2edd13ac320c076ce423df0358089c53dad8e26bbb04108913eef0"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/EvaluationReportService.java": {
+      "role": "index",
+      "sha256": "0d98983e4cfcb087696aead4e7641f939d3f8a41e8c0c176042f93438c1bf5ae",
+      "size": 5797,
+      "normalized_sha256": "0d98983e4cfcb087696aead4e7641f939d3f8a41e8c0c176042f93438c1bf5ae"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/EvaluationService.java": {
+      "role": "index",
+      "sha256": "2e67f23001f8238cc3d574f378ba89d0548f3207f2841d2be6aefb14c70220a6",
+      "size": 6498,
+      "normalized_sha256": "2e67f23001f8238cc3d574f378ba89d0548f3207f2841d2be6aefb14c70220a6"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/EvaluationTaskScheduler.java": {
+      "role": "index",
+      "sha256": "cb59aff7ecab4e11f96979c3d86d1fb7f1a607be1b8dcdf82800d86b04794b12",
+      "size": 5348,
+      "normalized_sha256": "cb59aff7ecab4e11f96979c3d86d1fb7f1a607be1b8dcdf82800d86b04794b12"
+    },
+    "src/main/java/com/fitpilot/evaluation/application/RagEvaluationRunner.java": {
+      "role": "index",
+      "sha256": "e6763b6978e39ef927b244fac107acd318961fe2970038005528009604e6f3b6",
+      "size": 8003,
+      "normalized_sha256": "e6763b6978e39ef927b244fac107acd318961fe2970038005528009604e6f3b6"
+    },
+    "src/main/java/com/fitpilot/evaluation/config/EvaluationConfig.java": {
+      "role": "index",
+      "sha256": "a4c11edac1c57a4d63c0da9983f189759eb141652e4a475e27e79c4f45a26db9",
+      "size": 1282,
+      "normalized_sha256": "a4c11edac1c57a4d63c0da9983f189759eb141652e4a475e27e79c4f45a26db9"
+    },
+    "src/main/java/com/fitpilot/evaluation/config/EvaluationProperties.java": {
+      "role": "index",
+      "sha256": "ff3929bb89ef750ea7299d4194cd76f6c7534946ba28324cb530c5d418aafcbb",
+      "size": 2525,
+      "normalized_sha256": "ff3929bb89ef750ea7299d4194cd76f6c7534946ba28324cb530c5d418aafcbb"
+    },
+    "src/main/java/com/fitpilot/evaluation/controller/EvaluationOperationsController.java": {
+      "role": "index",
+      "sha256": "3193da36db0f96963cf0ce54c0a12161d05a868c5e00441d72aee1ab2afeb356",
+      "size": 1849,
+      "normalized_sha256": "3193da36db0f96963cf0ce54c0a12161d05a868c5e00441d72aee1ab2afeb356"
+    },
+    "src/main/java/com/fitpilot/evaluation/domain/EvaluationCases.java": {
+      "role": "index",
+      "sha256": "5619de12251a20bb71a81cf66d4ef4b021d14a4ce5ebf7387adf98b9dda356d6",
+      "size": 1126,
+      "normalized_sha256": "5619de12251a20bb71a81cf66d4ef4b021d14a4ce5ebf7387adf98b9dda356d6"
+    },
+    "src/main/java/com/fitpilot/evaluation/dto/EvaluationDtos.java": {
+      "role": "index",
+      "sha256": "d48cec35333ccc214c0b927e5fe6c3b4d0a04c43efbc76effe393b0fb38e9117",
+      "size": 799,
+      "normalized_sha256": "d48cec35333ccc214c0b927e5fe6c3b4d0a04c43efbc76effe393b0fb38e9117"
+    },
+    "src/main/java/com/fitpilot/evaluation/infrastructure/EvaluationRepository.java": {
+      "role": "index",
+      "sha256": "9d050185e5094212996bbf7c4e8323fe31cfd55a69db372fce409abeb156aab0",
+      "size": 16218,
+      "normalized_sha256": "9d050185e5094212996bbf7c4e8323fe31cfd55a69db372fce409abeb156aab0"
+    },
+    "src/main/java/com/fitpilot/exercise/application/ExerciseService.java": {
+      "role": "index",
+      "sha256": "357746eda0d08b0f01d3f945755c83b8d78fc2aa391cea31546334811fa57d07",
+      "size": 2266,
+      "normalized_sha256": "357746eda0d08b0f01d3f945755c83b8d78fc2aa391cea31546334811fa57d07"
+    },
+    "src/main/java/com/fitpilot/exercise/controller/ExerciseController.java": {
+      "role": "index",
+      "sha256": "caaa80fd5bca0e7d14f11b74f6e56015668f2c4cf5dbcf166742ad80d52d9ca5",
+      "size": 1544,
+      "normalized_sha256": "caaa80fd5bca0e7d14f11b74f6e56015668f2c4cf5dbcf166742ad80d52d9ca5"
+    },
+    "src/main/java/com/fitpilot/exercise/domain/Exercise.java": {
+      "role": "index",
+      "sha256": "31b654bd2d973e4a979194bfe959d2ec51f8c6ade92727dd2316fb910d7b7495",
+      "size": 699,
+      "normalized_sha256": "31b654bd2d973e4a979194bfe959d2ec51f8c6ade92727dd2316fb910d7b7495"
+    },
+    "src/main/java/com/fitpilot/exercise/dto/ExerciseView.java": {
+      "role": "index",
+      "sha256": "df99b77cdd17432aa12f759290267582cbab356ecc630befcb8a13b47f8a7559",
+      "size": 593,
+      "normalized_sha256": "df99b77cdd17432aa12f759290267582cbab356ecc630befcb8a13b47f8a7559"
+    },
+    "src/main/java/com/fitpilot/exercise/infrastructure/ExerciseMapper.java": {
+      "role": "index",
+      "sha256": "539f79aa16cae057570fcbfcf2ffeb2304c79b87b21f99831de9ba978e5f16ab",
+      "size": 214,
+      "normalized_sha256": "539f79aa16cae057570fcbfcf2ffeb2304c79b87b21f99831de9ba978e5f16ab"
+    },
+    "src/main/java/com/fitpilot/exercise/repository/ExerciseRepository.java": {
+      "role": "index",
+      "sha256": "17efb88755a87d95782c1b15084fd3a4ede5332de82238ca142400df85f25997",
+      "size": 1617,
+      "normalized_sha256": "17efb88755a87d95782c1b15084fd3a4ede5332de82238ca142400df85f25997"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/DeadLetterEvent.java": {
+      "role": "index",
+      "sha256": "574c25fc54ffea19ea7ba9789e10d82401c38a6cae2e9762b74827e1b1fab828",
+      "size": 392,
+      "normalized_sha256": "574c25fc54ffea19ea7ba9789e10d82401c38a6cae2e9762b74827e1b1fab828"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/DeadLetterRepository.java": {
+      "role": "index",
+      "sha256": "9b2aec7aa182d19706134b2bb7a84457f2a03860d6410d73fcb257c43b3f9cce",
+      "size": 3181,
+      "normalized_sha256": "9b2aec7aa182d19706134b2bb7a84457f2a03860d6410d73fcb257c43b3f9cce"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/DeadLetterService.java": {
+      "role": "index",
+      "sha256": "eb7a9214b3c47d912401bd8d9a260b2f3e37132219367ae0e7a608564fa827ed",
+      "size": 1761,
+      "normalized_sha256": "eb7a9214b3c47d912401bd8d9a260b2f3e37132219367ae0e7a608564fa827ed"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventEnvelope.java": {
+      "role": "index",
+      "sha256": "ab83d8d91e31a9c3c021b58de2692cca4c849271cc12f05bcce69a079425e44d",
+      "size": 350,
+      "normalized_sha256": "ab83d8d91e31a9c3c021b58de2692cca4c849271cc12f05bcce69a079425e44d"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventEnvelopeReader.java": {
+      "role": "index",
+      "sha256": "5e075238acea0441f93a256f175c943a9fb152e3144f9de7b166d46b57feff2e",
+      "size": 1077,
+      "normalized_sha256": "5e075238acea0441f93a256f175c943a9fb152e3144f9de7b166d46b57feff2e"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventOperationsController.java": {
+      "role": "index",
+      "sha256": "197f2d8ba1ca09d3c9ec0d5c07a627aa46c3b36403501fa0022a1ce0bd2e5389",
+      "size": 1293,
+      "normalized_sha256": "197f2d8ba1ca09d3c9ec0d5c07a627aa46c3b36403501fa0022a1ce0bd2e5389"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventOutboxService.java": {
+      "role": "index",
+      "sha256": "41bdee3c84b36a592269f4d358d3ec479a0d7c342bbb2e27bd56187997f1a08c",
+      "size": 1289,
+      "normalized_sha256": "41bdee3c84b36a592269f4d358d3ec479a0d7c342bbb2e27bd56187997f1a08c"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventPayloads.java": {
+      "role": "index",
+      "sha256": "c52550a3a1aeecbd5a55f27c63d75b4f3e699c2bd59da2f9d31f20d3be01110a",
+      "size": 793,
+      "normalized_sha256": "c52550a3a1aeecbd5a55f27c63d75b4f3e699c2bd59da2f9d31f20d3be01110a"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventProperties.java": {
+      "role": "index",
+      "sha256": "fc6c3dfda81456e138357bf8b80c45971549ace9089cbb551b0c6265b5606c76",
+      "size": 2437,
+      "normalized_sha256": "fc6c3dfda81456e138357bf8b80c45971549ace9089cbb551b0c6265b5606c76"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventStatusService.java": {
+      "role": "index",
+      "sha256": "909f578fcaef23b4d73e166339403b3b35e0f1dc990b57da0e4158f4173a034f",
+      "size": 1141,
+      "normalized_sha256": "909f578fcaef23b4d73e166339403b3b35e0f1dc990b57da0e4158f4173a034f"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventTopics.java": {
+      "role": "index",
+      "sha256": "1732af4405ddff7035e893295c6171c05108ed4a062752c8add0af0563398df2",
+      "size": 458,
+      "normalized_sha256": "1732af4405ddff7035e893295c6171c05108ed4a062752c8add0af0563398df2"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/EventTypes.java": {
+      "role": "index",
+      "sha256": "8528f919141257e6f20d4852734396dcec2dd22669a799d2d045df9a15a24c11",
+      "size": 948,
+      "normalized_sha256": "8528f919141257e6f20d4852734396dcec2dd22669a799d2d045df9a15a24c11"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/KafkaEventConfig.java": {
+      "role": "index",
+      "sha256": "a61fea403c26b2a673b931473fbe5495dd53f03adadc28e7917c041c7d041e7d",
+      "size": 2467,
+      "normalized_sha256": "a61fea403c26b2a673b931473fbe5495dd53f03adadc28e7917c041c7d041e7d"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/OutboxEvent.java": {
+      "role": "index",
+      "sha256": "8676ab28e025a06682f941d97617695875096d590fabdecef761b7b848e1321c",
+      "size": 188,
+      "normalized_sha256": "8676ab28e025a06682f941d97617695875096d590fabdecef761b7b848e1321c"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/OutboxRelay.java": {
+      "role": "index",
+      "sha256": "07a1999765633d169edf63bda2e785895a5ae446ffb680a621ded8745175f4db",
+      "size": 3155,
+      "normalized_sha256": "07a1999765633d169edf63bda2e785895a5ae446ffb680a621ded8745175f4db"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/OutboxRepository.java": {
+      "role": "index",
+      "sha256": "154ed4cf20eac5f217d956358e00f5bff280c32a3b8ebc203276f0677d299294",
+      "size": 4805,
+      "normalized_sha256": "154ed4cf20eac5f217d956358e00f5bff280c32a3b8ebc203276f0677d299294"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/PersonalRecordEventConsumer.java": {
+      "role": "index",
+      "sha256": "2ef23e72af968eab9b55edfdfa87f198c936912f440bd03658d65478b875fcf2",
+      "size": 843,
+      "normalized_sha256": "2ef23e72af968eab9b55edfdfa87f198c936912f440bd03658d65478b875fcf2"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/PersonalRecordEventHandler.java": {
+      "role": "index",
+      "sha256": "dfc0107b02dd73b46c115d9e89bf1513ad7a5ef5626934cb8bfd821196d2c436",
+      "size": 1209,
+      "normalized_sha256": "dfc0107b02dd73b46c115d9e89bf1513ad7a5ef5626934cb8bfd821196d2c436"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/ProcessedEventRepository.java": {
+      "role": "index",
+      "sha256": "dbab16e8e491c92ab6d6d758e12e87697a897f36aa1dac4a329a89c2022dc906",
+      "size": 619,
+      "normalized_sha256": "dbab16e8e491c92ab6d6d758e12e87697a897f36aa1dac4a329a89c2022dc906"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/WorkoutCompletedEventHandler.java": {
+      "role": "index",
+      "sha256": "f8df2fe54fb7db4687b3a103d8a9e83efc3ab94a22c682625e7b15e3545b41b0",
+      "size": 3294,
+      "normalized_sha256": "f8df2fe54fb7db4687b3a103d8a9e83efc3ab94a22c682625e7b15e3545b41b0"
+    },
+    "src/main/java/com/fitpilot/infrastructure/events/WorkoutEventConsumers.java": {
+      "role": "index",
+      "sha256": "132cffd0a35ca588122656f82e0165c8937d2b476049769276bca23b38a41cf4",
+      "size": 1091,
+      "normalized_sha256": "132cffd0a35ca588122656f82e0165c8937d2b476049769276bca23b38a41cf4"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/ApiRateLimitInterceptor.java": {
+      "role": "index",
+      "sha256": "fe97f7ab01bfccf86a7014439486623eb7151055351b730650ecf004562126a1",
+      "size": 2958,
+      "normalized_sha256": "fe97f7ab01bfccf86a7014439486623eb7151055351b730650ecf004562126a1"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/CachedBodyHttpServletRequest.java": {
+      "role": "index",
+      "sha256": "a5a6a123f1834816f9e3cdcd52313be82bb0ec869abf96465a53b1e3f559299c",
+      "size": 1873,
+      "normalized_sha256": "a5a6a123f1834816f9e3cdcd52313be82bb0ec869abf96465a53b1e3f559299c"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/DistributedLockService.java": {
+      "role": "index",
+      "sha256": "14a6a6b1fb7dfe65b5e3ea0dc12da9e3bef5530236cbc6f6e241cf7bbebbb483",
+      "size": 1940,
+      "normalized_sha256": "14a6a6b1fb7dfe65b5e3ea0dc12da9e3bef5530236cbc6f6e241cf7bbebbb483"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFilter.java": {
+      "role": "index",
+      "sha256": "07902bbf6f63a4c5d22f701f41bc699a7c0ebcb686b746cf17d585e140b15288",
+      "size": 7642,
+      "normalized_sha256": "07902bbf6f63a4c5d22f701f41bc699a7c0ebcb686b746cf17d585e140b15288"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/IdempotencyFingerprint.java": {
+      "role": "index",
+      "sha256": "e4a9c6be3ea34b3fc49c18eed8db40311455f5398f28477e4be238be23cbbe38",
+      "size": 3782,
+      "normalized_sha256": "e4a9c6be3ea34b3fc49c18eed8db40311455f5398f28477e4be238be23cbbe38"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/PerformanceConfig.java": {
+      "role": "index",
+      "sha256": "11cb3c31a08cd299668b694b0091844120a7bd776eabbec654c98b693962a9d7",
+      "size": 1190,
+      "normalized_sha256": "11cb3c31a08cd299668b694b0091844120a7bd776eabbec654c98b693962a9d7"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/PerformanceController.java": {
+      "role": "index",
+      "sha256": "f511ae0c27853b94f47e7f9b83866e5433479f5f8939fc5b7d782be6fd0ddbc0",
+      "size": 647,
+      "normalized_sha256": "f511ae0c27853b94f47e7f9b83866e5433479f5f8939fc5b7d782be6fd0ddbc0"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/PerformanceProperties.java": {
+      "role": "index",
+      "sha256": "dd5d6b1bddf1f70330a9079fd8c65f64f3f4d8d82d5f2d6b0fff3c598160935b",
+      "size": 895,
+      "normalized_sha256": "dd5d6b1bddf1f70330a9079fd8c65f64f3f4d8d82d5f2d6b0fff3c598160935b"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/PerformanceWebConfig.java": {
+      "role": "index",
+      "sha256": "5b29f18d8bbfe55fa5911a8e391e1f22ef988ec97940f63e9c58b6a06ffbaa6d",
+      "size": 663,
+      "normalized_sha256": "5b29f18d8bbfe55fa5911a8e391e1f22ef988ec97940f63e9c58b6a06ffbaa6d"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/RedisFailureGuard.java": {
+      "role": "index",
+      "sha256": "4f545968bb18c7be8793864b9064f8f681e237ccd5c2a76a366ae883ca5717f0",
+      "size": 2226,
+      "normalized_sha256": "4f545968bb18c7be8793864b9064f8f681e237ccd5c2a76a366ae883ca5717f0"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/RedisTokenBucketRateLimiter.java": {
+      "role": "index",
+      "sha256": "d4da89a80c2c6056bd6c9a276ed74ec738cefb99cb82475c9aa6394c9afd6a37",
+      "size": 2959,
+      "normalized_sha256": "d4da89a80c2c6056bd6c9a276ed74ec738cefb99cb82475c9aa6394c9afd6a37"
+    },
+    "src/main/java/com/fitpilot/infrastructure/performance/TwoLevelCache.java": {
+      "role": "index",
+      "sha256": "a6984eb7199db04d00f4f969ffc3018ffa4563ee6334389ad31457e240def22e",
+      "size": 6196,
+      "normalized_sha256": "a6984eb7199db04d00f4f969ffc3018ffa4563ee6334389ad31457e240def22e"
+    },
+    "src/main/java/com/fitpilot/infrastructure/scheduling/BackgroundSchedulingConfig.java": {
+      "role": "index",
+      "sha256": "a658924eea136cc786cfe76b4d9603907f393fb1b47d553d78817dec481d8118",
+      "size": 700,
+      "normalized_sha256": "a658924eea136cc786cfe76b4d9603907f393fb1b47d553d78817dec481d8118"
+    },
+    "src/main/java/com/fitpilot/llm/application/LlmAuditRetentionJob.java": {
+      "role": "index",
+      "sha256": "96193fc7fb7c9bf56c776c266df2e9dbc43762c9f094a072d8d965f766b5d7e1",
+      "size": 909,
+      "normalized_sha256": "96193fc7fb7c9bf56c776c266df2e9dbc43762c9f094a072d8d965f766b5d7e1"
+    },
+    "src/main/java/com/fitpilot/llm/application/LlmGateway.java": {
+      "role": "index",
+      "sha256": "d0f68b7f32f2f16619fbb942f12f2bb1ca3fe1fcc4d61e64ec3522ddae0c234f",
+      "size": 6335,
+      "normalized_sha256": "d0f68b7f32f2f16619fbb942f12f2bb1ca3fe1fcc4d61e64ec3522ddae0c234f"
+    },
+    "src/main/java/com/fitpilot/llm/application/ModelRouter.java": {
+      "role": "index",
+      "sha256": "045c2628d07cc88aee346dc1e77c3a7e94aab1b736b64a72ed33ab6d873d32ef",
+      "size": 591,
+      "normalized_sha256": "457320534f925d9b6a3f8b6c0e1ba116a7f4ef9a432f09e77f2ce786b5424f88"
+    },
+    "src/main/java/com/fitpilot/llm/application/PromptRegistry.java": {
+      "role": "index",
+      "sha256": "eabab6929bb5c06a81727c9fd0302bb91779978d1f25e1e291ffd211db71e0c0",
+      "size": 2910,
+      "normalized_sha256": "0b242b0c3e20e58d570569a7f05022ed336f6ccd5a7df230b8b27e32da2926b9"
+    },
+    "src/main/java/com/fitpilot/llm/config/LlmProperties.java": {
+      "role": "index",
+      "sha256": "1dbc8c4d6f62aff14cba9b679bbcdbd8f028751738e2908305addb4fa9015f1f",
+      "size": 5054,
+      "normalized_sha256": "1dbc8c4d6f62aff14cba9b679bbcdbd8f028751738e2908305addb4fa9015f1f"
+    },
+    "src/main/java/com/fitpilot/llm/controller/LlmOperationsController.java": {
+      "role": "index",
+      "sha256": "900490e8b9a29808e7b014726e244ac2b83249d93d17edb40440661417c42752",
+      "size": 1488,
+      "normalized_sha256": "900490e8b9a29808e7b014726e244ac2b83249d93d17edb40440661417c42752"
+    },
+    "src/main/java/com/fitpilot/llm/domain/LlmModels.java": {
+      "role": "index",
+      "sha256": "8a892ceaa2f7f02b84079ebdc0599c21c55ccfdf1a543d1d9b8bab31363f5078",
+      "size": 1087,
+      "normalized_sha256": "7fc29ea4738d94322747978dd781d1af03fd4f92341b367be62cef8703ff94e1"
+    },
+    "src/main/java/com/fitpilot/llm/dto/LlmDtos.java": {
+      "role": "index",
+      "sha256": "bb5712762c9da73dc8395e03879909a6bd1023562d5fa1faa021bcc18af868a3",
+      "size": 543,
+      "normalized_sha256": "bb5712762c9da73dc8395e03879909a6bd1023562d5fa1faa021bcc18af868a3"
+    },
+    "src/main/java/com/fitpilot/llm/infrastructure/LlmInvocationRepository.java": {
+      "role": "index",
+      "sha256": "566a82343cf262d2e0e1785003900603d4310bc86988a5fafa75840ce124e58e",
+      "size": 2242,
+      "normalized_sha256": "566a82343cf262d2e0e1785003900603d4310bc86988a5fafa75840ce124e58e"
+    },
+    "src/main/java/com/fitpilot/llm/infrastructure/LlmProviderException.java": {
+      "role": "index",
+      "sha256": "232eb0ab57eecbba461935c8d9ecee29f5d33dde04a9ed732f1b2aa4d8b30646",
+      "size": 895,
+      "normalized_sha256": "232eb0ab57eecbba461935c8d9ecee29f5d33dde04a9ed732f1b2aa4d8b30646"
+    },
+    "src/main/java/com/fitpilot/llm/infrastructure/LlmResiliencePolicy.java": {
+      "role": "index",
+      "sha256": "1fda3c89ccf4ecbda3d46a3b2592ac156a76137179e77345ab0defc18c3ffd22",
+      "size": 5223,
+      "normalized_sha256": "1fda3c89ccf4ecbda3d46a3b2592ac156a76137179e77345ab0defc18c3ffd22"
+    },
+    "src/main/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClient.java": {
+      "role": "index",
+      "sha256": "600eb5707ebff47358d74c1b13c34b4ddf29be155f4094afb0d06f6bc6842dd5",
+      "size": 7385,
+      "normalized_sha256": "600eb5707ebff47358d74c1b13c34b4ddf29be155f4094afb0d06f6bc6842dd5"
+    },
+    "src/main/java/com/fitpilot/llm/infrastructure/OpenAiProviderTransport.java": {
+      "role": "index",
+      "sha256": "34b8d6e2bfa7c16b7c46b7cc909fdcbe311b3c67ca7d6d930bb0faf844c82d6a",
+      "size": 6000,
+      "normalized_sha256": "273729df966f7038bd5c795bae630aa002566e7a5103288003bbea868dc0cc5a"
+    },
+    "src/main/java/com/fitpilot/llm/security/SensitiveDataRedactor.java": {
+      "role": "index",
+      "sha256": "061f864207399671edf2d2f2ba3c9fba61d574d5440bb4a43b35756f34496088",
+      "size": 1014,
+      "normalized_sha256": "061f864207399671edf2d2f2ba3c9fba61d574d5440bb4a43b35756f34496088"
+    },
+    "src/main/java/com/fitpilot/notification/controller/NotificationController.java": {
+      "role": "index",
+      "sha256": "da66a3309e49dd264a86ea54150a296e2292f00dd7792a1a723bb2b0a4038b49",
+      "size": 1838,
+      "normalized_sha256": "da66a3309e49dd264a86ea54150a296e2292f00dd7792a1a723bb2b0a4038b49"
+    },
+    "src/main/java/com/fitpilot/notification/dto/NotificationView.java": {
+      "role": "index",
+      "sha256": "0d39b356009ac05cc7d2b9b72a5a11f8b17adbd397a571d6a244861fcea1e433",
+      "size": 230,
+      "normalized_sha256": "0d39b356009ac05cc7d2b9b72a5a11f8b17adbd397a571d6a244861fcea1e433"
+    },
+    "src/main/java/com/fitpilot/notification/infrastructure/NotificationRepository.java": {
+      "role": "index",
+      "sha256": "ca8c7764ee84e0d9a9c2d78ad986b6abc823a040929250ed7b1af55135bea341",
+      "size": 2052,
+      "normalized_sha256": "ca8c7764ee84e0d9a9c2d78ad986b6abc823a040929250ed7b1af55135bea341"
+    },
+    "src/main/java/com/fitpilot/observability/FitPilotMetrics.java": {
+      "role": "index",
+      "sha256": "48927f6ad647bb94d4e0bb542657ff8ee12f431419fbf5ebc95f30e52c8ad598",
+      "size": 2851,
+      "normalized_sha256": "48927f6ad647bb94d4e0bb542657ff8ee12f431419fbf5ebc95f30e52c8ad598"
+    },
+    "src/main/java/com/fitpilot/observability/InfrastructureMetrics.java": {
+      "role": "index",
+      "sha256": "f59d47b325e193d8fc43c0a6398b8611c4d75e6cbf8615066235767824b735da",
+      "size": 1297,
+      "normalized_sha256": "f59d47b325e193d8fc43c0a6398b8611c4d75e6cbf8615066235767824b735da"
+    },
+    "src/main/java/com/fitpilot/observability/ObservabilityConfig.java": {
+      "role": "index",
+      "sha256": "1670f448a1db2e2e53aefcf2fe5c1034e3e90acb54f4a91466a29b3a37079fc7",
+      "size": 437,
+      "normalized_sha256": "1670f448a1db2e2e53aefcf2fe5c1034e3e90acb54f4a91466a29b3a37079fc7"
+    },
+    "src/main/java/com/fitpilot/observability/RepositoryObservationAspect.java": {
+      "role": "index",
+      "sha256": "5acd2913d2abb4b0e442c29bf1d6852bf93b6df707604f2bb9f554b558b72070",
+      "size": 1413,
+      "normalized_sha256": "5acd2913d2abb4b0e442c29bf1d6852bf93b6df707604f2bb9f554b558b72070"
+    },
+    "src/main/java/com/fitpilot/plan/application/TrainingPlanService.java": {
+      "role": "index",
+      "sha256": "971f6f50df990b75c92336584f0f387e3f740839bd93c32206e235ec1da37e58",
+      "size": 12827,
+      "normalized_sha256": "971f6f50df990b75c92336584f0f387e3f740839bd93c32206e235ec1da37e58"
+    },
+    "src/main/java/com/fitpilot/plan/application/TrainingPlanValidationService.java": {
+      "role": "index",
+      "sha256": "46b730123cf5c055b309f1790fc88ef3a430388fac8b5ba1d46daa385bcdcca1",
+      "size": 491,
+      "normalized_sha256": "46b730123cf5c055b309f1790fc88ef3a430388fac8b5ba1d46daa385bcdcca1"
+    },
+    "src/main/java/com/fitpilot/plan/controller/TrainingPlanController.java": {
+      "role": "index",
+      "sha256": "baf9e185eb974579b566538d532f6716c9781c6d29b2e0021ca68e7413e391cd",
+      "size": 2737,
+      "normalized_sha256": "baf9e185eb974579b566538d532f6716c9781c6d29b2e0021ca68e7413e391cd"
+    },
+    "src/main/java/com/fitpilot/plan/domain/TrainingPlan.java": {
+      "role": "index",
+      "sha256": "e64139cd16e8f1a9762f2a2afaa3e03ef3fd3de8916ab912f0892b54e2751b44",
+      "size": 718,
+      "normalized_sha256": "e64139cd16e8f1a9762f2a2afaa3e03ef3fd3de8916ab912f0892b54e2751b44"
+    },
+    "src/main/java/com/fitpilot/plan/domain/TrainingPlanDay.java": {
+      "role": "index",
+      "sha256": "5e2f54f5ced26120f50cf76971882e6bec99cd4276dc1083c6c77078a11612f1",
+      "size": 487,
+      "normalized_sha256": "5e2f54f5ced26120f50cf76971882e6bec99cd4276dc1083c6c77078a11612f1"
+    },
+    "src/main/java/com/fitpilot/plan/domain/TrainingPlanExercise.java": {
+      "role": "index",
+      "sha256": "53a1ecb06a0ad996e2a332f01a4489e7f5818f7c6178993f726cd6ce208d3c77",
+      "size": 696,
+      "normalized_sha256": "53a1ecb06a0ad996e2a332f01a4489e7f5818f7c6178993f726cd6ce208d3c77"
+    },
+    "src/main/java/com/fitpilot/plan/domain/TrainingPlanValidator.java": {
+      "role": "index",
+      "sha256": "1361db656c86a75b9101b261851ea2d76e6e0f45dba0ba26dbc36125e8660b7d",
+      "size": 1306,
+      "normalized_sha256": "1361db656c86a75b9101b261851ea2d76e6e0f45dba0ba26dbc36125e8660b7d"
+    },
+    "src/main/java/com/fitpilot/plan/dto/TrainingPlanDtos.java": {
+      "role": "index",
+      "sha256": "3b254903b4cad4e026b49f6b7d9744a6336cfd3bd1b44fcd662dfb18ff940efd",
+      "size": 2536,
+      "normalized_sha256": "3b254903b4cad4e026b49f6b7d9744a6336cfd3bd1b44fcd662dfb18ff940efd"
+    },
+    "src/main/java/com/fitpilot/plan/infrastructure/TrainingPlanDayMapper.java": {
+      "role": "index",
+      "sha256": "4f4f1a2013199141d390daad2d028a4071cce98a3865a0f6f6d2e44bdc4f93e1",
+      "size": 227,
+      "normalized_sha256": "4f4f1a2013199141d390daad2d028a4071cce98a3865a0f6f6d2e44bdc4f93e1"
+    },
+    "src/main/java/com/fitpilot/plan/infrastructure/TrainingPlanExerciseMapper.java": {
+      "role": "index",
+      "sha256": "ea6f5b4cb7efcd99045c2a396a47e89803fabcb6cbc449cf52e8bb1c3ee0bcf3",
+      "size": 242,
+      "normalized_sha256": "ea6f5b4cb7efcd99045c2a396a47e89803fabcb6cbc449cf52e8bb1c3ee0bcf3"
+    },
+    "src/main/java/com/fitpilot/plan/infrastructure/TrainingPlanMapper.java": {
+      "role": "index",
+      "sha256": "5c239d5c2710b89a6658576257a0787c7094cb916a1d21066c2d34b0b5b243a7",
+      "size": 218,
+      "normalized_sha256": "5c239d5c2710b89a6658576257a0787c7094cb916a1d21066c2d34b0b5b243a7"
+    },
+    "src/main/java/com/fitpilot/plan/repository/TrainingPlanRepository.java": {
+      "role": "index",
+      "sha256": "3c172dd0ce57452e7952fb7ee081d3c039f51982a159f7f829e29456b7887db2",
+      "size": 4236,
+      "normalized_sha256": "3c172dd0ce57452e7952fb7ee081d3c039f51982a159f7f829e29456b7887db2"
+    },
+    "src/main/java/com/fitpilot/pr/application/LeaderboardService.java": {
+      "role": "index",
+      "sha256": "cf9af92bef307b35a2fa07db43d4f242b16f520eeeea743f806437555754bb60",
+      "size": 4272,
+      "normalized_sha256": "cf9af92bef307b35a2fa07db43d4f242b16f520eeeea743f806437555754bb60"
+    },
+    "src/main/java/com/fitpilot/pr/application/PersonalRecordService.java": {
+      "role": "index",
+      "sha256": "f369323e0efa67f1280fb74627465482e46e83e6e58b76cb8e297a23a46fdc44",
+      "size": 6301,
+      "normalized_sha256": "f369323e0efa67f1280fb74627465482e46e83e6e58b76cb8e297a23a46fdc44"
+    },
+    "src/main/java/com/fitpilot/pr/controller/LeaderboardController.java": {
+      "role": "index",
+      "sha256": "858dc48a49462470d0a832bb6b6971734bea9078c02a956ff7d6b4be8cb0d5a3",
+      "size": 1631,
+      "normalized_sha256": "858dc48a49462470d0a832bb6b6971734bea9078c02a956ff7d6b4be8cb0d5a3"
+    },
+    "src/main/java/com/fitpilot/pr/controller/PersonalRecordController.java": {
+      "role": "index",
+      "sha256": "ff9f5986eeed7eadd306dda2c8f96150beffad3b90eeeb4998d5dae4e3507fbf",
+      "size": 1899,
+      "normalized_sha256": "ff9f5986eeed7eadd306dda2c8f96150beffad3b90eeeb4998d5dae4e3507fbf"
+    },
+    "src/main/java/com/fitpilot/pr/domain/PersonalRecord.java": {
+      "role": "index",
+      "sha256": "512233249c6db63312d9141cf8e07f4674c965318e776a56ee955bc84ffa5e9b",
+      "size": 753,
+      "normalized_sha256": "512233249c6db63312d9141cf8e07f4674c965318e776a56ee955bc84ffa5e9b"
+    },
+    "src/main/java/com/fitpilot/pr/domain/PersonalRecordCalculator.java": {
+      "role": "index",
+      "sha256": "1fe8082752ca0f1c48fe1495cf6bdf2c65ec1346138c557ccfd647d7155c7011",
+      "size": 1897,
+      "normalized_sha256": "1fe8082752ca0f1c48fe1495cf6bdf2c65ec1346138c557ccfd647d7155c7011"
+    },
+    "src/main/java/com/fitpilot/pr/dto/LeaderboardRow.java": {
+      "role": "index",
+      "sha256": "4c424c3921108404d3d624c1db5b88412550dce8e7a562ee91e3971e20b2198b",
+      "size": 173,
+      "normalized_sha256": "4c424c3921108404d3d624c1db5b88412550dce8e7a562ee91e3971e20b2198b"
+    },
+    "src/main/java/com/fitpilot/pr/dto/PersonalRecordView.java": {
+      "role": "index",
+      "sha256": "86e6ead1b0e7dad806ff19c2ea9a9b4eacce075d6fc40e6c39adb498d786d7ec",
+      "size": 661,
+      "normalized_sha256": "86e6ead1b0e7dad806ff19c2ea9a9b4eacce075d6fc40e6c39adb498d786d7ec"
+    },
+    "src/main/java/com/fitpilot/pr/infrastructure/PersonalRecordMapper.java": {
+      "role": "index",
+      "sha256": "d7e483a0f6aa5fceca815c617f22deb9ae8da3b35eb605e4c8917f91c31c63b4",
+      "size": 1532,
+      "normalized_sha256": "d7e483a0f6aa5fceca815c617f22deb9ae8da3b35eb605e4c8917f91c31c63b4"
+    },
+    "src/main/java/com/fitpilot/pr/repository/PersonalRecordRepository.java": {
+      "role": "index",
+      "sha256": "c2069dcbb99e27dba1d8918c3a4d9b185e7c5146907f04cec6c1defb1a906c2e",
+      "size": 3759,
+      "normalized_sha256": "c2069dcbb99e27dba1d8918c3a4d9b185e7c5146907f04cec6c1defb1a906c2e"
+    },
+    "src/main/java/com/fitpilot/rag/application/EvidenceSupportGate.java": {
+      "role": "index",
+      "sha256": "2360c6bbee56eade69eec8b48d27cb1c34a1a7bfeb3777f5ed201e62f769de65",
+      "size": 6575,
+      "normalized_sha256": "2360c6bbee56eade69eec8b48d27cb1c34a1a7bfeb3777f5ed201e62f769de65"
+    },
+    "src/main/java/com/fitpilot/rag/application/HybridRetrievalService.java": {
+      "role": "index",
+      "sha256": "0432f3277097436ef31b62900955ce21b8fc07841fc5b63b296109ca7eea534c",
+      "size": 13390,
+      "normalized_sha256": "10007827c79bfea24d8fc76ab4fe302ea445f06c1e221191732b1e73f9d33aaf"
+    },
+    "src/main/java/com/fitpilot/rag/application/KnowledgeIndexingService.java": {
+      "role": "index",
+      "sha256": "bb0c52b4d8f18a3bd60ea6b30e39a29f760e0f7ed16c35f1487b22e38ba916c5",
+      "size": 3072,
+      "normalized_sha256": "bb0c52b4d8f18a3bd60ea6b30e39a29f760e0f7ed16c35f1487b22e38ba916c5"
+    },
+    "src/main/java/com/fitpilot/rag/application/KnowledgeIngestionService.java": {
+      "role": "index",
+      "sha256": "6859ef1a1e6fd0a163739e9dca89f874407b59c7fa6b65a70ed226b144c47d43",
+      "size": 9889,
+      "normalized_sha256": "6859ef1a1e6fd0a163739e9dca89f874407b59c7fa6b65a70ed226b144c47d43"
+    },
+    "src/main/java/com/fitpilot/rag/application/RagExperimentCatalog.java": {
+      "role": "index",
+      "sha256": "ce65a7d6b094299a3cd293c098ea7e836b23bff0a2f1807476f8b98ca6cd4709",
+      "size": 2371,
+      "normalized_sha256": "ce65a7d6b094299a3cd293c098ea7e836b23bff0a2f1807476f8b98ca6cd4709"
+    },
+    "src/main/java/com/fitpilot/rag/application/RagFeedbackService.java": {
+      "role": "index",
+      "sha256": "d01ac6e9eb026d8534d0377863acb3074a587ffb39526700c6ec027569a18913",
+      "size": 4971,
+      "normalized_sha256": "d01ac6e9eb026d8534d0377863acb3074a587ffb39526700c6ec027569a18913"
+    },
+    "src/main/java/com/fitpilot/rag/config/RagProperties.java": {
+      "role": "index",
+      "sha256": "ec9151f4ec076d91084469d29b05c7d02e7eb850bc7be939676e226970de5b65",
+      "size": 5638,
+      "normalized_sha256": "09cc86315d7d1807d1a194ebcd0549fd844a767baf2b068928a722ce7c744313"
+    },
+    "src/main/java/com/fitpilot/rag/controller/RagFeedbackController.java": {
+      "role": "index",
+      "sha256": "150ef9e360105188250794093824fa87a9c7bd03f283ead0f63099523a12d104",
+      "size": 1211,
+      "normalized_sha256": "150ef9e360105188250794093824fa87a9c7bd03f283ead0f63099523a12d104"
+    },
+    "src/main/java/com/fitpilot/rag/controller/RagFeedbackOperationsController.java": {
+      "role": "index",
+      "sha256": "d46ffe5a526da9d722cfde1e33bb3e933a42b3c33d9c593b99bae2516f0ae5df",
+      "size": 1505,
+      "normalized_sha256": "d46ffe5a526da9d722cfde1e33bb3e933a42b3c33d9c593b99bae2516f0ae5df"
+    },
+    "src/main/java/com/fitpilot/rag/controller/RagOperationsController.java": {
+      "role": "index",
+      "sha256": "2b5ef7121bac14140edd9536396360f7042fa6eba3d70c6a1cac7ea983668bc9",
+      "size": 2844,
+      "normalized_sha256": "2b5ef7121bac14140edd9536396360f7042fa6eba3d70c6a1cac7ea983668bc9"
+    },
+    "src/main/java/com/fitpilot/rag/controller/RagSearchController.java": {
+      "role": "index",
+      "sha256": "60e9e9fe08ad647585d9dcacb834c314600bf871a07cfec3fad58fea8118018c",
+      "size": 1639,
+      "normalized_sha256": "60e9e9fe08ad647585d9dcacb834c314600bf871a07cfec3fad58fea8118018c"
+    },
+    "src/main/java/com/fitpilot/rag/domain/KnowledgeModels.java": {
+      "role": "index",
+      "sha256": "d526dae650f3519ddbf47ef6f857da4453db40aea13248ff74465ec68faa9b26",
+      "size": 1932,
+      "normalized_sha256": "d526dae650f3519ddbf47ef6f857da4453db40aea13248ff74465ec68faa9b26"
+    },
+    "src/main/java/com/fitpilot/rag/domain/RagCorpus.java": {
+      "role": "index",
+      "sha256": "42c1e18c3f0fa311d58a9c59e9b37af7ec920e6ae82ae4ca56017e21241ce83d",
+      "size": 469,
+      "normalized_sha256": "42c1e18c3f0fa311d58a9c59e9b37af7ec920e6ae82ae4ca56017e21241ce83d"
+    },
+    "src/main/java/com/fitpilot/rag/domain/RagTuningProfile.java": {
+      "role": "index",
+      "sha256": "85cc7ce4337bab18e702048730b70f410d8f1a2299e2fc8d0bdbfa3825a28c5d",
+      "size": 1385,
+      "normalized_sha256": "85cc7ce4337bab18e702048730b70f410d8f1a2299e2fc8d0bdbfa3825a28c5d"
+    },
+    "src/main/java/com/fitpilot/rag/dto/RagDtos.java": {
+      "role": "index",
+      "sha256": "a8079c8f83dbfa176a29f7a240d0b6febe3207d99052852e98b2ddbd89be78ed",
+      "size": 4259,
+      "normalized_sha256": "4294d2cb5df6aca223286dd43043bb3aca90baa2613296f95e006f0684dd3224"
+    },
+    "src/main/java/com/fitpilot/rag/embedding/EmbeddingProvider.java": {
+      "role": "index",
+      "sha256": "14e54b0000c6220c86a91166382fe7a204c6c7bda205b5e1de7b7d48e1d685e1",
+      "size": 127,
+      "normalized_sha256": "14e54b0000c6220c86a91166382fe7a204c6c7bda205b5e1de7b7d48e1d685e1"
+    },
+    "src/main/java/com/fitpilot/rag/embedding/LocalHashingEmbeddingProvider.java": {
+      "role": "index",
+      "sha256": "c44a02fef40b13d85f029232213c0a2ac8414fb890ab311a086aab772f8a9bb4",
+      "size": 2008,
+      "normalized_sha256": "c44a02fef40b13d85f029232213c0a2ac8414fb890ab311a086aab772f8a9bb4"
+    },
+    "src/main/java/com/fitpilot/rag/embedding/OpenAiCompatibleEmbeddingProvider.java": {
+      "role": "index",
+      "sha256": "276e0e2ce90b1484716f4ace2cd21112b460579331bab0da6214495793477691",
+      "size": 3133,
+      "normalized_sha256": "276e0e2ce90b1484716f4ace2cd21112b460579331bab0da6214495793477691"
+    },
+    "src/main/java/com/fitpilot/rag/infrastructure/ElasticsearchKnowledgeIndex.java": {
+      "role": "index",
+      "sha256": "a872c24676d2644cde5e17a1fe79d7f89d6cb5829366d3e92936fd563f09d584",
+      "size": 13379,
+      "normalized_sha256": "a872c24676d2644cde5e17a1fe79d7f89d6cb5829366d3e92936fd563f09d584"
+    },
+    "src/main/java/com/fitpilot/rag/infrastructure/KnowledgeRepository.java": {
+      "role": "index",
+      "sha256": "05074af0a9adeefc46f0135860f0c0f61bad55ed3db8144ad6c6a66012b71edc",
+      "size": 16449,
+      "normalized_sha256": "05074af0a9adeefc46f0135860f0c0f61bad55ed3db8144ad6c6a66012b71edc"
+    },
+    "src/main/java/com/fitpilot/rag/infrastructure/RagGovernanceRepository.java": {
+      "role": "index",
+      "sha256": "b808facb849b027a79d932768f1e186963c2915e5b28c158d4d04c54ae750504",
+      "size": 15298,
+      "normalized_sha256": "b808facb849b027a79d932768f1e186963c2915e5b28c158d4d04c54ae750504"
+    },
+    "src/main/java/com/fitpilot/rag/processing/DocumentParser.java": {
+      "role": "index",
+      "sha256": "26d9504af48bc0a7b1d2a66e7c8c74656e60597f3e710e20e990b1bde0f554d0",
+      "size": 1999,
+      "normalized_sha256": "26d9504af48bc0a7b1d2a66e7c8c74656e60597f3e710e20e990b1bde0f554d0"
+    },
+    "src/main/java/com/fitpilot/rag/processing/ParentChildChunker.java": {
+      "role": "index",
+      "sha256": "93221953c67ba8a3a3cb661cd8f6b04807ec3b0d87a1ee2be207b372d89ccd38",
+      "size": 3210,
+      "normalized_sha256": "93221953c67ba8a3a3cb661cd8f6b04807ec3b0d87a1ee2be207b372d89ccd38"
+    },
+    "src/main/java/com/fitpilot/rag/processing/TextAnalyzer.java": {
+      "role": "index",
+      "sha256": "319555146651f9c19d4750a87641645025f447a7c3cd1fb772cab3162188bb01",
+      "size": 1450,
+      "normalized_sha256": "319555146651f9c19d4750a87641645025f447a7c3cd1fb772cab3162188bb01"
+    },
+    "src/main/java/com/fitpilot/user/application/UserAccountService.java": {
+      "role": "index",
+      "sha256": "94160b2b969067d711ff228b62a74433c37cef940af66fd7f56145d18b0b270e",
+      "size": 1785,
+      "normalized_sha256": "94160b2b969067d711ff228b62a74433c37cef940af66fd7f56145d18b0b270e"
+    },
+    "src/main/java/com/fitpilot/user/application/UserService.java": {
+      "role": "index",
+      "sha256": "99d6e5442e89988c3441ff2f935cd3a546c260b53f4bf05061b0c742afc9dc78",
+      "size": 4907,
+      "normalized_sha256": "99d6e5442e89988c3441ff2f935cd3a546c260b53f4bf05061b0c742afc9dc78"
+    },
+    "src/main/java/com/fitpilot/user/controller/UserController.java": {
+      "role": "index",
+      "sha256": "44db93d3f9e5a2003802d9021567186d21a93ee806c711de6dfc355d52841668",
+      "size": 2467,
+      "normalized_sha256": "44db93d3f9e5a2003802d9021567186d21a93ee806c711de6dfc355d52841668"
+    },
+    "src/main/java/com/fitpilot/user/domain/BodyMetric.java": {
+      "role": "index",
+      "sha256": "4f093f5854cf60462ab531dfbe8f947911e11d5cb874fcd251451efba2276e4b",
+      "size": 564,
+      "normalized_sha256": "4f093f5854cf60462ab531dfbe8f947911e11d5cb874fcd251451efba2276e4b"
+    },
+    "src/main/java/com/fitpilot/user/domain/User.java": {
+      "role": "index",
+      "sha256": "1504126d44d9462cd716ed5589bf786f93d3d8dc89580a5a60c11fa98fb3ab71",
+      "size": 499,
+      "normalized_sha256": "1504126d44d9462cd716ed5589bf786f93d3d8dc89580a5a60c11fa98fb3ab71"
+    },
+    "src/main/java/com/fitpilot/user/domain/UserProfile.java": {
+      "role": "index",
+      "sha256": "d8af1091cec2a97fece900978ccb06fa0f020ae8247371f20194130f6396b88a",
+      "size": 730,
+      "normalized_sha256": "d8af1091cec2a97fece900978ccb06fa0f020ae8247371f20194130f6396b88a"
+    },
+    "src/main/java/com/fitpilot/user/dto/UserDtos.java": {
+      "role": "index",
+      "sha256": "d971dd20a5904d9323e1b4414f71408ae1b5124029e7d63ece0f7261786c5b1a",
+      "size": 1531,
+      "normalized_sha256": "d971dd20a5904d9323e1b4414f71408ae1b5124029e7d63ece0f7261786c5b1a"
+    },
+    "src/main/java/com/fitpilot/user/infrastructure/BodyMetricMapper.java": {
+      "role": "index",
+      "sha256": "734b8a702af0611b6f26e9241f005aece00eabe3c0835fe56632d33772a8c86c",
+      "size": 212,
+      "normalized_sha256": "734b8a702af0611b6f26e9241f005aece00eabe3c0835fe56632d33772a8c86c"
+    },
+    "src/main/java/com/fitpilot/user/infrastructure/UserMapper.java": {
+      "role": "index",
+      "sha256": "5a1ffdc76326bf8faf14cb00b10ccf933ff42017616770b14d2833a2eefb93e1",
+      "size": 194,
+      "normalized_sha256": "5a1ffdc76326bf8faf14cb00b10ccf933ff42017616770b14d2833a2eefb93e1"
+    },
+    "src/main/java/com/fitpilot/user/infrastructure/UserProfileMapper.java": {
+      "role": "index",
+      "sha256": "749c126f4f210907cb32bb87b118d43e07415fe98f9dd1e0ca686903d62727b0",
+      "size": 215,
+      "normalized_sha256": "749c126f4f210907cb32bb87b118d43e07415fe98f9dd1e0ca686903d62727b0"
+    },
+    "src/main/java/com/fitpilot/user/repository/BodyMetricRepository.java": {
+      "role": "index",
+      "sha256": "90e7ce7e3518a6c931b126df21af5a1b941ecf93b6004444ea905ea36c9fd33c",
+      "size": 1579,
+      "normalized_sha256": "90e7ce7e3518a6c931b126df21af5a1b941ecf93b6004444ea905ea36c9fd33c"
+    },
+    "src/main/java/com/fitpilot/user/repository/UserRepository.java": {
+      "role": "index",
+      "sha256": "152d3814fbc121dfed6ea98296cb13cf86408732890c7f166d8fef928d5357e2",
+      "size": 1620,
+      "normalized_sha256": "152d3814fbc121dfed6ea98296cb13cf86408732890c7f166d8fef928d5357e2"
+    },
+    "src/main/java/com/fitpilot/workout/application/RecoverableSetService.java": {
+      "role": "index",
+      "sha256": "708e1e9965ec89d17c862c6c167aeb8b7dc6476ceb7aee208bbee3928ad25d7c",
+      "size": 2745,
+      "normalized_sha256": "708e1e9965ec89d17c862c6c167aeb8b7dc6476ceb7aee208bbee3928ad25d7c"
+    },
+    "src/main/java/com/fitpilot/workout/application/WorkoutFeedbackService.java": {
+      "role": "index",
+      "sha256": "7b56d80198bc73fbab120c4e439559976590b8f2c992d685a3d01ee9afb8ba5c",
+      "size": 2464,
+      "normalized_sha256": "7b56d80198bc73fbab120c4e439559976590b8f2c992d685a3d01ee9afb8ba5c"
+    },
+    "src/main/java/com/fitpilot/workout/application/WorkoutService.java": {
+      "role": "index",
+      "sha256": "3f1fe043784720ead986452be4971759df57ce52da57ef23d89000c688d0af8c",
+      "size": 16067,
+      "normalized_sha256": "79392b16ba6c0fd7e8818f4c8b1807f36f1a710d08ae67301b93da86608270fe"
+    },
+    "src/main/java/com/fitpilot/workout/controller/WorkoutController.java": {
+      "role": "index",
+      "sha256": "a0548765b4c08e58ce88f69a27409f00fc8c3fc4da7458a283224b9d1a8da0ee",
+      "size": 5997,
+      "normalized_sha256": "a0548765b4c08e58ce88f69a27409f00fc8c3fc4da7458a283224b9d1a8da0ee"
+    },
+    "src/main/java/com/fitpilot/workout/domain/Workout.java": {
+      "role": "index",
+      "sha256": "1f801e4b5aea70b2d4beb0fa47d1c7b148e3018781316eec397b89c0376cda67",
+      "size": 745,
+      "normalized_sha256": "1f801e4b5aea70b2d4beb0fa47d1c7b148e3018781316eec397b89c0376cda67"
+    },
+    "src/main/java/com/fitpilot/workout/domain/WorkoutExercise.java": {
+      "role": "index",
+      "sha256": "65cb2002e9b3f402688dc29d3b0c9ab36bda5374b2620f0c505e89f0c6438dff",
+      "size": 712,
+      "normalized_sha256": "65cb2002e9b3f402688dc29d3b0c9ab36bda5374b2620f0c505e89f0c6438dff"
+    },
+    "src/main/java/com/fitpilot/workout/domain/WorkoutSet.java": {
+      "role": "index",
+      "sha256": "7d802801666e24ffa3ec3709964001d2597bda76cad5bb45044484f913c42c54",
+      "size": 806,
+      "normalized_sha256": "7d802801666e24ffa3ec3709964001d2597bda76cad5bb45044484f913c42c54"
+    },
+    "src/main/java/com/fitpilot/workout/dto/WorkoutDtos.java": {
+      "role": "index",
+      "sha256": "8858026f86d308a4ce12ec2c62cc538e7cde534adc37b4b6d17b54bb9c0474e0",
+      "size": 2459,
+      "normalized_sha256": "8858026f86d308a4ce12ec2c62cc538e7cde534adc37b4b6d17b54bb9c0474e0"
+    },
+    "src/main/java/com/fitpilot/workout/infrastructure/WorkoutExerciseMapper.java": {
+      "role": "index",
+      "sha256": "0b407ab8f1b474fb0f10328cdd7a10dd28c9b57111263106c4aef052f48ad1f1",
+      "size": 234,
+      "normalized_sha256": "0b407ab8f1b474fb0f10328cdd7a10dd28c9b57111263106c4aef052f48ad1f1"
+    },
+    "src/main/java/com/fitpilot/workout/infrastructure/WorkoutMapper.java": {
+      "role": "index",
+      "sha256": "59fdb97049bb3bc6f8c4f052b24cef08febf46947d878b35f8aa1448adba1a12",
+      "size": 209,
+      "normalized_sha256": "59fdb97049bb3bc6f8c4f052b24cef08febf46947d878b35f8aa1448adba1a12"
+    },
+    "src/main/java/com/fitpilot/workout/infrastructure/WorkoutSetMapper.java": {
+      "role": "index",
+      "sha256": "a4dca2ac94b558e231c37016f01d07710dc613cc39aa3b0a31b9e55618bcd503",
+      "size": 218,
+      "normalized_sha256": "a4dca2ac94b558e231c37016f01d07710dc613cc39aa3b0a31b9e55618bcd503"
+    },
+    "src/main/java/com/fitpilot/workout/repository/WorkoutReceiptRepository.java": {
+      "role": "index",
+      "sha256": "2878dc192866972a7e1c435c837e22b31ec344d6b1f636abca5599784fdf51a1",
+      "size": 1224,
+      "normalized_sha256": "2878dc192866972a7e1c435c837e22b31ec344d6b1f636abca5599784fdf51a1"
+    },
+    "src/main/java/com/fitpilot/workout/repository/WorkoutRepository.java": {
+      "role": "index",
+      "sha256": "9fc104ae57ad0b578ce694671bd7f62ddf1a7b7c82062168f20b38c4456f147c",
+      "size": 7420,
+      "normalized_sha256": "9fc104ae57ad0b578ce694671bd7f62ddf1a7b7c82062168f20b38c4456f147c"
+    },
+    "src/main/resources/application-prod.yml": {
+      "role": "index",
+      "sha256": "40330f5fbf5c8d7e154b3349d34b459ac3f9f65b073ae4091fa8dd94f79607a4",
+      "size": 217,
+      "normalized_sha256": "40330f5fbf5c8d7e154b3349d34b459ac3f9f65b073ae4091fa8dd94f79607a4"
+    },
+    "src/main/resources/application.yml": {
+      "role": "index",
+      "sha256": "1e2e339c5f6149ef989db6ace6ed046111fd9766869644d67a1e6f674e24ff37",
+      "size": 8242,
+      "normalized_sha256": "8e21b35bc842f94a5d7371795b341593910431fca008538c0c7227dad3703b37"
+    },
+    "src/main/resources/db/migration/V10__enforce_single_active_workout.sql": {
+      "role": "index",
+      "sha256": "f97f59e0840b86a51f65d5e331845d405aa417c7ea142d785a75c513287603b5",
+      "size": 97,
+      "normalized_sha256": "f97f59e0840b86a51f65d5e331845d405aa417c7ea142d785a75c513287603b5"
+    },
+    "src/main/resources/db/migration/V11__use_timezone_for_agent_confirmation.sql": {
+      "role": "index",
+      "sha256": "4225d57274165b74376e71d0ae5188cbce892889c5024d7abbc33c953b63ecc7",
+      "size": 119,
+      "normalized_sha256": "4225d57274165b74376e71d0ae5188cbce892889c5024d7abbc33c953b63ecc7"
+    },
+    "src/main/resources/db/migration/V12__persist_agent_conversations.sql": {
+      "role": "index",
+      "sha256": "8d18d1d197b83820d4440908063f757bd393b7fa6ff00069249ecd4741b8be37",
+      "size": 1018,
+      "normalized_sha256": "8d18d1d197b83820d4440908063f757bd393b7fa6ff00069249ecd4741b8be37"
+    },
+    "src/main/resources/db/migration/V13__add_training_feedback_and_adjustments.sql": {
+      "role": "index",
+      "sha256": "20a2c93b94f59993d42e5b5952f6faf045d0910e69ceb291b6b640bc1187d65f",
+      "size": 1682,
+      "normalized_sha256": "20a2c93b94f59993d42e5b5952f6faf045d0910e69ceb291b6b640bc1187d65f"
+    },
+    "src/main/resources/db/migration/V14__add_rag_governance_feedback.sql": {
+      "role": "index",
+      "sha256": "a6f067af8f7b29cdac88cb79a35cb665b88820a58636a8a17c691989ab6edcce",
+      "size": 4370,
+      "normalized_sha256": "a6f067af8f7b29cdac88cb79a35cb665b88820a58636a8a17c691989ab6edcce"
+    },
+    "src/main/resources/db/migration/V15__add_agent_product_metrics_indexes.sql": {
+      "role": "index",
+      "sha256": "548ae60170510a1bd18348741f8545555d70cff0a014879469e64bb312254b4d",
+      "size": 450,
+      "normalized_sha256": "548ae60170510a1bd18348741f8545555d70cff0a014879469e64bb312254b4d"
+    },
+    "src/main/resources/db/migration/V16__add_workout_business_idempotency.sql": {
+      "role": "index",
+      "sha256": "fbf3e1c15a8fa1846943a90cb190391cc58be87c89d1328caa8fc802704bbb69",
+      "size": 444,
+      "normalized_sha256": "fbf3e1c15a8fa1846943a90cb190391cc58be87c89d1328caa8fc802704bbb69"
+    },
+    "src/main/resources/db/migration/V17__add_evaluation_lifecycle.sql": {
+      "role": "index",
+      "sha256": "27806dadb40b05ae938190c3af65182329c4088f57d237b85a043ff51c884450",
+      "size": 2119,
+      "normalized_sha256": "27806dadb40b05ae938190c3af65182329c4088f57d237b85a043ff51c884450"
+    },
+    "src/main/resources/db/migration/V18__add_rag_feedback_experiments.sql": {
+      "role": "index",
+      "sha256": "c29d5fb53a2de34ef5996933bb61a7e96a755b2144e6f447ecce54e80200f614",
+      "size": 515,
+      "normalized_sha256": "c29d5fb53a2de34ef5996933bb61a7e96a755b2144e6f447ecce54e80200f614"
+    },
+    "src/main/resources/db/migration/V19__add_workout_set_receipts.sql": {
+      "role": "index",
+      "sha256": "05de56cb743f0b61315f76113b1746349b933b858a4cc5a068ac2a8df186d97c",
+      "size": 577,
+      "normalized_sha256": "05de56cb743f0b61315f76113b1746349b933b858a4cc5a068ac2a8df186d97c"
+    },
+    "src/main/resources/db/migration/V1__create_v0_schema.sql": {
+      "role": "index",
+      "sha256": "2758f58900a1a57449d0ba4cd610834596a2a5977280c6c33ffada472da81d2d",
+      "size": 5904,
+      "normalized_sha256": "2758f58900a1a57449d0ba4cd610834596a2a5977280c6c33ffada472da81d2d"
+    },
+    "src/main/resources/db/migration/V20__add_outbox_claim_token.sql": {
+      "role": "index",
+      "sha256": "cbca8585cff8496ff3631734a03891eed7eb82c5fe00d8fa7c8e738453e39646",
+      "size": 210,
+      "normalized_sha256": "cbca8585cff8496ff3631734a03891eed7eb82c5fe00d8fa7c8e738453e39646"
+    },
+    "src/main/resources/db/migration/V21__fence_knowledge_index_versions.sql": {
+      "role": "index",
+      "sha256": "8382194a7589eb1250f05c4b7d522943b99eda8769bfc54ae6fce49ff2d64de2",
+      "size": 917,
+      "normalized_sha256": "8382194a7589eb1250f05c4b7d522943b99eda8769bfc54ae6fce49ff2d64de2"
+    },
+    "src/main/resources/db/migration/V22__isolate_rag_evaluation_corpora.sql": {
+      "role": "index",
+      "sha256": "a7db777c6a5938745fa15ca4eb568b71b54df60e7d8719b958977218a425e366",
+      "size": 1408,
+      "normalized_sha256": "a7db777c6a5938745fa15ca4eb568b71b54df60e7d8719b958977218a425e366"
+    },
+    "src/main/resources/db/migration/V23__index_workout_completion_outbox_lookup.sql": {
+      "role": "index",
+      "sha256": "3b204d854858bc0f7db8338352b7d97442c90b21913c4d690a41489bc0e4c84a",
+      "size": 167,
+      "normalized_sha256": "3b204d854858bc0f7db8338352b7d97442c90b21913c4d690a41489bc0e4c84a"
+    },
+    "src/main/resources/db/migration/V2__seed_exercises.sql": {
+      "role": "index",
+      "sha256": "de7a2b699cdec251d8a0a0f68b07a4ca4419521b56f8a31725307ccb75d251bc",
+      "size": 7770,
+      "normalized_sha256": "de7a2b699cdec251d8a0a0f68b07a4ca4419521b56f8a31725307ccb75d251bc"
+    },
+    "src/main/resources/db/migration/V3__add_event_driven_infrastructure.sql": {
+      "role": "index",
+      "sha256": "1a38dbd11301e798509956359841b5baf1f5ea25a78cd7d3e80971be5b24c71a",
+      "size": 2607,
+      "normalized_sha256": "1a38dbd11301e798509956359841b5baf1f5ea25a78cd7d3e80971be5b24c71a"
+    },
+    "src/main/resources/db/migration/V4__add_hybrid_rag.sql": {
+      "role": "index",
+      "sha256": "1f86384d27bb84cf9f7c172cf0d039ffc270bdde78ae197f59dc7922dcf0a647",
+      "size": 1970,
+      "normalized_sha256": "1f86384d27bb84cf9f7c172cf0d039ffc270bdde78ae197f59dc7922dcf0a647"
+    },
+    "src/main/resources/db/migration/V5__add_agent_workflow.sql": {
+      "role": "index",
+      "sha256": "d90b2c1d36a156daca6d8490b50b60c4c3c7b8718a6de2bb6d7c9bdb9aedf0da",
+      "size": 2253,
+      "normalized_sha256": "d90b2c1d36a156daca6d8490b50b60c4c3c7b8718a6de2bb6d7c9bdb9aedf0da"
+    },
+    "src/main/resources/db/migration/V6__widen_agent_status_columns.sql": {
+      "role": "index",
+      "sha256": "f312a332e1cee4d7bcb88b264c0cd94c4c5619ca4741eb3066cd58388e5a9168",
+      "size": 132,
+      "normalized_sha256": "f312a332e1cee4d7bcb88b264c0cd94c4c5619ca4741eb3066cd58388e5a9168"
+    },
+    "src/main/resources/db/migration/V7__add_llm_gateway_audit.sql": {
+      "role": "index",
+      "sha256": "5352f36222d6e181facbc78dab1dbfddf3430cd1de8affb5fed5e48b7cd1c51d",
+      "size": 943,
+      "normalized_sha256": "5352f36222d6e181facbc78dab1dbfddf3430cd1de8affb5fed5e48b7cd1c51d"
+    },
+    "src/main/resources/db/migration/V8__add_evaluation_runs.sql": {
+      "role": "index",
+      "sha256": "a80314580160408d65985c5646bdaa4e050cb557b51922246924cd972c914130",
+      "size": 1994,
+      "normalized_sha256": "a80314580160408d65985c5646bdaa4e050cb557b51922246924cd972c914130"
+    },
+    "src/main/resources/db/migration/V9__strengthen_rag_evaluation_truth.sql": {
+      "role": "index",
+      "sha256": "c5e4efa2ec9fa2c49476ed662032dec9aa168c08fa63f26538cb96a7320c8672",
+      "size": 218,
+      "normalized_sha256": "c5e4efa2ec9fa2c49476ed662032dec9aa168c08fa63f26538cb96a7320c8672"
+    },
+    "src/main/resources/eval/agent-v1.jsonl": {
+      "role": "index",
+      "sha256": "5acb4c8610cadc9fe2a3c1814f114a28b8a609720f9078535ca9303ef5f595ca",
+      "size": 42772,
+      "normalized_sha256": "5acb4c8610cadc9fe2a3c1814f114a28b8a609720f9078535ca9303ef5f595ca"
+    },
+    "src/main/resources/eval/rag-corpus-v1.jsonl": {
+      "role": "index",
+      "sha256": "4f54ac4f5c1d0d645f04fe21b6bd2fd06be67fbb75ea06e8c5b8493cfeffbde4",
+      "size": 5157,
+      "normalized_sha256": "4f54ac4f5c1d0d645f04fe21b6bd2fd06be67fbb75ea06e8c5b8493cfeffbde4"
+    },
+    "src/main/resources/eval/rag-v1.jsonl": {
+      "role": "index",
+      "sha256": "6d73b3a91d8e6b3a15f1a4cfaab85c1123c9f2a6ead3bfe4da13d42ba6a3029b",
+      "size": 8770,
+      "normalized_sha256": "6d73b3a91d8e6b3a15f1a4cfaab85c1123c9f2a6ead3bfe4da13d42ba6a3029b"
+    },
+    "src/main/resources/redis/token_bucket.lua": {
+      "role": "index",
+      "sha256": "56bdcdcfe34ac6475ed35e1afea9ece55a82f7518d3f6b64b46e7cfa23a718f2",
+      "size": 839,
+      "normalized_sha256": "56bdcdcfe34ac6475ed35e1afea9ece55a82f7518d3f6b64b46e7cfa23a718f2"
+    },
+    "src/test/java/com/fitpilot/FitPilotAgentProductMetricsIT.java": {
+      "role": "index",
+      "sha256": "2c038f7db81da040b8b14d36d79025818203600327d05e6cc177fa5d6f88a07b",
+      "size": 11687,
+      "normalized_sha256": "2c038f7db81da040b8b14d36d79025818203600327d05e6cc177fa5d6f88a07b"
+    },
+    "src/test/java/com/fitpilot/FitPilotApiIT.java": {
+      "role": "index",
+      "sha256": "1324b2793820ec62341c7b779b9d88ebbdffe14de8379f3ec7dc11d04a010a82",
+      "size": 45882,
+      "normalized_sha256": "c038281c7eb5a743e014f49e306af640f9a2f3500f4f246e1c20b23cb61ef083"
+    },
+    "src/test/java/com/fitpilot/FitPilotEventFlowIT.java": {
+      "role": "index",
+      "sha256": "a3f85a13060c059809afaed5c42e4e41cb7af85050a910bdbc408285c112dbdb",
+      "size": 8511,
+      "normalized_sha256": "a3f85a13060c059809afaed5c42e4e41cb7af85050a910bdbc408285c112dbdb"
+    },
+    "src/test/java/com/fitpilot/FitPilotLlmFlowIT.java": {
+      "role": "index",
+      "sha256": "a033d54ba0ae9d34596e060a36579dc7ad8390fd8bafd422924073a9a136ab95",
+      "size": 7817,
+      "normalized_sha256": "a033d54ba0ae9d34596e060a36579dc7ad8390fd8bafd422924073a9a136ab95"
+    },
+    "src/test/java/com/fitpilot/FitPilotRagFlowIT.java": {
+      "role": "index",
+      "sha256": "391356fb59aea96c9597e6da0ae304632d850508e5c504a622ff9be1d3182e00",
+      "size": 25827,
+      "normalized_sha256": "391356fb59aea96c9597e6da0ae304632d850508e5c504a622ff9be1d3182e00"
+    },
+    "src/test/java/com/fitpilot/FitPilotRedisDegradationIT.java": {
+      "role": "index",
+      "sha256": "ffc4a7d1703c90af8b6f27b3692a9cead0f7f8383c2e290a1f4fce6d6127fbe7",
+      "size": 3631,
+      "normalized_sha256": "ffc4a7d1703c90af8b6f27b3692a9cead0f7f8383c2e290a1f4fce6d6127fbe7"
+    },
+    "src/test/java/com/fitpilot/agent/adjustment/TrainingAdjustmentEvidenceIT.java": {
+      "role": "index",
+      "sha256": "bade5b6b4f5e1bb8fb18e63e3dc94fc1fbd1937b99e87c5f123be0c7fcee8981",
+      "size": 5417,
+      "normalized_sha256": "bade5b6b4f5e1bb8fb18e63e3dc94fc1fbd1937b99e87c5f123be0c7fcee8981"
+    },
+    "src/test/java/com/fitpilot/agent/adjustment/TrainingAdjustmentServiceTest.java": {
+      "role": "index",
+      "sha256": "85b936d870098c80fb476d42802f83b4cc026fa865402c521dddcbad6d093a32",
+      "size": 5770,
+      "normalized_sha256": "85b936d870098c80fb476d42802f83b4cc026fa865402c521dddcbad6d093a32"
+    },
+    "src/test/java/com/fitpilot/agent/application/AgentPlannerTest.java": {
+      "role": "index",
+      "sha256": "851908d4cad3405d3bd0a1d6f5efe34b5ac890060c9fd074873939c9a0337054",
+      "size": 1460,
+      "normalized_sha256": "851908d4cad3405d3bd0a1d6f5efe34b5ac890060c9fd074873939c9a0337054"
+    },
+    "src/test/java/com/fitpilot/agent/application/TrainingAdjustmentWorkflowIT.java": {
+      "role": "index",
+      "sha256": "bc4b7169cff62610005bd1909853cc6b5d33691b37d7be24baaa78928c3c44ff",
+      "size": 11041,
+      "normalized_sha256": "bc4b7169cff62610005bd1909853cc6b5d33691b37d7be24baaa78928c3c44ff"
+    },
+    "src/test/java/com/fitpilot/agent/application/TrainingPlanGuardrailTest.java": {
+      "role": "index",
+      "sha256": "a762adc8c47bf95a6ba9243182dc39c6c44a10431211cb7cd81890fb2774f260",
+      "size": 2015,
+      "normalized_sha256": "a762adc8c47bf95a6ba9243182dc39c6c44a10431211cb7cd81890fb2774f260"
+    },
+    "src/test/java/com/fitpilot/agent/memory/AgentSessionStoreTest.java": {
+      "role": "index",
+      "sha256": "1136bff0048aa57571b25b1231dcd5b5ac1691b75a4c52e794d2db0fa84c002e",
+      "size": 2990,
+      "normalized_sha256": "1136bff0048aa57571b25b1231dcd5b5ac1691b75a4c52e794d2db0fa84c002e"
+    },
+    "src/test/java/com/fitpilot/agent/product/AgentProductMetricsPublisherTest.java": {
+      "role": "index",
+      "sha256": "c780a62c74d81f0d4acc5ca2887223a54950eede400023b1f9a957ba74aacc6a",
+      "size": 2549,
+      "normalized_sha256": "c780a62c74d81f0d4acc5ca2887223a54950eede400023b1f9a957ba74aacc6a"
+    },
+    "src/test/java/com/fitpilot/agent/product/AgentProductMetricsServiceTest.java": {
+      "role": "index",
+      "sha256": "653bcff96e3825bb4e567ad7f8166208012946fea6f210b5970a3ea23420bcda",
+      "size": 4597,
+      "normalized_sha256": "653bcff96e3825bb4e567ad7f8166208012946fea6f210b5970a3ea23420bcda"
+    },
+    "src/test/java/com/fitpilot/architecture/ModuleBoundaryArchitectureTest.java": {
+      "role": "index",
+      "sha256": "bb9a6b6632dd71dcb76a2f0d8a6cd93f3f891e136544571b4831657865b73de6",
+      "size": 6783,
+      "normalized_sha256": "bb9a6b6632dd71dcb76a2f0d8a6cd93f3f891e136544571b4831657865b73de6"
+    },
+    "src/test/java/com/fitpilot/common/operations/OperationsAuthenticationFilterTest.java": {
+      "role": "index",
+      "sha256": "c59ef86d9829a9f220b410800895720a9baeed888fc71d7b28962cb2301e6724",
+      "size": 2420,
+      "normalized_sha256": "c59ef86d9829a9f220b410800895720a9baeed888fc71d7b28962cb2301e6724"
+    },
+    "src/test/java/com/fitpilot/common/security/JwtServiceTest.java": {
+      "role": "index",
+      "sha256": "2b8c84a0a6f6556614fee1c42bf11bad6edb7f692e0ee5859170cd8260ac7409",
+      "size": 1434,
+      "normalized_sha256": "2b8c84a0a6f6556614fee1c42bf11bad6edb7f692e0ee5859170cd8260ac7409"
+    },
+    "src/test/java/com/fitpilot/comparison/ArchitectureComparison.java": {
+      "role": "index",
+      "sha256": "5248b6cc30ea8f041b9e888343b7086a2f630282b4a10d6f1b04ae4f62fedee7",
+      "size": 5516,
+      "normalized_sha256": "5248b6cc30ea8f041b9e888343b7086a2f630282b4a10d6f1b04ae4f62fedee7"
+    },
+    "src/test/java/com/fitpilot/comparison/CacheComparison.java": {
+      "role": "index",
+      "sha256": "79f3ac07e8d2cbcb315623ae64387030092a0dd1fd3114efff85080fd87b7b3f",
+      "size": 5692,
+      "normalized_sha256": "79f3ac07e8d2cbcb315623ae64387030092a0dd1fd3114efff85080fd87b7b3f"
+    },
+    "src/test/java/com/fitpilot/comparison/ComparisonEvidence.java": {
+      "role": "index",
+      "sha256": "8d102f6568627df6e77cf4181a83c2bcaaeafebf808e111ab456572f734b1ee1",
+      "size": 1723,
+      "normalized_sha256": "8d102f6568627df6e77cf4181a83c2bcaaeafebf808e111ab456572f734b1ee1"
+    },
+    "src/test/java/com/fitpilot/comparison/EventComparison.java": {
+      "role": "index",
+      "sha256": "1df95f9337a0f47c639ec591701cbe29225bf1c5c26a99440a293f87c0f1faba",
+      "size": 11265,
+      "normalized_sha256": "1df95f9337a0f47c639ec591701cbe29225bf1c5c26a99440a293f87c0f1faba"
+    },
+    "src/test/java/com/fitpilot/comparison/RetrievalComparison.java": {
+      "role": "index",
+      "sha256": "6d24b0d85695e8f7cc8456b2deb1571cac7be89ca1e9882a423f43bc8be55ab2",
+      "size": 4368,
+      "normalized_sha256": "6d24b0d85695e8f7cc8456b2deb1571cac7be89ca1e9882a423f43bc8be55ab2"
+    },
+    "src/test/java/com/fitpilot/evaluation/RagAbstentionAcceptanceIT.java": {
+      "role": "index",
+      "sha256": "714ea789f80e5f6987caf262c2aa05705b697776d47941123d04b51ba9cfafe5",
+      "size": 6460,
+      "normalized_sha256": "714ea789f80e5f6987caf262c2aa05705b697776d47941123d04b51ba9cfafe5"
+    },
+    "src/test/java/com/fitpilot/evaluation/RealEmbeddingRetrievalBenchmark.java": {
+      "role": "index",
+      "sha256": "965af23adcf6291a5058b52c7a58fbdbda02a69d09d1cdae392e4b475638f052",
+      "size": 8723,
+      "normalized_sha256": "1dcf14e945ac9051f3d2d7d617316d64cb4c5250db862b83ac6f823308949e11"
+    },
+    "src/test/java/com/fitpilot/evaluation/application/EvaluationDatasetTest.java": {
+      "role": "index",
+      "sha256": "058e235027e79d325974501ce90a1c37e01247547fff5843f9369ae8c32ef57f",
+      "size": 1304,
+      "normalized_sha256": "058e235027e79d325974501ce90a1c37e01247547fff5843f9369ae8c32ef57f"
+    },
+    "src/test/java/com/fitpilot/evaluation/application/EvaluationMetricCalculatorTest.java": {
+      "role": "index",
+      "sha256": "4f6de813ac5bc4cef02be262354f4da22c27966a2d7f4b3abb63f8772af86244",
+      "size": 2480,
+      "normalized_sha256": "4f6de813ac5bc4cef02be262354f4da22c27966a2d7f4b3abb63f8772af86244"
+    },
+    "src/test/java/com/fitpilot/evaluation/application/EvaluationReportServiceTest.java": {
+      "role": "index",
+      "sha256": "e9f6ae50c17972561aef9f589308dd0597123cb4ce2b9419c1f6d52f80b23deb",
+      "size": 3347,
+      "normalized_sha256": "e9f6ae50c17972561aef9f589308dd0597123cb4ce2b9419c1f6d52f80b23deb"
+    },
+    "src/test/java/com/fitpilot/evaluation/application/EvaluationServiceFeedbackExperimentTest.java": {
+      "role": "index",
+      "sha256": "2848d72fd2dbf623be85a93c74bc37cd3e5c6260aa483b6762f4969e57dc7be0",
+      "size": 3039,
+      "normalized_sha256": "2848d72fd2dbf623be85a93c74bc37cd3e5c6260aa483b6762f4969e57dc7be0"
+    },
+    "src/test/java/com/fitpilot/evaluation/application/EvaluationServiceLifecycleTest.java": {
+      "role": "index",
+      "sha256": "a0f4753d0d63475eee4b01ebe9004a4092a5cfb001f0ba5ab624b0f7170717b1",
+      "size": 2865,
+      "normalized_sha256": "a0f4753d0d63475eee4b01ebe9004a4092a5cfb001f0ba5ab624b0f7170717b1"
+    },
+    "src/test/java/com/fitpilot/infrastructure/events/OutboxBacklogBenchmark.java": {
+      "role": "index",
+      "sha256": "c0c5aed3e6ff0326acc1749443a86bc2d3c03de04924a3972ecc9a5c863fe9d8",
+      "size": 16165,
+      "normalized_sha256": "c0c5aed3e6ff0326acc1749443a86bc2d3c03de04924a3972ecc9a5c863fe9d8"
+    },
+    "src/test/java/com/fitpilot/infrastructure/events/OutboxLeaseIT.java": {
+      "role": "index",
+      "sha256": "3fb8bf0018b548f9c4ddbead5ae422e26e057980a942844a42ce1702c48161d6",
+      "size": 9540,
+      "normalized_sha256": "3fb8bf0018b548f9c4ddbead5ae422e26e057980a942844a42ce1702c48161d6"
+    },
+    "src/test/java/com/fitpilot/infrastructure/events/OutboxRelayTest.java": {
+      "role": "index",
+      "sha256": "30918087bc0384a97dfa03f827e8cda9fea34fb742efc206cc26223e94bd7f62",
+      "size": 3488,
+      "normalized_sha256": "30918087bc0384a97dfa03f827e8cda9fea34fb742efc206cc26223e94bd7f62"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/IdempotencyFilterTest.java": {
+      "role": "index",
+      "sha256": "0927a5ce4e5a2ed0bfe54d2b014edc3fd4ef9eb6a2dcfb56f76e10b78c79731a",
+      "size": 4046,
+      "normalized_sha256": "0927a5ce4e5a2ed0bfe54d2b014edc3fd4ef9eb6a2dcfb56f76e10b78c79731a"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/IdempotencyFingerprintTest.java": {
+      "role": "index",
+      "sha256": "cdced549b25024f3c88b1ab92571926eedd0df7e5f19e08555b74bf48abaeca2",
+      "size": 2518,
+      "normalized_sha256": "cdced549b25024f3c88b1ab92571926eedd0df7e5f19e08555b74bf48abaeca2"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/PerformanceConfigTest.java": {
+      "role": "index",
+      "sha256": "0f2424bd52748bb8a62e93ef47cb79228616ccd83d7dddf2b7a9f29630c525dc",
+      "size": 1564,
+      "normalized_sha256": "0f2424bd52748bb8a62e93ef47cb79228616ccd83d7dddf2b7a9f29630c525dc"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/RedisFailureGuardTest.java": {
+      "role": "index",
+      "sha256": "a895a119564e5b1f8f8e14434a81e0a0e7102c77488c5b3ce69b4c898bcfcda3",
+      "size": 2883,
+      "normalized_sha256": "a895a119564e5b1f8f8e14434a81e0a0e7102c77488c5b3ce69b4c898bcfcda3"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/TwoLevelCacheDegradationTest.java": {
+      "role": "index",
+      "sha256": "1c42bf4366f1d966752b04345cc128f8585c3a8da08bcc6e0e5e57d34f2dc75e",
+      "size": 1499,
+      "normalized_sha256": "1c42bf4366f1d966752b04345cc128f8585c3a8da08bcc6e0e5e57d34f2dc75e"
+    },
+    "src/test/java/com/fitpilot/infrastructure/performance/TwoLevelCacheIT.java": {
+      "role": "index",
+      "sha256": "5805a75f8acd2e109561a1f071f38524b3d87bb9602402789a9b10b0dfd432a8",
+      "size": 4222,
+      "normalized_sha256": "5805a75f8acd2e109561a1f071f38524b3d87bb9602402789a9b10b0dfd432a8"
+    },
+    "src/test/java/com/fitpilot/infrastructure/scheduling/SchedulerIsolationTest.java": {
+      "role": "index",
+      "sha256": "1f2e9d27d64a86c49d29e343258097d04fbb06240e749bed22aed57e971de623",
+      "size": 2458,
+      "normalized_sha256": "1f2e9d27d64a86c49d29e343258097d04fbb06240e749bed22aed57e971de623"
+    },
+    "src/test/java/com/fitpilot/llm/application/LlmGatewayTest.java": {
+      "role": "index",
+      "sha256": "82f097258a35b093c33ee8a7d5324f2b024f85b82fa1cfc1f327e7457db736d5",
+      "size": 2453,
+      "normalized_sha256": "82f097258a35b093c33ee8a7d5324f2b024f85b82fa1cfc1f327e7457db736d5"
+    },
+    "src/test/java/com/fitpilot/llm/infrastructure/OpenAiCompatibleClientTest.java": {
+      "role": "index",
+      "sha256": "48d46b07a83ae4f124b4bfbb38740f3ebcf538389798765605f28c49098e0bfa",
+      "size": 12227,
+      "normalized_sha256": "48d46b07a83ae4f124b4bfbb38740f3ebcf538389798765605f28c49098e0bfa"
+    },
+    "src/test/java/com/fitpilot/observability/FitPilotMetricsTest.java": {
+      "role": "index",
+      "sha256": "fdab12d81f9727bde98be9df3a29534e0dc67c901e3f73b35a85887dd5e46a23",
+      "size": 2268,
+      "normalized_sha256": "fdab12d81f9727bde98be9df3a29534e0dc67c901e3f73b35a85887dd5e46a23"
+    },
+    "src/test/java/com/fitpilot/performance/WorkoutWriteLoadBenchmark.java": {
+      "role": "index",
+      "sha256": "0e055ed42cd8e44b267c145da2f80a9e79f2af05055b48cd46def65caf6d9ba4",
+      "size": 19817,
+      "normalized_sha256": "0e055ed42cd8e44b267c145da2f80a9e79f2af05055b48cd46def65caf6d9ba4"
+    },
+    "src/test/java/com/fitpilot/plan/application/TrainingPlanFreshnessTest.java": {
+      "role": "index",
+      "sha256": "a84847f58fe76e310d49904942fe0632e8cff2df651393bae4faee3e5302f3e6",
+      "size": 1474,
+      "normalized_sha256": "a84847f58fe76e310d49904942fe0632e8cff2df651393bae4faee3e5302f3e6"
+    },
+    "src/test/java/com/fitpilot/plan/domain/TrainingPlanValidatorTest.java": {
+      "role": "index",
+      "sha256": "708dff095ef15c202a36d42de401e7df68cef12729d2316f10fe806c345cb368",
+      "size": 1363,
+      "normalized_sha256": "708dff095ef15c202a36d42de401e7df68cef12729d2316f10fe806c345cb368"
+    },
+    "src/test/java/com/fitpilot/pr/application/PersonalRecordProjectionIT.java": {
+      "role": "index",
+      "sha256": "25d34d613a85abfdde9aae6eda9dd57a98e273ebfe96858b61035dad4fbe60fc",
+      "size": 8695,
+      "normalized_sha256": "25d34d613a85abfdde9aae6eda9dd57a98e273ebfe96858b61035dad4fbe60fc"
+    },
+    "src/test/java/com/fitpilot/pr/domain/PersonalRecordCalculatorTest.java": {
+      "role": "index",
+      "sha256": "27e45cc2093c5f32cbb12a8b43ada21247fcdbc62374fc74a21ed252202fcc1f",
+      "size": 1208,
+      "normalized_sha256": "27e45cc2093c5f32cbb12a8b43ada21247fcdbc62374fc74a21ed252202fcc1f"
+    },
+    "src/test/java/com/fitpilot/quality/ZeroSkippedTestsGate.java": {
+      "role": "index",
+      "sha256": "8878860c6003e829c19b3795b527fd4a56db646bd9f3e442399344cfd656d2e2",
+      "size": 3100,
+      "normalized_sha256": "8878860c6003e829c19b3795b527fd4a56db646bd9f3e442399344cfd656d2e2"
+    },
+    "src/test/java/com/fitpilot/quality/ZeroSkippedTestsGateTest.java": {
+      "role": "index",
+      "sha256": "e1427a53db1bc83381c915627e5046101c432f283835a3a079a6a95e9377d7f5",
+      "size": 1521,
+      "normalized_sha256": "e1427a53db1bc83381c915627e5046101c432f283835a3a079a6a95e9377d7f5"
+    },
+    "src/test/java/com/fitpilot/rag/application/EvidenceSupportGateTest.java": {
+      "role": "index",
+      "sha256": "31f6d2a8b2fe662c4aa50e707901bad367f06a1f433d7d10d613889a3d9fdfd3",
+      "size": 4906,
+      "normalized_sha256": "31f6d2a8b2fe662c4aa50e707901bad367f06a1f433d7d10d613889a3d9fdfd3"
+    },
+    "src/test/java/com/fitpilot/rag/application/HybridRetrievalServiceTest.java": {
+      "role": "index",
+      "sha256": "ada3f620e8aadd73ffb67f9207fdb213af62bd82454cd2e89ffc9a84601fdbf4",
+      "size": 9201,
+      "normalized_sha256": "f97be04aad0edec12d3a9da8afbb81c680e8f5df2be7d83a954f54e4b223b7dc"
+    },
+    "src/test/java/com/fitpilot/rag/application/RagExperimentCatalogTest.java": {
+      "role": "index",
+      "sha256": "6af9cb4e9efff9fa662b02613044c72a95c1a962ce2672a04155a90de4bcdd0b",
+      "size": 1022,
+      "normalized_sha256": "6af9cb4e9efff9fa662b02613044c72a95c1a962ce2672a04155a90de4bcdd0b"
+    },
+    "src/test/java/com/fitpilot/rag/application/RagFeedbackServiceTest.java": {
+      "role": "index",
+      "sha256": "dd2c9fc49ed9505e9d26000377e0d94afa47b18b8e5ba8a5a2c75b93abe034da",
+      "size": 1986,
+      "normalized_sha256": "dd2c9fc49ed9505e9d26000377e0d94afa47b18b8e5ba8a5a2c75b93abe034da"
+    },
+    "src/test/java/com/fitpilot/rag/embedding/LocalHashingEmbeddingProviderTest.java": {
+      "role": "index",
+      "sha256": "54927b25612677d48fd765f9960c38bcd6a462bef25f757b675bfa1f72b989c8",
+      "size": 1065,
+      "normalized_sha256": "54927b25612677d48fd765f9960c38bcd6a462bef25f757b675bfa1f72b989c8"
+    },
+    "src/test/java/com/fitpilot/rag/infrastructure/RagCorpusMigrationIT.java": {
+      "role": "index",
+      "sha256": "27c246179d753d80baed2648445b94479d791fbc480590582b42be7596046fbb",
+      "size": 3552,
+      "normalized_sha256": "27c246179d753d80baed2648445b94479d791fbc480590582b42be7596046fbb"
+    },
+    "src/test/java/com/fitpilot/rag/processing/ParentChildChunkerTest.java": {
+      "role": "index",
+      "sha256": "5437534d281189b2ff501baf84f60da2281364d0b19f0fc526f727772078c454",
+      "size": 1815,
+      "normalized_sha256": "5437534d281189b2ff501baf84f60da2281364d0b19f0fc526f727772078c454"
+    },
+    "src/test/java/com/fitpilot/user/domain/UserDomainModelTest.java": {
+      "role": "index",
+      "sha256": "2977e4865175a738be52c7b7c369a7af97157138710c2defadd2633e87d44d49",
+      "size": 382,
+      "normalized_sha256": "2977e4865175a738be52c7b7c369a7af97157138710c2defadd2633e87d44d49"
+    },
+    "src/test/java/com/fitpilot/workout/application/WorkoutConcurrencyIT.java": {
+      "role": "index",
+      "sha256": "55b5e816d852e07dfb321d77d1e9a813c4b4ff015ec1976aa35e2303f9828529",
+      "size": 11935,
+      "normalized_sha256": "55b5e816d852e07dfb321d77d1e9a813c4b4ff015ec1976aa35e2303f9828529"
+    },
+    "src/test/java/com/fitpilot/workout/application/WorkoutServiceTest.java": {
+      "role": "index",
+      "sha256": "3ef0749abd2129bee8dac9319c6ae6c549b7035de847766032cd952df069e5fd",
+      "size": 1840,
+      "normalized_sha256": "3ef0749abd2129bee8dac9319c6ae6c549b7035de847766032cd952df069e5fd"
+    },
+    "src/test/resources/comparison/rag-queries.json": {
+      "role": "index",
+      "sha256": "edcef00ee0485d08e4997528a6cf650899168a4628049b4faaf64429599862db",
+      "size": 1561,
+      "normalized_sha256": "edcef00ee0485d08e4997528a6cf650899168a4628049b4faaf64429599862db"
+    },
+    "src/test/resources/retrieval/hard-negatives-v1.json": {
+      "role": "index",
+      "sha256": "190eecb652aeb6994664caa49fbc1e83d551529fcd4c5b9cd69ddc763c8c26fc",
+      "size": 2999,
+      "normalized_sha256": "190eecb652aeb6994664caa49fbc1e83d551529fcd4c5b9cd69ddc763c8c26fc"
+    },
+    "src/test/resources/retrieval/hard-negatives-v2.json": {
+      "role": "index",
+      "sha256": "ab48e6bc7b894fe950c0f7bb17cd3b2906e6757f99134249e14fd99fdefb44dc",
+      "size": 2920,
+      "normalized_sha256": "ab48e6bc7b894fe950c0f7bb17cd3b2906e6757f99134249e14fd99fdefb44dc"
+    },
+    "src/test/resources/retrieval/holdout-v1.json": {
+      "role": "index",
+      "sha256": "eddc5922f71df776e8474bb7eb01af3762cf627ccceadac1ea15546bb527de91",
+      "size": 4961,
+      "normalized_sha256": "eddc5922f71df776e8474bb7eb01af3762cf627ccceadac1ea15546bb527de91"
+    },
+    "web/.dockerignore": {
+      "role": "index",
+      "sha256": "ebb5ab2bf0b5d7c645a7e4f044ca74d8b11f68f6192b97161b7bd3e695df3fd7",
+      "size": 45,
+      "normalized_sha256": "ebb5ab2bf0b5d7c645a7e4f044ca74d8b11f68f6192b97161b7bd3e695df3fd7"
+    },
+    "web/.gitignore": {
+      "role": "index",
+      "sha256": "811824e4442666c37d3d4a1205b04e70eb2079407dec706f8032bf3c6fec90a1",
+      "size": 443,
+      "normalized_sha256": "811824e4442666c37d3d4a1205b04e70eb2079407dec706f8032bf3c6fec90a1"
+    },
+    "web/.openai/hosting.json": {
+      "role": "index",
+      "sha256": "d532abb65cf9ae20634b464d954cb4a08a0de9f3cd3cdf7f9c3ec8948826d947",
+      "size": 31,
+      "normalized_sha256": "d532abb65cf9ae20634b464d954cb4a08a0de9f3cd3cdf7f9c3ec8948826d947"
+    },
+    "web/Dockerfile": {
+      "role": "index",
+      "sha256": "19e03f9ee6f7e8a6316f68227e0d6a5b2a5ab5fe9b4ada782cfa9765c62cc6af",
+      "size": 571,
+      "normalized_sha256": "19e03f9ee6f7e8a6316f68227e0d6a5b2a5ab5fe9b4ada782cfa9765c62cc6af"
+    },
+    "web/README.md": {
+      "role": "index",
+      "sha256": "7db4d16ef481bfa4d5ac140db903f9a33627eb98a2321495e34e0ab2cf8fe273",
+      "size": 1748,
+      "normalized_sha256": "7db4d16ef481bfa4d5ac140db903f9a33627eb98a2321495e34e0ab2cf8fe273"
+    },
+    "web/e2e-offline/mobile-recovery.spec.ts": {
+      "role": "observe",
+      "sha256": "8702f32c273f6bac0bee96a7fec7ea964e30e6fd1d7b057400c7c44de0594fd6",
+      "size": 8054,
+      "normalized_sha256": "8702f32c273f6bac0bee96a7fec7ea964e30e6fd1d7b057400c7c44de0594fd6"
+    },
+    "web/e2e-offline/recovery.spec.ts": {
+      "role": "observe",
+      "sha256": "2d49ff857da50dcfc8674c237a5a92400c1ac7cd6d818e958d4f8025d70a7d34",
+      "size": 3740,
+      "normalized_sha256": "4a7df97dfb2db9d88bcc800f98acbf256588c4df85aac353e2c0ab791ecde380"
+    },
+    "web/e2e/ai-product.spec.ts": {
+      "role": "observe",
+      "sha256": "00cd1a516fb0fc786e230b2b4ae2e1af77191762eda857873b7f23f70a8c5a8f",
+      "size": 4919,
+      "normalized_sha256": "00cd1a516fb0fc786e230b2b4ae2e1af77191762eda857873b7f23f70a8c5a8f"
+    },
+    "web/e2e/plan-edit.spec.ts": {
+      "role": "observe",
+      "sha256": "c019b52bb1c759db6d5564663b9d0070759044cec42584bc2e33715616d08cc0",
+      "size": 3092,
+      "normalized_sha256": "c019b52bb1c759db6d5564663b9d0070759044cec42584bc2e33715616d08cc0"
+    },
+    "web/e2e/quality-gates.spec.ts": {
+      "role": "observe",
+      "sha256": "939863cd5532619ab53410cd0146ed7ad716aa34cfc7c64fac828a6d93a3b9ec",
+      "size": 8633,
+      "normalized_sha256": "550f857db2ce1f3b8387092542f2a3e4701588df24e5381cd86e91c266ceb488"
+    },
+    "web/e2e/quick-set.spec.ts": {
+      "role": "observe",
+      "sha256": "06b6d370aad1b8674f2ddb84a1bb9e6470ecc3bde069c0fa1116804c124f1fab",
+      "size": 5643,
+      "normalized_sha256": "0286654023543883e085839040f6dc205bbf8ac581d5fa04e0876d692dd9a0da"
+    },
+    "web/eslint.config.js": {
+      "role": "index",
+      "sha256": "a69e6a44363467f668ed76866e128241feb8502e2146be595a923a8400443c97",
+      "size": 893,
+      "normalized_sha256": "a69e6a44363467f668ed76866e128241feb8502e2146be595a923a8400443c97"
+    },
+    "web/index.html": {
+      "role": "index",
+      "sha256": "97ea582125ca832c1a28f35306cd67460719be1d3066261d1edd930662b822a0",
+      "size": 439,
+      "normalized_sha256": "97ea582125ca832c1a28f35306cd67460719be1d3066261d1edd930662b822a0"
+    },
+    "web/nginx.conf": {
+      "role": "index",
+      "sha256": "9e9afde0c203ab38260302122429769a4e903985a45c71d1d3f5dbc5dceb6f17",
+      "size": 834,
+      "normalized_sha256": "9e9afde0c203ab38260302122429769a4e903985a45c71d1d3f5dbc5dceb6f17"
+    },
+    "web/package-lock.json": {
+      "role": "observe",
+      "sha256": "640a5ce15764ec05dade6f0770f1a0a4a17af212c7015681ba16594e73f9b6e1",
+      "size": 183061,
+      "normalized_sha256": "640a5ce15764ec05dade6f0770f1a0a4a17af212c7015681ba16594e73f9b6e1"
+    },
+    "web/package.json": {
+      "role": "index",
+      "sha256": "7ba51612ac24b443cd83755f6476393e9ca05436dc49d54b03b80ceffe12269f",
+      "size": 1689,
+      "normalized_sha256": "a13d3dc1347c6689d9e01cdf2b7ef9ed5dc8ca55cc4effe7c622e503cc610db6"
+    },
+    "web/playwright.config.ts": {
+      "role": "index",
+      "sha256": "283753681fd600eeff287f7e50bb4f0e67eeee676ebd6e6efcc44a3326bea3d4",
+      "size": 644,
+      "normalized_sha256": "283753681fd600eeff287f7e50bb4f0e67eeee676ebd6e6efcc44a3326bea3d4"
+    },
+    "web/playwright.offline.config.ts": {
+      "role": "index",
+      "sha256": "6add06a6eb898acdd3918f03b55a2d613a96891837782c5127cf019d3af29682",
+      "size": 498,
+      "normalized_sha256": "6add06a6eb898acdd3918f03b55a2d613a96891837782c5127cf019d3af29682"
+    },
+    "web/public/favicon.svg": {
+      "role": "observe",
+      "sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7",
+      "size": 712,
+      "normalized_sha256": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7"
+    },
+    "web/src/App.test.tsx": {
+      "role": "observe",
+      "sha256": "37ef9752362bb27454623cb489262e65e4b15c3f1b3fa13ee8d6089860adb21e",
+      "size": 2491,
+      "normalized_sha256": "37ef9752362bb27454623cb489262e65e4b15c3f1b3fa13ee8d6089860adb21e"
+    },
+    "web/src/App.tsx": {
+      "role": "index",
+      "sha256": "774c9b58b7278722e0affde7451ec297503b794005c96c5c3c2fc125707e88ec",
+      "size": 1943,
+      "normalized_sha256": "774c9b58b7278722e0affde7451ec297503b794005c96c5c3c2fc125707e88ec"
+    },
+    "web/src/api/client.test.ts": {
+      "role": "observe",
+      "sha256": "0aa69ee2812ed202318a6262ab989e4b439d93d33d54ef15c82318e49d9e2e88",
+      "size": 3570,
+      "normalized_sha256": "0aa69ee2812ed202318a6262ab989e4b439d93d33d54ef15c82318e49d9e2e88"
+    },
+    "web/src/api/client.ts": {
+      "role": "index",
+      "sha256": "30549f8a9455b1c539d464c15e338e259507f889d9c023ce28196ae04a075a02",
+      "size": 2793,
+      "normalized_sha256": "30549f8a9455b1c539d464c15e338e259507f889d9c023ce28196ae04a075a02"
+    },
+    "web/src/api/types.ts": {
+      "role": "index",
+      "sha256": "20a47187e9f0966b5e6c9e16dd1dba5573aec368c750c8f5c13cff40e0d64574",
+      "size": 4597,
+      "normalized_sha256": "b2c556bdaf9b2c5986c375f4a9618d8e84a225a6d14bf6d6085acb3c62d2d616"
+    },
+    "web/src/auth/AuthContext.test.tsx": {
+      "role": "observe",
+      "sha256": "d54c3e2269d78b1ce3b6b061bf1e2d1658b2709577d209416890d11a32078f82",
+      "size": 4098,
+      "normalized_sha256": "82304eed0dcab2a084029f24acba55305202e1daf34aea9a3ad01324f3ff720f"
+    },
+    "web/src/auth/AuthContext.tsx": {
+      "role": "index",
+      "sha256": "773f7bc1f513dd11607ed49bb6ea73a29858dac5b671a1bc9a9288105eaf6382",
+      "size": 3158,
+      "normalized_sha256": "773f7bc1f513dd11607ed49bb6ea73a29858dac5b671a1bc9a9288105eaf6382"
+    },
+    "web/src/components/AppShell.test.tsx": {
+      "role": "observe",
+      "sha256": "0f6cbb61b2b09309a4306626515a7272346c58fc00109bf448cc31cfe5a28541",
+      "size": 1405,
+      "normalized_sha256": "1209ff22775aeaaa9ca1de45d6bf9674d258d464079b9a388af6e58cc20e02e0"
+    },
+    "web/src/components/AppShell.tsx": {
+      "role": "index",
+      "sha256": "f4aa0dfd548556b8de432758c319870b39695f7db3c435b133738e95478c57c2",
+      "size": 2007,
+      "normalized_sha256": "f4aa0dfd548556b8de432758c319870b39695f7db3c435b133738e95478c57c2"
+    },
+    "web/src/components/Brand.tsx": {
+      "role": "index",
+      "sha256": "d60037f5033abb8492f17a3f2ed18636444250f2282672b55f07891144b66faa",
+      "size": 393,
+      "normalized_sha256": "d60037f5033abb8492f17a3f2ed18636444250f2282672b55f07891144b66faa"
+    },
+    "web/src/components/PageParts.tsx": {
+      "role": "index",
+      "sha256": "eaf1fdab6f8dabaff702b969501c398b931c0a267e9593819d07f1ae8ac421ad",
+      "size": 1265,
+      "normalized_sha256": "eaf1fdab6f8dabaff702b969501c398b931c0a267e9593819d07f1ae8ac421ad"
+    },
+    "web/src/features/agent/AdjustmentInsightCard.test.tsx": {
+      "role": "observe",
+      "sha256": "5c31ecb4fdd63a3b1a4c8a3c0c6bc670e16a667893403578b9b89e5a8fcb2aeb",
+      "size": 1990,
+      "normalized_sha256": "5c31ecb4fdd63a3b1a4c8a3c0c6bc670e16a667893403578b9b89e5a8fcb2aeb"
+    },
+    "web/src/features/agent/AdjustmentInsightCard.tsx": {
+      "role": "index",
+      "sha256": "7b253fbce8f80b5dc781fb596b95b1e0a184d8c4e0a5f155a9899fadad821064",
+      "size": 935,
+      "normalized_sha256": "7b253fbce8f80b5dc781fb596b95b1e0a184d8c4e0a5f155a9899fadad821064"
+    },
+    "web/src/features/agent/CitationFeedback.test.tsx": {
+      "role": "observe",
+      "sha256": "62f9694ca51899ebeb74b459ffc32f9e09ad03a6166727b78ac8a275ccbd0d2c",
+      "size": 2190,
+      "normalized_sha256": "62f9694ca51899ebeb74b459ffc32f9e09ad03a6166727b78ac8a275ccbd0d2c"
+    },
+    "web/src/features/agent/CitationFeedback.tsx": {
+      "role": "index",
+      "sha256": "6480c77ad9ddad369393f48d34f5abedc1e13447f673bf6cfb18f41fcdbc8a65",
+      "size": 1589,
+      "normalized_sha256": "6480c77ad9ddad369393f48d34f5abedc1e13447f673bf6cfb18f41fcdbc8a65"
+    },
+    "web/src/features/agent/ConversationSidebar.test.tsx": {
+      "role": "observe",
+      "sha256": "e876d1aab9dd1854d375c7b80512459b839754c55488e02c00d8693ef913c3dc",
+      "size": 1500,
+      "normalized_sha256": "e876d1aab9dd1854d375c7b80512459b839754c55488e02c00d8693ef913c3dc"
+    },
+    "web/src/features/agent/ConversationSidebar.tsx": {
+      "role": "index",
+      "sha256": "9802bd2d4e4baa20ac35b2466af606992f18d7a3d541bb8f7c0577229ecad769",
+      "size": 1575,
+      "normalized_sha256": "9802bd2d4e4baa20ac35b2466af606992f18d7a3d541bb8f7c0577229ecad769"
+    },
+    "web/src/features/agent/PendingPlanCard.tsx": {
+      "role": "index",
+      "sha256": "aee36895ccda3338816706c5d7ff1f144a722a7360ad206529ae8ed7a482dc2b",
+      "size": 4251,
+      "normalized_sha256": "aee36895ccda3338816706c5d7ff1f144a722a7360ad206529ae8ed7a482dc2b"
+    },
+    "web/src/features/agent/pending-plan-card.css": {
+      "role": "index",
+      "sha256": "b1e283ea623c04c05e8d88ca6bc841c92b697e36765623879d9b7847bcba24b4",
+      "size": 1971,
+      "normalized_sha256": "b1e283ea623c04c05e8d88ca6bc841c92b697e36765623879d9b7847bcba24b4"
+    },
+    "web/src/features/agent/storage/pendingActionStorage.ts": {
+      "role": "index",
+      "sha256": "1a138529cf19b870afdfbb7cceaae77ae5cf60c0335d3043278d196499a12057",
+      "size": 930,
+      "normalized_sha256": "1a138529cf19b870afdfbb7cceaae77ae5cf60c0335d3043278d196499a12057"
+    },
+    "web/src/features/agent/storage/sessionStorage.ts": {
+      "role": "index",
+      "sha256": "c605cd35b55f13dce131816873c969ff418b1558d642d4edc60dfe6e4d8ce86d",
+      "size": 489,
+      "normalized_sha256": "c605cd35b55f13dce131816873c969ff418b1558d642d4edc60dfe6e4d8ce86d"
+    },
+    "web/src/features/agent/storage/storage.test.ts": {
+      "role": "observe",
+      "sha256": "da2789a09a0f1ea432b9c449423dba18d5fdf854547ee9f78cc5b27e1dcf0d04",
+      "size": 1505,
+      "normalized_sha256": "da2789a09a0f1ea432b9c449423dba18d5fdf854547ee9f78cc5b27e1dcf0d04"
+    },
+    "web/src/features/exercise/ExerciseMediaPanel.tsx": {
+      "role": "index",
+      "sha256": "8c986963787c3baf8d737ab7667814dbbc55907522c1ab8d03bfa0f73f89bf2d",
+      "size": 2253,
+      "normalized_sha256": "8c986963787c3baf8d737ab7667814dbbc55907522c1ab8d03bfa0f73f89bf2d"
+    },
+    "web/src/features/exercise/exercise-media-panel.css": {
+      "role": "index",
+      "sha256": "2eabae611d3f1600bcaa921e7f48a3e4aff4c854afcee1ef83243a762b3a39c6",
+      "size": 730,
+      "normalized_sha256": "2eabae611d3f1600bcaa921e7f48a3e4aff4c854afcee1ef83243a762b3a39c6"
+    },
+    "web/src/features/exercise/exerciseMediaCatalog.test.ts": {
+      "role": "observe",
+      "sha256": "24623c383b7fbe26d50de1389ae6aaf6055157460b45d766743c54edf1faeadf",
+      "size": 839,
+      "normalized_sha256": "24623c383b7fbe26d50de1389ae6aaf6055157460b45d766743c54edf1faeadf"
+    },
+    "web/src/features/exercise/exerciseMediaCatalog.ts": {
+      "role": "index",
+      "sha256": "892a09be9eedbce5b821d7c61b11f48ebc38f8427d8c799cd319225d24a22644",
+      "size": 5503,
+      "normalized_sha256": "892a09be9eedbce5b821d7c61b11f48ebc38f8427d8c799cd319225d24a22644"
+    },
+    "web/src/features/plan/ExerciseSearchPicker.tsx": {
+      "role": "index",
+      "sha256": "f04a753972fcd81e8f3d7a57365b888e851caa369f69d96e25505544a31db58a",
+      "size": 2168,
+      "normalized_sha256": "f04a753972fcd81e8f3d7a57365b888e851caa369f69d96e25505544a31db58a"
+    },
+    "web/src/features/plan/PlanBuilder.tsx": {
+      "role": "index",
+      "sha256": "64c06b49df24a81007f8ba906eda2c5dd904d40f597bb9319bdc5dedfd8978c1",
+      "size": 6012,
+      "normalized_sha256": "64c06b49df24a81007f8ba906eda2c5dd904d40f597bb9319bdc5dedfd8978c1"
+    },
+    "web/src/features/plan/PlanDayEditor.tsx": {
+      "role": "index",
+      "sha256": "011d6ff1a11b4b019b3199ca78e734b462278b68b367365d7e99dc2aa70e9fa5",
+      "size": 5375,
+      "normalized_sha256": "011d6ff1a11b4b019b3199ca78e734b462278b68b367365d7e99dc2aa70e9fa5"
+    },
+    "web/src/features/plan/PlanDetailPanel.test.tsx": {
+      "role": "observe",
+      "sha256": "e6f47446cad449d0217ba10c0567a9accc26f185ca737fdf4fa4694b913a715a",
+      "size": 4271,
+      "normalized_sha256": "e6f47446cad449d0217ba10c0567a9accc26f185ca737fdf4fa4694b913a715a"
+    },
+    "web/src/features/plan/PlanDetailPanel.tsx": {
+      "role": "index",
+      "sha256": "0623badedce29ade4d346fad9c87a72973cc0912ae407118cd691a37a7231693",
+      "size": 5066,
+      "normalized_sha256": "0623badedce29ade4d346fad9c87a72973cc0912ae407118cd691a37a7231693"
+    },
+    "web/src/features/plan/PlanPresetPicker.tsx": {
+      "role": "index",
+      "sha256": "5d7c4c9fae8031a49f1077e407c58b716d7ac5dfe55f134a07ffe02f83e2dbc1",
+      "size": 2435,
+      "normalized_sha256": "5d7c4c9fae8031a49f1077e407c58b716d7ac5dfe55f134a07ffe02f83e2dbc1"
+    },
+    "web/src/features/plan/activePlanQuery.ts": {
+      "role": "index",
+      "sha256": "6bfe0fea2d9e8de106e96c3280b531317a1a0f281ca9189e03abeef3a0b26231",
+      "size": 624,
+      "normalized_sha256": "6bfe0fea2d9e8de106e96c3280b531317a1a0f281ca9189e03abeef3a0b26231"
+    },
+    "web/src/features/plan/plan-builder.css": {
+      "role": "index",
+      "sha256": "6eb4dd09bac44f241a38a5f3ac3ebaf137230539a794014a87b254a37cb9f1f3",
+      "size": 4424,
+      "normalized_sha256": "6eb4dd09bac44f241a38a5f3ac3ebaf137230539a794014a87b254a37cb9f1f3"
+    },
+    "web/src/features/plan/plan-detail-panel.css": {
+      "role": "index",
+      "sha256": "5174cbf1e447c6787771ba4a713ea12c866910f8ca536fd88c539932a2025517",
+      "size": 1938,
+      "normalized_sha256": "5174cbf1e447c6787771ba4a713ea12c866910f8ca536fd88c539932a2025517"
+    },
+    "web/src/features/plan/plan-preset-picker.css": {
+      "role": "index",
+      "sha256": "d1ac7448c51b0e4da0720dac737d89efef7a8dcbb9fb3d9cb7873ee59ed9b871",
+      "size": 800,
+      "normalized_sha256": "d1ac7448c51b0e4da0720dac737d89efef7a8dcbb9fb3d9cb7873ee59ed9b871"
+    },
+    "web/src/features/plan/planBuilderModel.test.ts": {
+      "role": "observe",
+      "sha256": "cb93768ae5325706705059cde4db1662ab013ae4f41f7332c0b5fcfeb59726b8",
+      "size": 1516,
+      "normalized_sha256": "cb93768ae5325706705059cde4db1662ab013ae4f41f7332c0b5fcfeb59726b8"
+    },
+    "web/src/features/plan/planBuilderModel.ts": {
+      "role": "index",
+      "sha256": "0df9c30b1f1d22af3d6b0e086bde590973c5d6208d0c5090e1602c2fc491394c",
+      "size": 3760,
+      "normalized_sha256": "0df9c30b1f1d22af3d6b0e086bde590973c5d6208d0c5090e1602c2fc491394c"
+    },
+    "web/src/features/plan/planPresets.ts": {
+      "role": "index",
+      "sha256": "ef8f5185b3c78849a3b9e215c860eaa807e66177bb8f113735dd785b21268580",
+      "size": 4958,
+      "normalized_sha256": "ef8f5185b3c78849a3b9e215c860eaa807e66177bb8f113735dd785b21268580"
+    },
+    "web/src/features/workout/QuickSetForm.test.tsx": {
+      "role": "observe",
+      "sha256": "5c949c0712c7d8b7984ef50c3c7f1e434457217473a225965785a7b577c770ce",
+      "size": 3731,
+      "normalized_sha256": "5c949c0712c7d8b7984ef50c3c7f1e434457217473a225965785a7b577c770ce"
+    },
+    "web/src/features/workout/QuickSetForm.tsx": {
+      "role": "index",
+      "sha256": "9a4d55e89c17fa638a35160df5c7f549418ba2a412da21e8ae5a15e772985e81",
+      "size": 5037,
+      "normalized_sha256": "c430ee19502f241d4afe43e6044f3190a27e1d0255b6696b4ee5b2becef3753f"
+    },
+    "web/src/features/workout/WorkoutExerciseGuide.tsx": {
+      "role": "index",
+      "sha256": "e073b921afcafe26eb6917b42744f31634df9fb12ab6cf690f44c4c872e9a18b",
+      "size": 2505,
+      "normalized_sha256": "e073b921afcafe26eb6917b42744f31634df9fb12ab6cf690f44c4c872e9a18b"
+    },
+    "web/src/features/workout/WorkoutFeedbackForm.test.tsx": {
+      "role": "observe",
+      "sha256": "34df42dc47b4eafe519e219f3a9fc05d193c27e24aced9ada4e23180e6bbdae9",
+      "size": 1657,
+      "normalized_sha256": "34df42dc47b4eafe519e219f3a9fc05d193c27e24aced9ada4e23180e6bbdae9"
+    },
+    "web/src/features/workout/WorkoutFeedbackForm.tsx": {
+      "role": "index",
+      "sha256": "6ee4c46228f715be1534c1821c40986f86d0edc20f850e1c2ece21401e45204a",
+      "size": 1516,
+      "normalized_sha256": "6ee4c46228f715be1534c1821c40986f86d0edc20f850e1c2ece21401e45204a"
+    },
+    "web/src/features/workout/WorkoutHistoryPanel.tsx": {
+      "role": "index",
+      "sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2",
+      "size": 4562,
+      "normalized_sha256": "d40d1ec980bc4412cf67cda8d795fe8836e77cf6821fb93fbf84e3a35baa27d2"
+    },
+    "web/src/features/workout/WorkoutProgressSummary.tsx": {
+      "role": "index",
+      "sha256": "19f4450ef65918c9d66ee4f2a92b9809a6a815698cbf8607172a4aeebc8612fa",
+      "size": 1450,
+      "normalized_sha256": "19f4450ef65918c9d66ee4f2a92b9809a6a815698cbf8607172a4aeebc8612fa"
+    },
+    "web/src/features/workout/WorkoutRestTimer.tsx": {
+      "role": "index",
+      "sha256": "e2233f08111f8c03e38e08d8b38677d1cddee05f7a90c0c4d42c495520b81524",
+      "size": 2092,
+      "normalized_sha256": "e2233f08111f8c03e38e08d8b38677d1cddee05f7a90c0c4d42c495520b81524"
+    },
+    "web/src/features/workout/WorkoutSetEditor.test.tsx": {
+      "role": "observe",
+      "sha256": "6e342cc2933f51452e586047800cb554849fbdac980ccebfc57b55b7ebecabbd",
+      "size": 2166,
+      "normalized_sha256": "6e342cc2933f51452e586047800cb554849fbdac980ccebfc57b55b7ebecabbd"
+    },
+    "web/src/features/workout/WorkoutSetEditor.tsx": {
+      "role": "index",
+      "sha256": "d8f3a5e4d75c87843ae1513220e0ed591ac354a7a3ac612e96181fce24cc6106",
+      "size": 4465,
+      "normalized_sha256": "d8f3a5e4d75c87843ae1513220e0ed591ac354a7a3ac612e96181fce24cc6106"
+    },
+    "web/src/features/workout/syncWorkoutQueue.ts": {
+      "role": "index",
+      "sha256": "43997e1e5abf61b41067b08912429c4363d72e4e440916d198dfc17ab447e4c9",
+      "size": 2669,
+      "normalized_sha256": "0727cd022d2866db1bf6a48ee8f91240224ee1d0f44992eeb9d9981472acab38"
+    },
+    "web/src/features/workout/useWorkoutRecovery.ts": {
+      "role": "index",
+      "sha256": "2537fa0fec3a1ea80ae1d5cc737dfa28a158aa13ddf5b1eef19d3d324513b1f5",
+      "size": 6302,
+      "normalized_sha256": "e059ae536000eb7bd88ba5b67dc65bde9dbf2c06b49c7763eb023ef9462699f7"
+    },
+    "web/src/features/workout/workout-exercise-guide.css": {
+      "role": "index",
+      "sha256": "dbdf23bd976f1f4f3ac0102a1c8cb38646be66cfa4fdc83bc50359b35ac4421f",
+      "size": 300,
+      "normalized_sha256": "dbdf23bd976f1f4f3ac0102a1c8cb38646be66cfa4fdc83bc50359b35ac4421f"
+    },
+    "web/src/features/workout/workout-history-panel.css": {
+      "role": "index",
+      "sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090",
+      "size": 926,
+      "normalized_sha256": "6ca599fa016fe102c331073b5684267200192af9e7dc67e7228d0614d3d89090"
+    },
+    "web/src/features/workout/workout-progress.css": {
+      "role": "index",
+      "sha256": "987416248ec0d2b4d23b1a4f8267ac51f9720998500abaf7a5e7f8b0d88dac02",
+      "size": 888,
+      "normalized_sha256": "987416248ec0d2b4d23b1a4f8267ac51f9720998500abaf7a5e7f8b0d88dac02"
+    },
+    "web/src/features/workout/workout-rest-timer.css": {
+      "role": "index",
+      "sha256": "1caae7974721c7c7f62f19541f98bfb5073e2735f75d2a936217b32d9e5fb011",
+      "size": 466,
+      "normalized_sha256": "1caae7974721c7c7f62f19541f98bfb5073e2735f75d2a936217b32d9e5fb011"
+    },
+    "web/src/features/workout/workout-set-editor.css": {
+      "role": "index",
+      "sha256": "e8d35e3e21ff67fcb517de0cfedf3821efd8ea738227f5a93f4492ea49c9fcbf",
+      "size": 2111,
+      "normalized_sha256": "e8d35e3e21ff67fcb517de0cfedf3821efd8ea738227f5a93f4492ea49c9fcbf"
+    },
+    "web/src/features/workout/workoutProgress.ts": {
+      "role": "index",
+      "sha256": "889d3095c184280538d4ae5dec4d5749326c710bd3ee6a1dc8fa3365430f6c3d",
+      "size": 746,
+      "normalized_sha256": "889d3095c184280538d4ae5dec4d5749326c710bd3ee6a1dc8fa3365430f6c3d"
+    },
+    "web/src/features/workout/workoutRecovery.test.ts": {
+      "role": "observe",
+      "sha256": "eb1faa3a5ecaae02a1bed5944e4ffde90138abca23c5435706f6dd356c423c07",
+      "size": 5577,
+      "normalized_sha256": "eb1faa3a5ecaae02a1bed5944e4ffde90138abca23c5435706f6dd356c423c07"
+    },
+    "web/src/features/workout/workoutRecoveryStore.ts": {
+      "role": "index",
+      "sha256": "259a98fd3f81a302e00a322dfd556c1176e93cd07de2cacd4682593f1b98ae57",
+      "size": 6676,
+      "normalized_sha256": "259a98fd3f81a302e00a322dfd556c1176e93cd07de2cacd4682593f1b98ae57"
+    },
+    "web/src/main.tsx": {
+      "role": "index",
+      "sha256": "d0e5bdabb088814435c84bb9922c0a6140632cbfc3a2bd0a7534551a5f81711f",
+      "size": 922,
+      "normalized_sha256": "d0e5bdabb088814435c84bb9922c0a6140632cbfc3a2bd0a7534551a5f81711f"
+    },
+    "web/src/pages/AuthPage.test.tsx": {
+      "role": "observe",
+      "sha256": "ca4565d2d0821df25cc9d42dd1c9b5e9af89dc404597ab8cd30845857f6bb2bf",
+      "size": 2521,
+      "normalized_sha256": "6eb0ffe59951c2e07ebfcd24b57e4bd1e2135eb63f8a927d1fcd444ff864d489"
+    },
+    "web/src/pages/AuthPage.tsx": {
+      "role": "index",
+      "sha256": "54efd91b707435582500052505a45958c894154fae3df4f87eb2d8e9687d8390",
+      "size": 4408,
+      "normalized_sha256": "54efd91b707435582500052505a45958c894154fae3df4f87eb2d8e9687d8390"
+    },
+    "web/src/pages/CoachPage.test.tsx": {
+      "role": "observe",
+      "sha256": "9a5d18c720f6e44406730447d95668815132654cb94a8a36496c4b3d960d52a9",
+      "size": 3852,
+      "normalized_sha256": "9a5d18c720f6e44406730447d95668815132654cb94a8a36496c4b3d960d52a9"
+    },
+    "web/src/pages/CoachPage.tsx": {
+      "role": "index",
+      "sha256": "46b0ebc040f09813f0b812b489df8d76b3f6617812978d767ada2b262cd45f22",
+      "size": 13289,
+      "normalized_sha256": "46b0ebc040f09813f0b812b489df8d76b3f6617812978d767ada2b262cd45f22"
+    },
+    "web/src/pages/DashboardPage.test.tsx": {
+      "role": "observe",
+      "sha256": "991cb4b4225c06baba451b573a2cdc9c9ab78898704751c2f2b9bf2ea42d1b0d",
+      "size": 2009,
+      "normalized_sha256": "991cb4b4225c06baba451b573a2cdc9c9ab78898704751c2f2b9bf2ea42d1b0d"
+    },
+    "web/src/pages/DashboardPage.tsx": {
+      "role": "index",
+      "sha256": "f6eea95ed2a4b950c1e14782c2afa8b8920474867523ac235df8de59ec1e1282",
+      "size": 4859,
+      "normalized_sha256": "f6eea95ed2a4b950c1e14782c2afa8b8920474867523ac235df8de59ec1e1282"
+    },
+    "web/src/pages/ExercisesPage.tsx": {
+      "role": "index",
+      "sha256": "fa0d78f1e6eba0cf0249cb2b60f47ce0a2ef64e68d43d0cd965edf0ef954e062",
+      "size": 3752,
+      "normalized_sha256": "fa0d78f1e6eba0cf0249cb2b60f47ce0a2ef64e68d43d0cd965edf0ef954e062"
+    },
+    "web/src/pages/NotificationsPage.tsx": {
+      "role": "index",
+      "sha256": "79556c1e9a643507dadf6756b50c58a61da1d15614582727576d6df69d1da6f3",
+      "size": 2374,
+      "normalized_sha256": "79556c1e9a643507dadf6756b50c58a61da1d15614582727576d6df69d1da6f3"
+    },
+    "web/src/pages/PlansPage.test.tsx": {
+      "role": "observe",
+      "sha256": "88e34895419fe7ca9aa4db92f79697efe94868907b91bbbf522f134f305da9da",
+      "size": 5475,
+      "normalized_sha256": "88e34895419fe7ca9aa4db92f79697efe94868907b91bbbf522f134f305da9da"
+    },
+    "web/src/pages/PlansPage.tsx": {
+      "role": "index",
+      "sha256": "9156a170a738a917343332021a196becec505cb43c1b733ce6be54204b1ce905",
+      "size": 5486,
+      "normalized_sha256": "9156a170a738a917343332021a196becec505cb43c1b733ce6be54204b1ce905"
+    },
+    "web/src/pages/ProfilePage.tsx": {
+      "role": "index",
+      "sha256": "2c609b7c0dc15b8e7ba43a60242b3c7e2b2b689384e1bbc0be6593e8f358e74b",
+      "size": 7305,
+      "normalized_sha256": "2c609b7c0dc15b8e7ba43a60242b3c7e2b2b689384e1bbc0be6593e8f358e74b"
+    },
+    "web/src/pages/ProgressPage.tsx": {
+      "role": "index",
+      "sha256": "1cee129b1a395024c6003725b949bf9b0176e67309262987b6e67a4bb5864c31",
+      "size": 4269,
+      "normalized_sha256": "1cee129b1a395024c6003725b949bf9b0176e67309262987b6e67a4bb5864c31"
+    },
+    "web/src/pages/SecondaryPages.test.tsx": {
+      "role": "observe",
+      "sha256": "219863701c45e753585b4ea2b6db9daba1e44a76b9376df095273d72c88f67c2",
+      "size": 4125,
+      "normalized_sha256": "219863701c45e753585b4ea2b6db9daba1e44a76b9376df095273d72c88f67c2"
+    },
+    "web/src/pages/WorkoutsPage.test.tsx": {
+      "role": "observe",
+      "sha256": "a6f1e736f15b0c6feb81d664a87d57b2f82e76106d1bd7801de6c638392375c8",
+      "size": 16686,
+      "normalized_sha256": "98f3eedfbf3357694ecc6c233da65c31be259b2d3ad7c692f46c57bd437a6789"
+    },
+    "web/src/pages/WorkoutsPage.tsx": {
+      "role": "index",
+      "sha256": "a30c56276a28b08d7f5b95e1b9fe2a2bb889cf3d14c554ac25a360ddd1577d11",
+      "size": 14205,
+      "normalized_sha256": "76298df19b15a7ba61fb262d5ad7a6d119603fd82a0a31400e0c30f2acb00d5d"
+    },
+    "web/src/styles.css": {
+      "role": "index",
+      "sha256": "3d0cbebe3cbc648ed0c89260fd5e70e248607bca92ee6b865e456f92f5a3b816",
+      "size": 23021,
+      "normalized_sha256": "3d0cbebe3cbc648ed0c89260fd5e70e248607bca92ee6b865e456f92f5a3b816"
+    },
+    "web/src/test/render.tsx": {
+      "role": "index",
+      "sha256": "0ad561c2119659e88b9685dd85c2bbb794836aed1aabe1b68db8c2de738a2f1d",
+      "size": 767,
+      "normalized_sha256": "0ad561c2119659e88b9685dd85c2bbb794836aed1aabe1b68db8c2de738a2f1d"
+    },
+    "web/src/test/server.ts": {
+      "role": "index",
+      "sha256": "2d3f8b9f6a0c4645c73de5b86eb38a7adbf92dcd62d638eee3e9addfcc03b631",
+      "size": 78,
+      "normalized_sha256": "2d3f8b9f6a0c4645c73de5b86eb38a7adbf92dcd62d638eee3e9addfcc03b631"
+    },
+    "web/src/test/setup.ts": {
+      "role": "index",
+      "sha256": "af928434dd7a053208575b3d31a6db83f4ad8398e1a0052b743dc71184cec862",
+      "size": 721,
+      "normalized_sha256": "a64780bf377cdc54dce575fad30399526401fc46860c615690f95f354fb16f1d"
+    },
+    "web/src/vite-env.d.ts": {
+      "role": "index",
+      "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92",
+      "size": 39,
+      "normalized_sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    "web/tsconfig.json": {
+      "role": "index",
+      "sha256": "1d8bc5b779137bb8f0dbd5521f26706b58a4cfe1745850fe17f3a3518b645a08",
+      "size": 409,
+      "normalized_sha256": "1d8bc5b779137bb8f0dbd5521f26706b58a4cfe1745850fe17f3a3518b645a08"
+    },
+    "web/vite.config.ts": {
+      "role": "index",
+      "sha256": "29ff2be950ec162342cc250b84a885e57baa7ad54780dd8dbbde5528080a2bd6",
+      "size": 1956,
+      "normalized_sha256": "29ff2be950ec162342cc250b84a885e57baa7ad54780dd8dbbde5528080a2bd6"
+    },
+    "web/vitest.config.ts": {
+      "role": "index",
+      "sha256": "99382c18226283f762804d2296081a546c48923eb42859292ca6183e91c16d2d",
+      "size": 647,
+      "normalized_sha256": "99382c18226283f762804d2296081a546c48923eb42859292ca6183e91c16d2d"
+    }
+  },
+  "managed_scope": {
+    "version": "managed-scope-baseline/v1",
+    "policy_identity": "e0f548d87fe5462c412a1c54409871a60ddf2ae5c30609258ff8739fdfcc8e76",
+    "observe_change_policy": "review_required",
+    "budget_policy_identity": "15e9b37a6c57e9bf03c9df3d0d049eb5b9a7f5540f9d34960408114e2538a32d",
+    "budget_policy": {
+      "version": "cognition-budget-policy/v1",
+      "mode": "enforce",
+      "whole_index": {
+        "target_tokens": 200000,
+        "warning_tokens": 300000,
+        "max_tokens": 400000
+      },
+      "r": [
+        {
+          "min_c": 1,
+          "max_c": 4,
+          "target_tokens": 25,
+          "max_tokens": 50
+        },
+        {
+          "min_c": 5,
+          "max_c": 7,
+          "target_tokens": 45,
+          "max_tokens": 90
+        },
+        {
+          "min_c": 8,
+          "max_c": 8,
+          "target_tokens": 70,
+          "max_tokens": 140
+        },
+        {
+          "min_c": 9,
+          "max_c": 9,
+          "target_tokens": 90,
+          "max_tokens": 180
+        }
+      ],
+      "s": [
+        {
+          "min_c": 1,
+          "max_c": 4,
+          "target_tokens": 20,
+          "max_tokens": 40
+        },
+        {
+          "min_c": 5,
+          "max_c": 7,
+          "target_tokens": 40,
+          "max_tokens": 80
+        },
+        {
+          "min_c": 8,
+          "max_c": 8,
+          "target_tokens": 70,
+          "max_tokens": 140
+        },
+        {
+          "min_c": 9,
+          "max_c": 9,
+          "target_tokens": 100,
+          "max_tokens": 200
+        }
+      ]
+    },
+    "apply_authorization_mode": "auto"
+  },
+  "database_cognition": {
+    "version": "database-cognition-binding/v1",
+    "entries": [
+      {
+        "object_ref": "database://fitpilot/public/agent_eval_result",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "42a89f8cd383837dcec17a09d8832cc7fe57a0ef6da62c3abe085e4f022617c6",
+        "entry_sha256": "8b70d7b4ddb69e9f30d1e6d2eb3027b56b952657929df8343854ea8ccd67d1cb"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_eval_run",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "bb36c6821d481220a38be6643211a7d8209b1eb2bd74428d1091916f56bdd53c",
+        "entry_sha256": "6f2bcc10310632a50d254ac75c687f94615ebae1db6c9045dbbbf48e1a881a31"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_execution",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6ab3e99cf40264001a54264d9006a82e8e2951a67c949c1eaf43c2108ca6017a",
+        "entry_sha256": "19123a167225c9486351f1459ef42645a3df3588f7331d25a7ca0bd2c1f2730c"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_memory",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "611ba3028848b5dafe80afec2df1569bfaa62633c8f7e9e7577f0183d5532971",
+        "entry_sha256": "8023a15d206775d45bb2b01a14c87e228f983ff7cda0da5d613aea4b82f49eb6"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_message",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6fe58ebc9b03f4f765b10def811239596f8c3a5260f6c8c6bf1e5a7b0587198a",
+        "entry_sha256": "26a6e8960ba5e6c03f188dd3508fd9534e16f4a67834636bfa262273e20e3d41"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_pending_action",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "da8083ae62169b658a07388b223cdd373cf222762c4acf6cde34e4f666eece89",
+        "entry_sha256": "d7d7793d6e4523e9d2cb62ec8404882ac9442b6e0ee55f53ce4fa34e169fcfef"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_session",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "0c13ab9d8369f882a42ba0d4132796e406dc351990ef806ab6541f86891d0197",
+        "entry_sha256": "3e73a788838831eed3651f073f50b0c8695fccc681c58b1fca7f90bc4cdcb1fe"
+      },
+      {
+        "object_ref": "database://fitpilot/public/agent_tool_call",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "62d42a0b7112690a30c176a2229d13a9ba118f77e36b7581cea2932bc5973999",
+        "entry_sha256": "736a8eda1c2755f48788404d481cbac74ffac9f762ad7ed465cf6dc9773abdd2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/body_metric",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "b779413d8e6db3743b09a8b36eb4354507b53cb2771c8f31b247982e6b50a06e",
+        "entry_sha256": "9387185416fa198cc4a63c4ee5228cae4864f5f353600d594916a6cf8fcc9d06"
+      },
+      {
+        "object_ref": "database://fitpilot/public/dead_letter_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6eb6ebda2c3943a71bc10e1cdbbaf8004f04085269122ac5f1ecee0e045d5fdd",
+        "entry_sha256": "e8bdd73fe82ac7d72ed406477fad28b0ff1d5261a574ce4d4ceaaf32b2aa4b89"
+      },
+      {
+        "object_ref": "database://fitpilot/public/exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "6a9242f059639b3c45d9c53f954de785a4ce101ad5d4698e0a5e7fca9b13b484",
+        "entry_sha256": "594067732d2e6124965ab7aed1941476adfe7d370d988138d6a607af9cc89196"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_chunk",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "057e28199793554b7c18e4f4919ba4713d2701ac9b099a7a1cdff881161b24ac",
+        "entry_sha256": "703b183e3e73a3d4f6aee6641aa3f2c1824a9d91bc9f0337079c21382659bef7"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_document",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "3ca6cdd0eb8f6a786614cd634160cebee148d72fd9d3f837548bc24bd2ca6094",
+        "entry_sha256": "a68193a007dbc943bbae568b7a3e34b2bb2ab4fdc9f69bdf103d283f695349e7"
+      },
+      {
+        "object_ref": "database://fitpilot/public/knowledge_document_revision",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "d67eca8d940674d091da25ce950bc77d900fcecc45fa57d3da4a6987544321ce",
+        "entry_sha256": "964dded41c92f1f177e529b8a8e825d4202dfeb73b780af06c8529826db5adc2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/llm_invocation",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "529c89ef958a0565fdc2a39447b271e8cde17c1175b2aa4f1ebde53a4e4617f9",
+        "entry_sha256": "7d2f672a0ecff97966310501d55aa2ba98e592f20f9bdc1776bfe61de36b15de"
+      },
+      {
+        "object_ref": "database://fitpilot/public/outbox_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "204af8b455fbefedae96ba5f0a5216448c59bfdf1ac167072e79086380a2ba65",
+        "entry_sha256": "b96b9954861d614e18a2051a36aed56027934e6843b77eddcde770cc7017987f"
+      },
+      {
+        "object_ref": "database://fitpilot/public/personal_record",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "8eebfa65624cb6c334c439a4fc42708bc0eae104e803983b6d89dd0aabd05b90",
+        "entry_sha256": "d986110e921f8c9b456d2db367c5174f2bd7872b127f12ceb41f950bda57c19e"
+      },
+      {
+        "object_ref": "database://fitpilot/public/plan_adjustment",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "4989dc925963f5f84e06f446899454914c42377bd3075d5c6eacadd603c5853c",
+        "entry_sha256": "2c988ebadbfd328e2597f7b5516e56f96845b04338de8ae6669d1a689d385507"
+      },
+      {
+        "object_ref": "database://fitpilot/public/processed_event",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c0792f372893ee0c4ec5708655f2007df8ac77e2ea1022e3ccce8de77b7f5aa9",
+        "entry_sha256": "cf1771bdc1e69d0d07edda2675b80f40a2218d8e7828fae1047820e6ba64f5d1"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_deletion_task",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c4de7e60f652d6fd65bfa61e4661c3237f43e1dc9b06ca1a7616c1e4f1d37b70",
+        "entry_sha256": "c5e0e1f6766d0dc2f27bb28e69b554b99478b0797e6dc7f5dfee28b58c81ae61"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_dynamic_eval_case",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "810270597bf392fc02b09ef043720afb0d96c1662d7992931d6f5453524fb096",
+        "entry_sha256": "d5ef3ddc6977bfaa4638244ea4f7f8e3a4d29dc963c1e19bea8e41977f05be03"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_eval_result",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "5e26fc7d2409cf7f502af594474b1d4fd99f1f3cfda62c36413e97b238eabe7f",
+        "entry_sha256": "10475ebfef1b8bb88437d119f7335ce9f5786c1101b12ce021fdb49ce4d9a333"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_eval_run",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "60690ef2749965e2f2c95ba181b8841ab3fa5a044b131286610471d2576d94b8",
+        "entry_sha256": "e94fc2ff6b801fbbc3d9e5ceabc95be432ca6533515d2704643e030a929179e7"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_feedback",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "1605826cf54862bd4cc2e932fa7cd8013cc23142cbbae91271ad62b4f431fc90",
+        "entry_sha256": "1e78d20f5f652862e8feed8ffce1e51b08894289233843077ff6bc8f07b34497"
+      },
+      {
+        "object_ref": "database://fitpilot/public/rag_retrieval",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "bacd71dd51b0c6f22fa8dbc0a7102427b3006fb4cc8c634c71c174ea33ab7922",
+        "entry_sha256": "4e39049617dbdebad2c2f13c84312d6f1bc35cbf9d3751625d03fc026dab33d6"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "5a081f792a94475277cb49b38bb4b46602adfa40c2d7f6e4961013a610f04fa2",
+        "entry_sha256": "21c795e36f3aa3d0aa82b658a47ba8fc465937fd8ae68b8d78061406fb0a67cf"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan_day",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "23f499bb209e95401da6782cbfc607b3a20fcc37990c12e5fcb40db3af166d19",
+        "entry_sha256": "d7b9887ae4f68a98a3d25b6ba3921777d4fbaf0c15ba8368017f395fcc4cd9c1"
+      },
+      {
+        "object_ref": "database://fitpilot/public/training_plan_exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "8e17497b55c7f84c42370792e534d48575d1372d40aa63fd5ae08f8cc512044b",
+        "entry_sha256": "efd93e6e038fe902fdf0b9fc804adb6c6b676249e132e7a106ad2f748c6b2567"
+      },
+      {
+        "object_ref": "database://fitpilot/public/user_notification",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "7023aeab7a6bb6412f27f9da8c29b9add7a7b1caf09475100364c9fa987c5310",
+        "entry_sha256": "d7b669b7b5b8f257e477af269cf0c68fb32d64a062fc5a343e8081981e00cfae"
+      },
+      {
+        "object_ref": "database://fitpilot/public/user_profile",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "fc77e285a29c39f95e0ce2324d40429891c1a55d6028116719e0ff69ead79a01",
+        "entry_sha256": "290407a5ec94d6cdc765097c00b523ef159dfd43f591928d93ca04b0bf81c5a2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/users",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "2c1c08145d26324249facae56f8a5d5e5b20d1ef000f1bb69c581ace21cdbf14",
+        "entry_sha256": "a5cd4cb69e85d16a13909986d9d4afa87b02c3664f61f2a782ab85f010bd94ee"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "e7c6b7d513681f286f9dcdaf42cd4b0433d620fa34e36e10725d5bf8a2efc438",
+        "entry_sha256": "7ff0c13fab2165b0f8a1047fe0e93e852a75d7578ca418ce7ba7cfeb5d4ae1c2"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_analytics_projection",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "11afa4daa3b5f0da524d6ed40348b0f144051200702b4b83c813ad364695c18a",
+        "entry_sha256": "09842dcc4d01fa7ac5ba0fa57a4c6e1de54b87b97c5e5c84df867f09dd922103"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_exercise",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "acc2d4e70b40f69fc3439f2269c5b448cfb74134fcc35d838b44894145a2d294",
+        "entry_sha256": "ec5848ead4834f1566eb215be9e274ee677b47dab323d60f435d131e6a6cd6d5"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_feedback",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "51e132f75fadfb26e8546eb41b00b798ed00419e4b16560d03cb14508c129923",
+        "entry_sha256": "cf3c6b206e29f9dd1f24c18e71d718224d6d799050b3521f2325abc17a8d0a13"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_set",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "c84c47f857241bc18eea4453ced6ff1a8e4b05d73d5a9001470943dfcc920706",
+        "entry_sha256": "104b89e572adac8573e82555d86db81b44112941073b1aee4729736f7c3bad3e"
+      },
+      {
+        "object_ref": "database://fitpilot/public/workout_set_receipt",
+        "source_id": "fitpilot",
+        "evidence_version": "database-evidence/v1",
+        "table_evidence_sha256": "ded3e2b1bf38c7a6bf1566a4c969a1140915af174bf9a281cba1b388bc37ae6f",
+        "entry_sha256": "821052ffa75da2b2d8eb4a3b6dbcebf9ea3e8644244a3a86097fce490c5c8ef2"
+      }
+    ]
+  }
+}

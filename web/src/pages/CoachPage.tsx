@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Bot, Send, ShieldCheck } from "lucide-react";
-import { clearPendingAction, storePendingAction } from "../agent/pendingActionStorage";
-import { clearAgentSession, loadAgentSession, storeAgentSession } from "../agent/sessionStorage";
+import { clearPendingAction, storePendingAction } from "../features/agent/storage/pendingActionStorage";
+import { clearAgentSession, loadAgentSession, storeAgentSession } from "../features/agent/storage/sessionStorage";
 import { accessTokenSubject, api, ApiError } from "../api/client";
 import type {
   AgentPendingAction,
